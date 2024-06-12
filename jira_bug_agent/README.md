@@ -12,9 +12,15 @@ The mule flow uses the following connectors:
 - The LLM configuration used in this mule flow is **OpenAI**.
 - **Jira Cloud** was used to build this mule flow. You can register for the Jira Free Plan for this demo: https://www.atlassian.com/try/cloud/signup?bundle=jira-software&edition=free
 
+## Jira Mule Flow 
+
+![App Screenshot](src/main/resources/jira_bug_agent.png)
+
+This mule flows is tracking each new and/or updated bug in Jira to start the assessment with MuleChain using a defined Prompt Template and Sentiment Analyzer. 
+
+
 ## Configuration
 The mule apps maintains a connections.yaml file under ``/jira_bug_agent/src/main/resources/connections.yaml``, which contains all required parameters to establish the connection. Fill out the following configuration to use this Jira agent. 
-
 
 ```yaml
 jira:
@@ -38,15 +44,19 @@ The configuration property `api-key-openai-demo`is linked to the *Llm api key* f
 ![App Screenshot](src/main/resources/mule-chain-config.png)
 
 ### Jira configuration
-The configuration property `user`, `api-token`, and `url` are linked to the *Jira Connection Config*. The api token for Jira Cloud can be generated using the following link: https://id.atlassian.com/manage-profile/security/api-tokens
-
+The configuration property `user`, `api-token`, and `url` are linked to the *Jira Connection Config*. 
 ![App Screenshot](src/main/resources/Jira-config.png)
 
-## Jira Mule Flow 
+#### Additional remarks
+- The api token for Jira Cloud can be generated using the following link: https://id.atlassian.com/manage-profile/security/api-tokens
+- 2 custom fields need to be created for this mule flow in Jira. 
+  - *AI Summary* - field where the flow will write suggestion based on AI
+  - *Sentiment* - field to highlight the sentiment of the bug
+  - After creating the 2 fields, the technical name need to be replaced in the Transform Message before Editing the Jira issue in the mule flow.
 
-![App Screenshot](src/main/resources/jira_bug_agent.png)
 
-This mule flows is tracking each new and/or updated bug in Jira to start the assessment with MuleChain using a defined Prompt Template and Sentiment Analyzer. 
+![App Screenshot](src/main/resources/jira-custom-fields.png)
+
 
 ## Author
 
