@@ -38,7 +38,7 @@ The configuration property `api-key-openai-demo`is linked to the *Llm api key* f
 ![App Screenshot](src/main/resources/mule-chain-config.png)
 
 ### Jira configuration
-The configuration property `api-key-openai-demo`, `api-key-openai-demo`, and `api-key-openai-demo` are linked to the *Jira Connection Config*. The api token for Jira Cloud can be generated using the following link: https://id.atlassian.com/manage-profile/security/api-tokens
+The configuration property `user`, `api-token`, and `url` are linked to the *Jira Connection Config*. The api token for Jira Cloud can be generated using the following link: https://id.atlassian.com/manage-profile/security/api-tokens
 
 ![App Screenshot](src/main/resources/Jira-config.png)
 
