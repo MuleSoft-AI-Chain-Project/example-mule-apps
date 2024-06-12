@@ -59,6 +59,11 @@ The configuration property `user`, `api-token`, and `url` are linked to the *Jir
 
 <img src="src/main/resources/jira-custom-fields.png" width="50%" height="50%" />
 
+#### Start your app
+After configuring the Jira bug agent, let it run and test it out! 
+
+![App Screenshot](src/main/resources/RunAgent.png)
+
 ## Author
 
 - [@amirkhan-ak-sf](https://github.com/amirkhan-ak-sf)
