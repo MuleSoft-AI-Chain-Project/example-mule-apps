@@ -41,11 +41,13 @@ The connections.yaml is mapped to the dedicated connectors in the mule flow.
 ### MuleChain configuration
 The configuration property `api-key-openai-demo`is linked to the *Llm api key* field in the MuleChain configuration.
 
-![App Screenshot](src/main/resources/mule-chain-config.png)
+<img src="src/main/resources/mule-chain-config.png" width="50%" height="50%" />
 
 ### Jira configuration
 The configuration property `user`, `api-token`, and `url` are linked to the *Jira Connection Config*. 
-![App Screenshot](src/main/resources/Jira-config.png)
+
+<img src="src/main/resources/Jira-config.png" width="50%" height="50%" />
+
 
 #### Additional remarks
 - The api token for Jira Cloud can be generated using the following link: https://id.atlassian.com/manage-profile/security/api-tokens
@@ -55,8 +57,7 @@ The configuration property `user`, `api-token`, and `url` are linked to the *Jir
   - After creating the 2 fields, the technical name need to be replaced in the Transform Message before Editing the Jira issue in the mule flow.
 
 
-![App Screenshot](src/main/resources/jira-custom-fields.png)
-
+<img src="src/main/resources/jira-custom-fields.png" width="50%" height="50%" />
 
 ## Author
 
