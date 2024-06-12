@@ -67,6 +67,7 @@ After configuring the Jira bug agent, let it run and test it out!
 
 ## Watch the demo of the Jira Bug Agent
 A demo video to show case the ability of the Jira Bug Agent once deployed in Anypoint Platform. 
+
 [![Watch the video](https://i.ytimg.com/vi/2Bg8-lAFUxo/hqdefault.jpg?sqp=-oaymwE2CNACELwBSFXyq4qpAygIARUAAIhCGAFwAcABBvABAfgB_gmAAswFigIMCAAQARhhIGEoYTAP&rs=AOn4CLDGYnqID77C7TZJGVPoXp-Cces4rA)](https://www.youtube.com/watch?v=2Bg8-lAFUxo)
 
 
