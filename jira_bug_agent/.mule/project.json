@@ -1,0 +1,10 @@
+{
+  "modelVersion": "1.0.0",
+  "name": "jira_bug_agent",
+  "version": "1.0.0",
+  "source": "file:///Users/amir.khan/Documents/Github/mule-app-examples/jira_bug_agent/pom.xml",
+  "natures": [
+    "mule"
+  ],
+  "components": []
+}
