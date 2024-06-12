@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="con" path="MULE_LIB/com.mule.langchain/langchain-connector/0.1.54"/>
+	<classpathentry kind="con" path="MULE_LIB/com.mulesoft.connectors/mule4-jira-connector/1.2.11"/>
+	<classpathentry kind="con" path="MULE_LIB/org.mule.modules/mule-apikit-module/1.10.3"/>
+	<classpathentry kind="con" path="MULE_LIB/org.mule.connectors/mule-objectstore-connector/1.2.2"/>
+	<classpathentry kind="con" path="org.mule.tooling.API_SPEC_LIB/7b99cead-a984-497b-9e6c-c16a3b4dcb76/sentiment-analyzer/1.0.0"/>
+	<classpathentry kind="con" path="org.mule.tooling.MULE_PROJECT_LIB"/>
+	<classpathentry kind="con" path="MULE_LIB/org.mule.connectors/mule-http-connector/1.9.1"/>
+	<classpathentry exported="true" kind="con" path="MULE_RUNTIME/org.mule.tooling.server.4.7.ee"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="src" path="src/main/mule"/>
+	<classpathentry kind="src" path="src/main/java"/>
+	<classpathentry kind="src" path="src/main/resources"/>
+	<classpathentry kind="src" output="target/test-classes" path="src/test/java"/>
+	<classpathentry kind="src" output="target/test-classes" path="src/test/resources"/>
+	<classpathentry kind="src" path="src/test/munit"/>
+	<classpathentry kind="output" path="target/classes"/>
+</classpath>
