@@ -49,15 +49,22 @@ The configuration property `user`, `api-token`, and `url` are linked to the *Jir
 <img src="src/main/resources/Jira-config.png" width="50%" height="50%" />
 
 
-#### Additional remarks
+#### API Token
 - The api token for Jira Cloud can be generated using the following link: https://id.atlassian.com/manage-profile/security/api-tokens
-- 2 custom fields need to be created for this mule flow in Jira. 
-  - *AI Summary* - field where the flow will write suggestion based on AI
-  - *Sentiment* - field to highlight the sentiment of the bug
-  - After creating the 2 fields, the technical name need to be replaced in the Transform Message before Editing the Jira issue in the mule flow.
+
+#### Custom Fields (*AI Summary* and *Sentiment*)
+2 custom fields need to be created for this mule flow in Jira. 
+- *AI Summary* - field where the flow will write suggestion based on AI
+- *Sentiment* - field to highlight the sentiment of the bug
+- After creating the 2 fields, the technical name need to be replaced in the Transform Message before Editing the Jira issue in the mule flow.
 
 
 <img src="src/main/resources/jira-custom-fields.png" width="50%" height="50%" />
+
+#### Modify Jira Trigger
+Modify the trigger to change the start date and the jira project Id with your jira project Id as highlighted below. 
+
+<img src="src/main/resources/JIRA source.png" width="100%" height="100%" />
 
 #### Start your app
 After configuring the Jira bug agent, let it run and test it out! 
