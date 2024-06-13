@@ -49,7 +49,7 @@ The configuration property `user`, `password`, and `url` are linked to the *Serv
 <img src="src/main/resources/ServiceNowConnection.png" width="50%" height="50%" />
 
 #### Custom Field (*AI Summary*)
-1 custom fields need to be created for this mule flow in ServiceNow. 
+1 custom field need to be created for this mule flow in ServiceNow. 
 - *AI Summary* - field where the flow will write suggestion based on AI
 - After creating the field, the technical name need to be replaced in the Transform Message before Editing the ServiceNow incident in the mule flow.
 
