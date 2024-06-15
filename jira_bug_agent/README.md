@@ -19,7 +19,10 @@ The mule flow uses the following connectors:
 This mule flows is tracking each new and/or updated bug in Jira to start the assessment with MuleChain using a defined Prompt Template and Sentiment Analyzer. 
 
 
-## Configuration Files
+## Configuration
+The configuration contains 2 files to be populated:
+- connections.yaml
+- envVars.json
 
 ### connections.yaml
 The mule apps maintains a connections.yaml file under ``/jira_bug_agent/src/main/resources/connections.yaml``, which contains all required parameters to establish the connection. Fill out the following configuration to use this Jira agent. 
