@@ -49,7 +49,7 @@
 		<dependency>
 			<groupId>com.mule.langchain</groupId>
 			<artifactId>langchain-connector</artifactId>
-			<version>0.1.54</version>
+			<version>0.1.70</version>
 			<classifier>mule-plugin</classifier>
 		</dependency>
 		<dependency>

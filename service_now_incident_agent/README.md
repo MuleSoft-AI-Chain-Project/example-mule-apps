@@ -20,6 +20,11 @@ This mule flows is tracking each new and/or updated incident in ServiceNow to st
 
 
 ## Configuration
+The configuration contains 2 files to be populated:
+- connections.yaml
+- envVars.json
+
+### connections.yaml
 The mule apps maintains a connections.yaml file under ``/Service_Now_incident_agent/src/main/resources/connections.yaml``, which contains all required parameters to establish the connection. Fill out the following configuration to use this ServiceNow agent. 
 
 ```yaml
@@ -27,19 +32,38 @@ servicenow:
   url: "https://{your-servicenow-instance}.service-now.com/"
   user: "{your-servicenow-password}"
   password: "{your-servicenow-password}"
-  
-mulechain:
-  api-key-openai: "{your-open-ai-api-key}"
-  api-key-openai-demo: "demo"
-  api-key-mistralai: "{your-mistral-ai-api-key}"
-  base-url-ollama: "{your-base-url-ollama}"
-  api-key-anthropic: "{your-anthropic-api-key}"
 ```
 
 The connections.yaml is mapped to the dedicated connectors in the mule flow. 
 
+### envVars.json
+All LLM configuration properties are under ``/Service_Now_incident_agent/src/main/resources/envVars.json``, which contains all required parameters for the LLM. Fill out the following configuration for the LLM of your need. Note, that only the six LLMs are currently supported.
+
+
+```json
+{
+    "OPENAI": {
+        "OPENAI_API_KEY": "YOUR_OPENAI_API_KEY"
+    },
+    "MISTRAL_AI": {
+        "MISTRAL_AI_API_KEY": "YOUR_MISTRAL_AI_API_KEY"
+    },
+    "OLLAMA": {
+        "OLLAMA_BASE_URL": "http://baseurl.ollama.com"
+    },
+    "ANTHROPIC": {
+        "ANTHROPIC_API_KEY": "YOUR_ANTHROPIC_API_KEY"
+    },
+    "AZURE_OPENAI": {
+        "AZURE_OPENAI_KEY": "YOUR_AZURE_OPENAI_KEY",
+        "AZURE_OPENAI_ENDPOINT": "http://endpoint.azure.com",
+        "AZURE_OPENAI_DEPLOYMENT_NAME": "YOUR_DEPLOYMENT_NAME"
+    }
+}
+```
+
 ### MuleChain configuration
-The configuration property `api-key-openai-demo`is linked to the *Llm api key* field in the MuleChain configuration.
+In the MuleChain LLM Configuraiton, you have to select the LLM type from the dropdown, the configuraiton type must be set to *Configuration Json* and the *File path* must set to the path of the ``/Service_Now_incident_agent/src/main/resources/envVars.json``. To make it dynamically linked to the resources, you can use the dataweave statement ```mule.home ++ "/apps/" ++ app.name ++ "/envVars.json"```. All relevant informations are extracted from the **envVars.json** during runtime. 
 
 <img src="src/main/resources/llm Config.png" width="50%" height="50%" />
 
