@@ -6,7 +6,7 @@ http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/cu
     <http:listener-config name="sentiment-analyzer-httpListenerConfig">
         <http:listener-connection host="0.0.0.0" port="8081" />
     </http:listener-config>
-    <mulechain:llm-configuration-config name="DemoKeyLangchain4j" llmType="OPENAI_API_KEY" doc:name="MuleChain Llm configuration" doc:id="6b87874f-5aa4-4003-9a2e-2d7e12e956a4" llmApiKey="${mulechain.api-key-openai-demo}" configType="Configuration Json" filePath='#[mule.home ++ "/apps/" ++ app.name ++ "/envVars.json"]'/>
+    <mulechain:llm-configuration-config name="DemoKeyLangchain4j" llmType="OPENAI" doc:name="MuleChain Llm configuration" doc:id="6b87874f-5aa4-4003-9a2e-2d7e12e956a4" configType="Configuration Json" filePath='#[mule.home ++ "/apps/" ++ app.name ++ "/envVars.json"]'/>
 	<jira:config name="Jira_Connector_Config" doc:name="Jira Connector Config" doc:id="ffed047f-4b0b-4486-a3f2-7700fb55f1f5" >
 		<jira:basic-auth-connection username="${jira.user}" password="${jira.api-token}" baseUri="${jira.url}" />
 	</jira:config>

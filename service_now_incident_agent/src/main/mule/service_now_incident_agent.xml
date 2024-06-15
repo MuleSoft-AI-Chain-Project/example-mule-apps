@@ -13,7 +13,7 @@ http://www.mulesoft.org/schema/mule/servicenow http://www.mulesoft.org/schema/mu
 		<servicenow:basic-connection username="${servicenow.user}" password="${servicenow.password}" serviceAddress="${servicenow.url}" />
 	</servicenow:config>
 	<os:object-store name="Object_store" doc:name="Object store" doc:id="e29bf0bf-61da-4719-9e06-231b4280f9e1" />
-	<mulechain:llm-configuration-config name="MuleChain_Llm_configuration" llmType="OPENAI_API_KEY" doc:name="MuleChain Llm configuration" doc:id="dfa2b210-1b6f-4287-b63b-53c4b271b271" llmApiKey="${mulechain.api-key-openai}" configType="Configuration Json" filePath='#[mule.home ++ "/apps/" ++ app.name ++ "/envVars.json"]'/>
+	<mulechain:llm-configuration-config name="MuleChain_Llm_configuration" llmType="OPENAI" doc:name="MuleChain Llm configuration" doc:id="dfa2b210-1b6f-4287-b63b-53c4b271b271" configType="Configuration Json" filePath='#[mule.home ++ "/apps/" ++ app.name ++ "/envVars.json"]'/>
 	<configuration-properties doc:name="Configuration properties" doc:id="4bacfb03-c970-4dcd-9deb-657e25a356d8" file="connections.yaml" />
 	<flow name="ServiceNow-AI-Summary-Sentiments" doc:id="50d07f4f-220e-40e7-9878-4354a8e088a3" >
 		<servicenow:new-or-updated-record-listener tableName="incident" doc:name="On New / Updated Record" doc:id="cd574cec-11a1-4b8b-8d61-72e2625d9645" config-ref="ServiceNow_Config" displaySystemRefs="ALL">
