@@ -21,7 +21,7 @@ This mule flows is tracking each new and/or updated bug in Jira to start the ass
 
 ## Configuration Files
 
-### connections.yaml
+### connections.yaml
 The mule apps maintains a connections.yaml file under ``/jira_bug_agent/src/main/resources/connections.yaml``, which contains all required parameters to establish the connection. Fill out the following configuration to use this Jira agent. 
 
 ```yaml
@@ -33,7 +33,7 @@ jira:
 
 The connections.yaml is mapped to the dedicated connectors in the mule flow. 
 
-### envVars.json
+### envVars.json
 All LLM configuration properties are under ``/jira_bug_agent/src/main/resources/envVars.json``, which contains all required parameters for the LLM. Fill out the following configuration for the LLM of your need. Note, that only the six LLMs are currently supported.
 
 
