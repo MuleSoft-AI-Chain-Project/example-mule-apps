@@ -40,7 +40,7 @@
         <dependency>
             <groupId>com.mule.langchain</groupId>
             <artifactId>langchain-connector</artifactId>
-            <version>0.1.54</version>
+            <version>0.1.70</version>
             <classifier>mule-plugin</classifier>
         </dependency>
         <dependency>
@@ -55,42 +55,6 @@
             <artifactId>mule-apikit-module</artifactId>
             <version>1.10.3</version>
             <classifier>mule-plugin</classifier>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/org.mapdb/mapdb -->
-        <dependency>
-            <groupId>org.mapdb</groupId>
-            <artifactId>mapdb</artifactId>
-            <version>3.1.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-beans</artifactId>
-            <version>5.3.29</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-core</artifactId>
-            <version>5.3.29</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-core</artifactId>
-            <version>5.8.6</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-config</artifactId>
-            <version>5.8.6</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-crypto</artifactId>
-            <version>5.8.6</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-context</artifactId>
-            <version>5.3.29</version>
         </dependency>
         <dependency>
             <groupId>com.mulesoft.connectors</groupId>
