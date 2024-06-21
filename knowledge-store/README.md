@@ -97,7 +97,7 @@ After configuring the Knowledge Store Mule App, let it run and test it out!
 ![App Screenshot](src/main/resources/sftpclient.png)
 
 
-## Watch the demo of the ServiceNow Incident Agent
+## Watch the demo of the Knowledge Store Mule App
 A demo video to show case the ability of the Knowledge Store once deployed in Anypoint Platform. 
 
 [![Watch the video](https://i.ytimg.com/vi/b7dUyxB7Lqc/hqdefault.jpg?sqp=-oaymwE2CNACELwBSFXyq4qpAygIARUAAIhCGAFwAcABBvABAfgB_gmAArgFigIMCAAQARg4IEAofzAP&rs=AOn4CLCPsGoyXioMCZihpxIvTSAPBmxp4Q)](https://youtu.be/b7dUyxB7Lqc?si=lSo5X_GbxzQRA4c8)
