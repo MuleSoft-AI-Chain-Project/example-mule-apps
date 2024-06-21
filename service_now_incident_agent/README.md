@@ -94,7 +94,7 @@ After configuring the ServiceNow incident agent, let it run and test it out!
 ## Watch the demo of the ServiceNow Incident Agent
 A demo video to show case the ability of the ServiceNow Incident Agent once deployed in Anypoint Platform. 
 
-[![Watch the video](https://i.ytimg.com/vi/Af1Abxp-zZ8/hqdefault.jpg?sqp=-oaymwE2CPYBEIoBSFXyq4qpAygIARUAAIhCGAFwAcABBvABAfgB_gmAAtAFigIMCAAQARhbIFsoWzAP&rs=AOn4CLCNbU2LxLkh4jhRMMANEt4YEdZf_A)](https://youtu.be/Af1Abxp-zZ8?feature=shared)
+[![Watch the video](https://i.ytimg.com/vi/iEl5HeHC_Go/hqdefault.jpg?sqp=-oaymwEcCNACELwBSFXyq4qpAw4IARUAAIhCGAFwAcABBg==&rs=AOn4CLDjBH-KxvEDNF0dyK5p4OUQ3b1FRA)](https://youtu.be/iEl5HeHC_Go?si=8Iejp-GtBKf9XK-v)
 
 
 ## Author
