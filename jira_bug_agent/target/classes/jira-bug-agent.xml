@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:os="http://www.mulesoft.org/schema/mule/os" xmlns:jira="http://www.mulesoft.org/schema/mule/jira" xmlns:mulechain="http://www.mulesoft.org/schema/mule/mulechain" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd 
+http://www.mulesoft.org/schema/mule/mulechain http://www.mulesoft.org/schema/mule/mulechain/current/mule-mulechain.xsd
+http://www.mulesoft.org/schema/mule/jira http://www.mulesoft.org/schema/mule/jira/current/mule-jira.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd">
+    <http:listener-config name="sentiment-analyzer-httpListenerConfig">
+        <http:listener-connection host="0.0.0.0" port="8081" />
+    </http:listener-config>
+    <mulechain:llm-configuration-config name="DemoKeyLangchain4j" llmType="OPENAI" doc:name="MuleChain Llm configuration" doc:id="6b87874f-5aa4-4003-9a2e-2d7e12e956a4" configType="Configuration Json" filePath='#[mule.home ++ "/apps/" ++ app.name ++ "/envVars.json"]'/>
+	<jira:config name="Jira_Connector_Config" doc:name="Jira Connector Config" doc:id="ffed047f-4b0b-4486-a3f2-7700fb55f1f5" >
+		<jira:basic-auth-connection username="${jira.user}" password="${jira.api-token}" baseUri="${jira.url}" />
+	</jira:config>
+	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="1ab5dcfe-dade-4f42-b252-8cafacdc577b" >
+		<http:request-connection host="flow-1cc78df5-2407-434b-b7a4-2113aa22486d-uf3vxu.2oyih5-1.usa-e1.cloudhub.io" port="443" protocol="HTTPS">
+			<http:authentication >
+				<http:basic-authentication username="5fd6b171347446cc91f4f34bf7254c72" password="75880f86229E482394Ba2c45643720bd" />
+			</http:authentication>
+		</http:request-connection>
+	</http:request-config>
+	<os:object-store name="Object_store" doc:name="Object store" doc:id="7deb9333-0585-4ed6-bf25-5c412b8d3d79" />
+	<configuration-properties doc:name="Configuration properties" doc:id="933ad471-2ce6-4b79-9863-624169b341f9" file="connections.yaml" />
+	<flow name="Jira-AI-Summary-Sentiments" doc:id="ecbe99eb-d390-45b0-ab06-802e7c6dc52d" >
+		<jira:on-updated-issue-trigger doc:name="On new and updated issue trigger" doc:id="005a3180-c483-48ad-aaac-04cb45dd1895" config-ref="Jira_Connector_Config" startDate="2024-05-30" projectIdOrKey="ED" issueType="bug">
+			<scheduling-strategy >
+				<fixed-frequency />
+			</scheduling-strategy>
+		</jira:on-updated-issue-trigger>
+		<set-variable value="#[payload.key]" doc:name="Jira Key" doc:id="3a312f7e-a1ef-4f2b-9448-4d2f45d2a250" variableName="key"/>
+		<set-variable value="#[payload]" doc:name="Changed Issue" doc:id="2d0967e3-561f-48f9-b4ce-c09ca2bea72c" variableName="payload"/>
+		<os:retrieve doc:name="Retrieve Jira id" doc:id="9865c167-0787-46e5-bad2-67af76d4a069" key="#[vars.key]" objectStore="Object_store">
+			<os:default-value ><![CDATA[not_synched]]></os:default-value>
+		</os:retrieve>
+		<logger level="INFO" doc:name="Logger" doc:id="61981f7d-f242-43ae-8201-0e4b5efcc22c" message="#[payload]"/>
+		<choice doc:name="Choice" doc:id="844f6743-fcfa-4eee-a3ef-2dafd0ae8048" >
+			<when expression='#[payload=="not_synched"]'>
+				<os:store doc:name="Store Jira Id" doc:id="1bff40c1-09eb-4f7f-a574-95909873c947" key="#[vars.key]" objectStore="Object_store">
+					<os:value ><![CDATA[#["synched"]]]></os:value>
+				</os:store>
+				<logger level="INFO" doc:name="Logger" doc:id="cf283a04-9b99-439b-9da2-adc43ea78218" message="#[payload]"/>
+				<jira:get-rest-api3-issue-comment-by-issue-id-or-key doc:name="Get Comments" doc:id="3c57ae28-ba40-4e4d-bc49-d58576567ad2" config-ref="Jira_Connector_Config" issueIdOrKey="#[vars.key]" />
+				<ee:transform doc:name="extract all comment bodies" doc:id="8f725d76-eba2-4a93-81a3-73968b4c4b64">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+
+{
+	comments: payload.comments..body..content..content..text
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<ee:transform doc:name="Transform Message" doc:id="2f629133-723a-4d20-b275-115a28513fa6">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/java
+---
+
+write(payload, "application/json")]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+				<scatter-gather doc:name="Scatter-Gather" doc:id="8be657af-4236-4888-8c72-419c43148784">
+			<route>
+						<mulechain:agent-define-prompt-template doc:name="Agent define prompt template" doc:id="1d2bbd4f-3853-446f-9cf2-80f7f36a59d3" config-ref="DemoKeyLangchain4j" template="You are a support representative who is tasked with creating a short summary of a case that happened between a customer and a company support rep. " instructions="Follow the instructions precisely, do not add any information not provided. Summarize in 1 sentence, and use clear, concise, and straightforward language using the active voice and strictly avoiding the use of filler words and phrases and redundant language. Guide the next steps as maximum 2 bullet points. Keep the emotion of the summary relaxed." dataset='#["dataset: " ++ payload]'/>
+			</route>
+			<route>
+						<mulechain:sentiment-analyze doc:name="Sentiment analyze" doc:id="4c29c266-80d0-42df-9208-7003e8bbff26" config-ref="DemoKeyLangchain4j" data="#[payload]"/>
+			</route>
+		</scatter-gather>
+				<ee:transform doc:name="Transform Message" doc:id="e212a9c0-c8d7-46d1-8ac6-c1666544548c">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+
+{
+
+    "fields": {
+    "customfield_10050": {
+          "type": "doc",
+          "version": 1,
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": payload."0".payload
+               }
+              ]
+            }
+          ]
+        },
+    "customfield_10051": payload."1".payload
+    
+    }
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+				<jira:update-rest-api3-issue-by-issue-id-or-key doc:name="Edit Issue" doc:id="36f26b7e-f52a-486e-bb97-6de89af232bf" config-ref="Jira_Connector_Config" issueIdOrKey="#[vars.key]" />
+			</when>
+			<otherwise >
+				<os:remove doc:name="Remove" doc:id="3f298f08-c02f-471a-b76b-de25a562993b" key="#[vars.key]" objectStore="Object_store"/>
+				<logger level="INFO" doc:name="Logger" doc:id="dd7e5a5e-a10b-45c2-a77f-660a9fbfa10d" message='#["Issue already synched: " ++ vars.key]' />
+			</otherwise>
+		</choice>
+	</flow>
+</mule>

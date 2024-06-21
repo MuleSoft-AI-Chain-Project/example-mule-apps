@@ -40,12 +40,12 @@
             <version>1.2.4</version>
             <classifier>mule-plugin</classifier>
         </dependency>
-        <dependency>
-            <groupId>com.mule.langchain</groupId>
-            <artifactId>langchain-connector</artifactId>
-            <version>0.1.71</version>
-            <classifier>mule-plugin</classifier>
-        </dependency>
+		<dependency>
+			<groupId>com.mule.mulechain</groupId>
+			<artifactId>mulechain-ai-connector</artifactId>
+			<version>0.1.0</version>
+			<classifier>mule-plugin</classifier>
+		</dependency>
         <dependency>
             <groupId>com.mulesoft.connectors</groupId>
             <artifactId>mule-servicenow-connector</artifactId>

@@ -1,0 +1,4 @@
+jira:
+  url: "{your-jira-baseurl}"
+  user: "{your-jira-user}"
+  api-token: "{your-api-token}"
