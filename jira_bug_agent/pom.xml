@@ -37,12 +37,12 @@
             <version>1.9.1</version>
             <classifier>mule-plugin</classifier>
         </dependency>
-		<dependency>
-			<groupId>com.mule.mulechain</groupId>
-			<artifactId>mulechain-ai-connector</artifactId>
-			<version>0.1.0</version>
-			<classifier>mule-plugin</classifier>
-		</dependency>
+        <dependency>
+            <groupId>com.mule.mulechain</groupId>
+            <artifactId>mulechain-ai-connector</artifactId>
+            <version>0.1.0</version>
+            <classifier>mule-plugin</classifier>
+        </dependency>
         <dependency>
             <groupId>7b99cead-a984-497b-9e6c-c16a3b4dcb76</groupId>
             <artifactId>sentiment-analyzer</artifactId>
