@@ -91,6 +91,13 @@ The configuration property `host`, `port`, `username`, and `password` are linked
 
 <img src="src/main/resources/sftpcon.png" width="50%" height="50%" />
 
+
+#### JRE System Library -> Java 8
+Before starting the Mule App, make sure the check that Java 8 is set in the **JRE System Library**. You can check this by the project context menu > **Build Path > Configure Build Path > Libraries (Tab)**. 
+
+![App Screenshot](src/main/resources/java8.png)
+
+
 #### Start your app
 After configuring the Knowledge Store Mule App, let it run and test it out! 
 

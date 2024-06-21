@@ -85,6 +85,11 @@ Make sure the trigger to shows ALL in the *System Reference* field. This is impo
 
 <img src="src/main/resources/snowtrigger.png" width="70%" height="70%" />
 
+#### JRE System Library -> Java 8
+Before starting the Mule App, make sure the check that Java 8 is set in the **JRE System Library**. You can check this by the project context menu > **Build Path > Configure Build Path > Libraries (Tab)**. 
+
+![App Screenshot](src/main/resources/java8.png)
+
 #### Start your app
 After configuring the ServiceNow incident agent, let it run and test it out! 
 
