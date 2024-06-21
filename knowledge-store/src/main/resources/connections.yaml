@@ -1,0 +1,7 @@
+sftp:
+  embeddingWorkingDirectory: "/upload/new"
+  knowledgeIngestionDirectory: "/upload/embedding"
+  host: "sftp.yourcompany.com"
+  port: "3859"
+  username: "admin"
+  password: "MuleChainAiConnector"
