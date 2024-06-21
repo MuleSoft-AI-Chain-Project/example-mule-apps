@@ -3,7 +3,7 @@
 This is an example mule app to demonstrate a jira bug agent built with MuleChain Connector. 
 
 The mule flow uses the following connectors:
-- MuleChain Connector v0.1.54
+- MuleChain AI Connector v0.1.0
 - Jira Connector v1.2.11
 - ObjectStore v1.2.2
 

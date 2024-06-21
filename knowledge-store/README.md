@@ -3,7 +3,7 @@
 This is an example mule app to demonstrate how to built a knowledge store with MuleChain Connector. 
 
 The mule flow uses the following connectors:
-- MuleChain Connector v0.1.90
+- MuleChain AI Connector v0.1.0
 - File Connector 1.5.2
 - SFTP Connector 2.1.0
 

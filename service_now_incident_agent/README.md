@@ -3,7 +3,7 @@
 This is an example mule app to demonstrate a servicenow incident agent built with MuleChain Connector. 
 
 The mule flow uses the following connectors:
-- MuleChain Connector v0.1.54
+- MuleChain AI Connector v0.1.0
 - ServiceNow Connector v6.16
 - ObjectStore v1.2.2
 
