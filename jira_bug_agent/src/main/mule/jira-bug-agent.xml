@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <mule xmlns:ms-aichain="http://www.mulesoft.org/schema/mule/ms-aichain" xmlns:os="http://www.mulesoft.org/schema/mule/os" xmlns:jira="http://www.mulesoft.org/schema/mule/jira" xmlns:mulechain="http://www.mulesoft.org/schema/mule/mulechain" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd 
-http://www.mulesoft.org/schema/mule/mulechain http://www.mulesoft.org/schema/mule/mulechain/current/mule-mulechain.xsd
-http://www.mulesoft.org/schema/mule/jira http://www.mulesoft.org/schema/mule/jira/current/mule-jira.xsd
 http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+http://www.mulesoft.org/schema/mule/jira http://www.mulesoft.org/schema/mule/jira/current/mule-jira.xsd
+http://www.mulesoft.org/schema/mule/mulechain http://www.mulesoft.org/schema/mule/mulechain/current/mule-mulechain.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/aichain http://www.mulesoft.org/schema/mule/aichain/current/mule-aichain.xsd
+http://www.mulesoft.org/schema/mule/mulesoft-aichain http://www.mulesoft.org/schema/mule/mulesoft-aichain/current/mule-mulesoft-aichain.xsd
 http://www.mulesoft.org/schema/mule/ms-aichain http://www.mulesoft.org/schema/mule/ms-aichain/current/mule-ms-aichain.xsd">
     <http:listener-config name="sentiment-analyzer-httpListenerConfig">
         <http:listener-connection host="0.0.0.0" port="8081" />
@@ -21,7 +24,7 @@ http://www.mulesoft.org/schema/mule/ms-aichain http://www.mulesoft.org/schema/mu
 	<os:object-store name="Object_store" doc:name="Object store" doc:id="7deb9333-0585-4ed6-bf25-5c412b8d3d79" />
 	<configuration-properties doc:name="Configuration properties" doc:id="933ad471-2ce6-4b79-9863-624169b341f9" file="connections.yaml" />
 	<flow name="Jira-AI-Summary-Sentiments" doc:id="ecbe99eb-d390-45b0-ab06-802e7c6dc52d" >
-		<jira:on-updated-issue-trigger doc:name="On new and updated issue trigger" doc:id="005a3180-c483-48ad-aaac-04cb45dd1895" config-ref="Jira_Connector_Config" startDate="2024-08-18">
+		<jira:on-updated-issue-trigger doc:name="On new and updated issue trigger" doc:id="005a3180-c483-48ad-aaac-04cb45dd1895" config-ref="Jira_Connector_Config" issueType="bug" startDate="2024-08-23">
 			<scheduling-strategy >
 				<fixed-frequency />
 			</scheduling-strategy>
@@ -61,10 +64,17 @@ write(payload, "application/json")]]></ee:set-payload>
 		</ee:transform>
 				<scatter-gather doc:name="Scatter-Gather" doc:id="8be657af-4236-4888-8c72-419c43148784">
 			<route>
-						<ms-aichain:agent-define-prompt-template doc:name="Agent define prompt template" doc:id="1d2bbd4f-3853-446f-9cf2-80f7f36a59d3" config-ref="MuleSoft_AI_Chain_Config" template="You are a support representative who is tasked with creating a short summary of a case that happened between a customer and a company support rep. " instructions="Follow the instructions precisely, do not add any information not provided. Summarize in 1 sentence, and use clear, concise, and straightforward language using the active voice and strictly avoiding the use of filler words and phrases and redundant language. Guide the next steps as maximum 2 bullet points. Keep the emotion of the summary relaxed." dataset='#["dataset: " ++ payload]'/>
+						<ms-aichain:agent-define-prompt-template doc:name="Agent define prompt template" 
+						doc:id="1d2bbd4f-3853-446f-9cf2-80f7f36a59d3" config-ref="MuleSoft_AI_Chain_Config"> 
+							<ms-aichain:dataset ><![CDATA[#[payload]]]></ms-aichain:dataset>
+							<ms-aichain:template ><![CDATA[You are a support representative who is tasked with creating a short summary of a case that happened between a customer and a company support rep.]]></ms-aichain:template>
+							<ms-aichain:instructions ><![CDATA[Follow the instructions precisely, do not add any information not provided. Summarize in 1 sentence, and use clear, concise, and straightforward language using the active voice and strictly avoiding the use of filler words and phrases and redundant language. Guide the next steps as maximum 2 bullet points. Keep the emotion of the summary relaxed.]]></ms-aichain:instructions>
+						</ms-aichain:agent-define-prompt-template>
 			</route>
 			<route>
-						<ms-aichain:sentiment-analyze doc:name="Sentiment analyze" doc:id="4c29c266-80d0-42df-9208-7003e8bbff26" config-ref="MuleSoft_AI_Chain_Config" data="#[payload]"/>
+						<ms-aichain:sentiment-analyze doc:name="Sentiment analyze" doc:id="4c29c266-80d0-42df-9208-7003e8bbff26" config-ref="MuleSoft_AI_Chain_Config"> 						
+									<ms-aichain:data ><![CDATA[#[payload]]]></ms-aichain:data>
+						</ms-aichain:sentiment-analyze>
 			</route>
 		</scatter-gather>
 				<ee:transform doc:name="Transform Message" doc:id="e212a9c0-c8d7-46d1-8ac6-c1666544548c">
@@ -75,8 +85,22 @@ output application/json
 
 {
 "fields": {
-    "customfield_10041": payload."0".payload.response,
-    "customfield_10040": payload."1".payload.sentiment
+    "customfield_10045": {
+          "type": "doc",
+          "version": 1,
+          "content": [
+            {
+              "type": "paragraph",
+              "content": [
+                {
+                  "type": "text",
+                  "text": payload."0".payload.response
+               }
+              ]
+            }
+          ]
+        },	   
+    "customfield_10038": payload."1".payload.response
     }
 }]]></ee:set-payload>
 			</ee:message>
