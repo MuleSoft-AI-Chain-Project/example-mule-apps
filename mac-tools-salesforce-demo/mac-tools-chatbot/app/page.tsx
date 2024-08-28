@@ -19,10 +19,11 @@ type Message = {
 };
 
 const examples = [
-  "How many accounts exist in total?",
-  "How many leads have been created this year?",
-  "Return all active users",
-  "Return all account names"
+  "Return the last created Lead",
+  "How many active users do we have in Salesforce? Return their names",
+  "Return the 3 Contact names and order by date",
+  "Return all open opportunities",
+  "What was our last closed case in Salesforce"
 ];
 
 
@@ -89,13 +90,13 @@ export default function Chat() {
   return (
     <main className="flex flex-col items-center justify-between pb-40">
       <div className="absolute top-5 hidden w-full justify-between px-5 sm:flex">
-        <a
+        {/* <a
           href="/github"
           target="_blank"
           className="rounded-lg p-2 transition-colors duration-200 hover:bg-stone-100 sm:bottom-auto"
         >
           <GithubIcon />
-        </a>
+        </a> */}
       </div>
       {messages.length > 0 ? (
         messages.map((message, i) => (
