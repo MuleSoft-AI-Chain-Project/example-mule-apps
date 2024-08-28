@@ -11,6 +11,13 @@ export async function POST(req: Request) {
     const apiEndpoint = process.env.MULE_API_ENDPOINT;
     console.log("Sending request to:", apiEndpoint);
 
+    // Check if apiEndpoint is defined
+    if (!apiEndpoint) {
+      throw new Error(
+        "MULE_API_ENDPOINT is not defined in the environment variables.",
+      );
+    }
+
     const requestBody = JSON.stringify({ prompt: data });
     console.log("Request body:", requestBody);
 
@@ -67,11 +74,21 @@ export async function POST(req: Request) {
       });
     } catch (fetchError) {
       console.error("Fetch error:", fetchError);
+
+      let errorMessage = "Unknown error";
+      let errorCause = "Unknown";
+
+      if (fetchError instanceof Error) {
+        errorMessage = fetchError.message;
+        errorCause =
+          (fetchError as { cause?: Error }).cause?.message || "Unknown";
+      }
+
       return new Response(
         JSON.stringify({
           error: "Error communicating with AI endpoint",
-          details: fetchError.message,
-          cause: fetchError.cause ? fetchError.cause.message : "Unknown",
+          details: errorMessage,
+          cause: errorCause,
         }),
         {
           status: 500,
@@ -83,11 +100,15 @@ export async function POST(req: Request) {
     }
   } catch (error) {
     console.error("Error in API route:", error);
+
+    // Assert that the error is of type Error
+    const err = error as Error;
+
     return new Response(
       JSON.stringify({
         error: "Error in API route",
-        details: error.message,
-        cause: error.cause ? error.cause.message : "Unknown",
+        details: err.message,
+        cause: err.cause ? (err.cause as Error).message : "Unknown",
       }),
       {
         status: 500,
