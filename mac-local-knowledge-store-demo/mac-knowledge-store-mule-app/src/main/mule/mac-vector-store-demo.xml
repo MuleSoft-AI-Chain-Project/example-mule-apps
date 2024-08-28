@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:ms-aichain="http://www.mulesoft.org/schema/mule/ms-aichain"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ms-aichain http://www.mulesoft.org/schema/mule/ms-aichain/current/mule-ms-aichain.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config"
+		doc:name="HTTP Listener config"
+		doc:id="851e807a-299e-49f6-af65-8e337cabc9de">
+		<http:listener-connection host="0.0.0.0"
+			port="8081" />
+		<http:listener-interceptors>
+			<http:cors-interceptor>
+				<http:origins>
+					<http:public-resource />
+				</http:origins>
+			</http:cors-interceptor>
+		</http:listener-interceptors>
+	</http:listener-config>
+	<ms-aichain:config name="MuleSoft_AI_Chain_Config"
+		llmType="OPENAI" configType="Configuration Json" modelName="gpt-4o"
+		doc:name="MuleSoft AI Chain Config"
+		doc:id="76d39325-2e0c-46bd-bb87-af8e032ee907"
+		filePath='#[mule.home ++ "/apps/" ++ app.name ++ "/config.json"]' />
+	<flow name="mac-create-store"
+		doc:id="1649a0d9-8900-48a8-89ed-f75606e5a3a5">
+		<http:listener doc:name="Listener"
+			doc:id="9ab4f323-c658-4fde-b6b2-b2a434a46457"
+			config-ref="HTTP_Listener_config" path="/store" allowedMethods="POST">
+			<http:response>
+				<http:headers><![CDATA[#[output application/java
+---
+{
+                    'Access-Control-Allow-Origin': '*', 
+                    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+                    'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept',
+                    'Access-Control-Allow-Credentials': 'true'
+                }]]]></http:headers>
+			</http:response>
+		</http:listener>
+		<ms-aichain:embedding-new-store
+			doc:name="mac-create-new-store"
+			doc:id="f5011c99-2a6e-405c-8ec0-13959cbd0f86"
+			storeName='#["/Users/mbosnjak/Desktop/mac-demo/Stores/" ++ payload.storeName]' />
+		<logger level="INFO" doc:name="Logger"
+			doc:id="428a0ff4-a199-4af1-8f7a-92bd68af2146"
+			message="#[%dw 2.0&#10;output application/json&#10;---&#10;payload]" />
+	</flow>
+	<flow name="mac-add-doc-to-store"
+		doc:id="21e50f3e-eb77-4315-b4db-8d66e1acaa68">
+		<http:listener doc:name="Listener"
+			doc:id="cff67f0a-33e7-4998-9a70-c2c03e56616b"
+			config-ref="HTTP_Listener_config" path="/doc" allowedMethods="POST">
+			<http:response>
+				<http:headers><![CDATA[#[output application/java
+---
+{
+                    'Access-Control-Allow-Origin': '*', 
+                    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+                    'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept',
+                    'Access-Control-Allow-Credentials': 'true'
+                }]]]></http:headers>
+			</http:response>
+		</http:listener>
+		<ms-aichain:embedding-add-document-to-store
+			doc:name="Embedding add document to store"
+			doc:id="e8b73dbe-c897-4f77-85d0-aaf59476c408"
+			storeName='#["/Users/mbosnjak/Desktop/mac-demo/Stores/" ++ payload.storeName]'
+			contextPath="#[payload.filePath]" fileType="#[payload.fileType]"
+			maxSegmentSizeInChars="1500" maxOverlapSizeInChars="150" />
+		<logger level="INFO" doc:name="Logger"
+			doc:id="82cfe6a3-5dc5-413d-b3a0-6f76987299a9"
+			message="#[%dw 2.0&#10;output application/json&#10;---&#10;payload]" />
+	</flow>
+	<flow name="mac-get-infro-from-store"
+		doc:id="1adc0a89-c886-4d81-bcd6-459e9e1b2e94">
+		<http:listener doc:name="Listener"
+			doc:id="bb7354bc-0643-4a47-9d4a-86e5fbae95e2"
+			config-ref="HTTP_Listener_config" path="/query" />
+		<ms-aichain:embedding-get-info-from-store
+			doc:name="Embedding get info from store"
+			doc:id="913ed660-0b4a-488a-8931-26c599e859b5"
+			config-ref="MuleSoft_AI_Chain_Config"
+			storeName='#["/Users/mbosnjak/Desktop/mac-demo/Stores/" ++ payload.storeName]'
+			getLatest="true">
+			<ms-aichain:data><![CDATA[#[payload.prompt]]]></ms-aichain:data>
+		</ms-aichain:embedding-get-info-from-store>
+		<logger level="INFO" doc:name="Logger"
+			doc:id="1ac149cc-b801-4079-be48-342bd58f9493"
+			message="#[%dw 2.0&#10;output application/json&#10;---&#10;payload]" />
+	</flow>
+</mule>
