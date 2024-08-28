@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import va from "@vercel/analytics";
 import clsx from "clsx";
-import { GithubIcon, LoadingCircle, SendIcon } from "./icons";
+import { LoadingCircle, SendIcon } from "./icons";
 import { Bot, User } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
