@@ -7,11 +7,9 @@ export async function POST(req: Request) {
     const { data } = await req.json();
     console.log("Received request data:", data);
 
-    // Update the API endpoint to include the protocol
     const apiEndpoint = process.env.MULE_API_ENDPOINT;
     console.log("Sending request to:", apiEndpoint);
 
-    // Check if apiEndpoint is defined
     if (!apiEndpoint) {
       throw new Error(
         "MULE_API_ENDPOINT is not defined in the environment variables.",
@@ -31,65 +29,29 @@ export async function POST(req: Request) {
         body: requestBody,
       });
 
+      const jsonResponse = await response.json();
       console.log("Response status:", response.status);
       console.log("Response headers:", Object.fromEntries(response.headers));
 
-      const text = await response.text();
-      console.log("Raw response text:", text);
+      // Log the token counts for debugging
+      console.log("Token counts:", jsonResponse.attributes);
 
-      let responseData;
+      // Restructure the response to include token info separately
+      const restructuredResponse = {
+        reply: jsonResponse.response,
+        tokenInfo: jsonResponse.attributes,
+      };
 
-      try {
-        if (text.trim().startsWith("{") || text.trim().startsWith("[")) {
-          responseData = JSON.parse(text);
-          console.log("Parsed JSON response:", responseData);
-        } else {
-          responseData = { message: text };
-          console.log("Non-JSON response wrapped:", responseData);
-        }
-      } catch (jsonError) {
-        console.error("JSON parse error:", jsonError);
-        console.log("Failed to parse response:", text);
-        return new Response(
-          JSON.stringify({
-            error: "Invalid JSON response from AI endpoint",
-            rawResponse: text,
-          }),
-          {
-            status: 500,
-            headers: {
-              "Content-Type": "application/json",
-            },
-          },
-        );
-      }
-
-      console.log("Final response data:", { reply: responseData });
-
-      return new Response(JSON.stringify({ reply: responseData }), {
+      return new Response(JSON.stringify(restructuredResponse), {
         status: 200,
         headers: {
           "Content-Type": "application/json",
         },
       });
-    } catch (fetchError) {
-      console.error("Fetch error:", fetchError);
-
-      let errorMessage = "Unknown error";
-      let errorCause = "Unknown";
-
-      if (fetchError instanceof Error) {
-        errorMessage = fetchError.message;
-        errorCause =
-          (fetchError as { cause?: Error }).cause?.message || "Unknown";
-      }
-
+    } catch (error) {
+      console.error("Error during fetch:", error);
       return new Response(
-        JSON.stringify({
-          error: "Error communicating with AI endpoint",
-          details: errorMessage,
-          cause: errorCause,
-        }),
+        JSON.stringify({ error: error.message, tokenInfo: null }),
         {
           status: 500,
           headers: {
@@ -99,19 +61,11 @@ export async function POST(req: Request) {
       );
     }
   } catch (error) {
-    console.error("Error in API route:", error);
-
-    // Assert that the error is of type Error
-    const err = error as Error;
-
+    console.error("Error parsing request:", error);
     return new Response(
-      JSON.stringify({
-        error: "Error in API route",
-        details: err.message,
-        cause: err.cause ? (err.cause as Error).message : "Unknown",
-      }),
+      JSON.stringify({ error: error.message, tokenInfo: null }),
       {
-        status: 500,
+        status: 400,
         headers: {
           "Content-Type": "application/json",
         },

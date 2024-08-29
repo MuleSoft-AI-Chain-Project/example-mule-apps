@@ -18,6 +18,13 @@ type Message = {
   content: string;
 };
 
+// Define the TokenInfo type
+type TokenInfo = {
+  inputCount: number;
+  outputCount: number;
+  totalCount: number;
+};
+
 const examples = [
   "Return the last created Lead",
   "How many active users do we have in Salesforce? Return their names",
@@ -26,6 +33,18 @@ const examples = [
   "What was our last closed case in Salesforce"
 ];
 
+// New component to display token information
+const TokenInfo = ({ tokenInfo }: { tokenInfo: TokenInfo | null }) => {
+  if (!tokenInfo) return null;
+
+  return (
+    <div className="mt-2 text-sm text-gray-500">
+      <p>Input tokens: {tokenInfo.inputCount}</p>
+      <p>Output tokens: {tokenInfo.outputCount}</p>
+      <p>Total tokens: {tokenInfo.totalCount}</p>
+    </div>
+  );
+};
 
 export default function Chat() {
   const formRef = useRef<HTMLFormElement>(null);
@@ -34,69 +53,59 @@ export default function Chat() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [currentTokenInfo, setCurrentTokenInfo] = useState<TokenInfo | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim()) return;
 
     const newMessage: Message = { role: "user", content: input };
-    setMessages((prevMessages: Message[]) => [...prevMessages, newMessage]);
+    setMessages((prevMessages) => [...prevMessages, newMessage]);
     setInput("");
     setIsLoading(true);
 
     try {
       const requestBody = { data: input };
-      console.log("Request body:", JSON.stringify(requestBody)); // Debugging: Log the request body
-
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(requestBody), // Send messages in the correct format
+        body: JSON.stringify(requestBody),
       });
 
       const data = await response.json();
-      console.log("Response data:", data); // Debugging: Log the response data
 
-      // Adjusting to correctly reference the parsed JSON structure
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
       const assistantMessage: Message = {
         role: "assistant",
-        content: data.response || data.reply.response,  // Adjust based on actual response structure
+        content: data.reply,
       };
 
-      console.log("Assistant message:", assistantMessage); // Debugging: Log the assistant message
-      setMessages((prevMessages) => {
-        const updatedMessages = [...prevMessages, assistantMessage];
-        console.log("Updated messages:", updatedMessages); // Debugging: Log the updated messages
-        return updatedMessages;
-      });
+      setMessages((prevMessages) => [...prevMessages, assistantMessage]);
+      setCurrentTokenInfo(data.tokenInfo);
       va.track("Chat initiated");
     } catch (error) {
-      console.error("Error occurred during fetch:", error); // Debugging: Log any errors caught
+      console.error("Error occurred during fetch:", error);
       toast.error("Something went wrong. Please try again.");
       va.track("Chat errored", {
         input,
-        error: "Error",
+        error: error instanceof Error ? error.message : "Unknown error",
       });
     } finally {
       setIsLoading(false);
     }
   };
 
-
   const disabled = isLoading || input.length === 0;
 
   return (
     <main className="flex flex-col items-center justify-between pb-40">
       <div className="absolute top-5 hidden w-full justify-between px-5 sm:flex">
-        {/* <a
-          href="/github"
-          target="_blank"
-          className="rounded-lg p-2 transition-colors duration-200 hover:bg-stone-100 sm:bottom-auto"
-        >
-          <GithubIcon />
-        </a> */}
+        {/* You can add any header content here if needed */}
       </div>
       {messages.length > 0 ? (
         messages.map((message, i) => (
@@ -149,14 +158,7 @@ export default function Chat() {
                 Welcome to the MuleSoft AI Chain Agent
               </h1>
               <p className="text-sm text-gray-500 sm:text-base">
-                This is an{" "}
-                <a
-                  href="https://github.com/amirkhan-ak-sf/langchain4mule"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-medium underline underline-offset-4 transition-colors hover:text-black"
-                ></a>{" "}
-                AI chatbot built using{" "}
+                This is an AI chatbot built using{" "}
                 <a
                   href="https://docs.langchain4j.dev/"
                   target="_blank"
@@ -204,6 +206,9 @@ export default function Chat() {
         </div>
       )}
       <div className="fixed bottom-0 flex w-full flex-col items-center space-y-3 bg-gradient-to-b from-transparent via-gray-100 to-gray-100 p-5 pb-3 sm:px-0">
+        <div className="w-full max-w-screen-md">
+          <TokenInfo tokenInfo={currentTokenInfo} />
+        </div>
         <form
           ref={formRef}
           onSubmit={handleSubmit}
