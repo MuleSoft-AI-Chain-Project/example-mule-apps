@@ -25,6 +25,13 @@ type TokenInfo = {
   totalCount: number;
 };
 
+// Example users
+const users = [
+  { clientId: "user1", name: "Alice" },
+  { clientId: "user2", name: "Bob" },
+  { clientId: "user3", name: "Charlie" },
+];
+
 const examples = [
   "Return the last created Lead",
   "How many active users do we have in Salesforce? Return their names",
@@ -54,10 +61,16 @@ export default function Chat() {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [currentTokenInfo, setCurrentTokenInfo] = useState<TokenInfo | null>(null);
+  const [selectedUser, setSelectedUser] = useState<{ clientId: string; name: string } | null>(null);
+
+  const handleUserSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const user = users.find(u => u.clientId === e.target.value);
+    setSelectedUser(user || null);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim()) return;
+    if (!input.trim() || !selectedUser) return;
 
     const newMessage: Message = { role: "user", content: input };
     setMessages((prevMessages) => [...prevMessages, newMessage]);
@@ -65,7 +78,7 @@ export default function Chat() {
     setIsLoading(true);
 
     try {
-      const requestBody = { data: input };
+      const requestBody = { data: input, clientId: selectedUser.clientId };
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: {
@@ -100,13 +113,37 @@ export default function Chat() {
     }
   };
 
-  const disabled = isLoading || input.length === 0;
+  const disabled = isLoading || input.length === 0 || !selectedUser;
 
   return (
     <main className="flex flex-col items-center justify-between pb-40">
       <div className="absolute top-5 hidden w-full justify-between px-5 sm:flex">
-        {/* You can add any header content here if needed */}
+
+        {/* User Selection Dropdown */}
+        <div className="flex items-center space-x-2">
+          <label htmlFor="userSelect" className="text-sm font-medium text-gray-700">
+            Select User:
+          </label>
+          <select
+            id="userSelect"
+            onChange={handleUserSelect}
+            className="p-2 border rounded-md"
+            defaultValue=""
+          >
+            <option value="" disabled>
+              Select a user
+            </option>
+            {users.map(user => (
+              <option key={user.clientId} value={user.clientId}>
+                {user.name}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
+
+
+
       {messages.length > 0 ? (
         messages.map((message, i) => (
           <div
@@ -150,7 +187,7 @@ export default function Chat() {
               src="/images/logo.png"
               width={50}
               height={50}
-              alt="Picture of the author"
+              alt="MuleSoft AI Chain Agent Logo"
               className="mb-4 h-12 w-12 sm:mb-0 sm:mr-10 sm:h-16 sm:w-16"
             />
             <div className="flex flex-col space-y-2 text-center sm:text-left">
@@ -198,6 +235,7 @@ export default function Chat() {
                   setInput(example);
                   inputRef.current?.focus();
                 }}
+                disabled={!selectedUser}
               >
                 {example}
               </button>
@@ -231,6 +269,7 @@ export default function Chat() {
             }}
             spellCheck={false}
             className="w-full pr-10 focus:outline-none"
+            disabled={!selectedUser}
           />
           <button
             className={clsx(
