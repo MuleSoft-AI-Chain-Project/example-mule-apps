@@ -47,9 +47,11 @@ http://www.mulesoft.org/schema/mule/ms-aichain http://www.mulesoft.org/schema/mu
 						<ee:set-payload><![CDATA[%dw 2.0
 output application/json
 ---
-
 {
-	comments: payload.comments..body..content..content..text
+	comments: payload.comments..body..content..content..text default [], 
+	description: vars.payload.fields.description.content..text,
+	summary: vars.payload.fields.summary 	
+		
 }]]></ee:set-payload>
 					</ee:message>
 				</ee:transform>
@@ -58,7 +60,6 @@ output application/json
 				<ee:set-payload><![CDATA[%dw 2.0
 output application/java
 ---
-
 write(payload, "application/json")]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
