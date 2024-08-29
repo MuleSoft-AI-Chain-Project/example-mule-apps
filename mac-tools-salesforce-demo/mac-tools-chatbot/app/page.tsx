@@ -35,8 +35,6 @@ const users = [
 
 const examples = [
   "Return the last created Lead",
-  "How many active users do we have in Salesforce? Return their names",
-  "Return the 3 Contact names and order by date",
   "Return all open opportunities",
   "What was our last closed case in Salesforce"
 ];
@@ -92,10 +90,11 @@ export default function Chat() {
 
       // Update token usage
       setTokenUsage(prevUsage => {
-        const userUsage = prevUsage[selectedUser.clientId] || { inputCount: 0, outputCount: 0, totalCount: 0 };
+        const userName = selectedUser.name;
+        const userUsage = prevUsage[userName] || { inputCount: 0, outputCount: 0, totalCount: 0 };
         return {
           ...prevUsage,
-          [selectedUser.clientId]: {
+          [userName]: {
             inputCount: userUsage.inputCount + data.tokenInfo.inputCount,
             outputCount: userUsage.outputCount + data.tokenInfo.outputCount,
             totalCount: userUsage.totalCount + data.tokenInfo.totalCount,

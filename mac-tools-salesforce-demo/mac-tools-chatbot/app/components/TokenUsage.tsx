@@ -1,13 +1,11 @@
 import React from "react";
 
-// Define the TokenInfo type
 type TokenInfo = {
     inputCount: number;
     outputCount: number;
     totalCount: number;
 };
 
-// Define the props for the TokenUsageTable component
 interface TokenUsageTableProps {
     tokenUsage: Record<string, TokenInfo>;
 }
@@ -30,12 +28,12 @@ const TokenUsageTable: React.FC<TokenUsageTableProps> = ({ tokenUsage }) => {
                 </tr>
             </thead>
             <tbody>
-                {users.map((user) => (
-                    <tr key={user}>
-                        <td className="py-2 px-4 border-b">{user}</td>
-                        <td className="py-2 px-4 border-b">{tokenUsage[user].inputCount}</td>
-                        <td className="py-2 px-4 border-b">{tokenUsage[user].outputCount}</td>
-                        <td className="py-2 px-4 border-b">{tokenUsage[user].totalCount}</td>
+                {users.map((userName) => (
+                    <tr key={userName}>
+                        <td className="py-2 px-4 border-b">{userName}</td>
+                        <td className="py-2 px-4 border-b">{tokenUsage[userName].inputCount}</td>
+                        <td className="py-2 px-4 border-b">{tokenUsage[userName].outputCount}</td>
+                        <td className="py-2 px-4 border-b">{tokenUsage[userName].totalCount}</td>
                     </tr>
                 ))}
             </tbody>
