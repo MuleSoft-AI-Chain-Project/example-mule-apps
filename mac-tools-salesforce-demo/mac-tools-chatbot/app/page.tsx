@@ -11,6 +11,7 @@ import Textarea from "react-textarea-autosize";
 import { toast } from "sonner";
 import Image from "next/image";
 import React from "react";
+import TokenUsageTable from "./components/TokenUsage";
 
 // Define the Message type
 type Message = {
@@ -18,12 +19,12 @@ type Message = {
   content: string;
 };
 
-// Define the TokenInfo type
-type TokenInfo = {
-  inputCount: number;
-  outputCount: number;
-  totalCount: number;
-};
+// // Define the TokenInfo type
+// type TokenInfo = {
+//   inputCount: number;
+//   outputCount: number;
+//   totalCount: number;
+// };
 
 // Example users
 const users = [
@@ -40,18 +41,18 @@ const examples = [
   "What was our last closed case in Salesforce"
 ];
 
-// New component to display token information
-const TokenInfo = ({ tokenInfo }: { tokenInfo: TokenInfo | null }) => {
-  if (!tokenInfo) return null;
+// // New component to display token information
+// const TokenInfo = ({ tokenInfo }: { tokenInfo: TokenInfo | null }) => {
+//   if (!tokenInfo) return null;
 
-  return (
-    <div className="mt-2 text-sm text-gray-500">
-      <p>Input tokens: {tokenInfo.inputCount}</p>
-      <p>Output tokens: {tokenInfo.outputCount}</p>
-      <p>Total tokens: {tokenInfo.totalCount}</p>
-    </div>
-  );
-};
+//   return (
+//     <div className="mt-2 text-sm text-gray-500">
+//       <p>Input tokens: {tokenInfo.inputCount}</p>
+//       <p>Output tokens: {tokenInfo.outputCount}</p>
+//       <p>Total tokens: {tokenInfo.totalCount}</p>
+//     </div>
+//   );
+// };
 
 export default function Chat() {
   const formRef = useRef<HTMLFormElement>(null);
@@ -62,6 +63,7 @@ export default function Chat() {
   const [isLoading, setIsLoading] = useState(false);
   const [currentTokenInfo, setCurrentTokenInfo] = useState<TokenInfo | null>(null);
   const [selectedUser, setSelectedUser] = useState<{ clientId: string; name: string } | null>(null);
+  const [tokenUsage, setTokenUsage] = useState<Record<string, TokenInfo>>({});
 
   const handleUserSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const user = users.find(u => u.clientId === e.target.value);
@@ -100,6 +102,20 @@ export default function Chat() {
 
       setMessages((prevMessages) => [...prevMessages, assistantMessage]);
       setCurrentTokenInfo(data.tokenInfo);
+
+      // Update token usage
+      setTokenUsage(prevUsage => {
+        const userUsage = prevUsage[selectedUser.clientId] || { inputCount: 0, outputCount: 0, totalCount: 0 };
+        return {
+          ...prevUsage,
+          [selectedUser.clientId]: {
+            inputCount: userUsage.inputCount + data.tokenInfo.inputCount,
+            outputCount: userUsage.outputCount + data.tokenInfo.outputCount,
+            totalCount: userUsage.totalCount + data.tokenInfo.totalCount,
+          }
+        };
+      });
+
       va.track("Chat initiated");
     } catch (error) {
       console.error("Error occurred during fetch:", error);
@@ -118,7 +134,6 @@ export default function Chat() {
   return (
     <main className="flex flex-col items-center justify-between pb-40">
       <div className="absolute top-5 hidden w-full justify-between px-5 sm:flex">
-
         {/* User Selection Dropdown */}
         <div className="flex items-center space-x-2">
           <label htmlFor="userSelect" className="text-sm font-medium text-gray-700">
@@ -141,9 +156,6 @@ export default function Chat() {
           </select>
         </div>
       </div>
-
-
-
       {messages.length > 0 ? (
         messages.map((message, i) => (
           <div
@@ -245,7 +257,7 @@ export default function Chat() {
       )}
       <div className="fixed bottom-0 flex w-full flex-col items-center space-y-3 bg-gradient-to-b from-transparent via-gray-100 to-gray-100 p-5 pb-3 sm:px-0">
         <div className="w-full max-w-screen-md">
-          <TokenInfo tokenInfo={currentTokenInfo} />
+          <TokenUsageTable tokenUsage={tokenUsage} />
         </div>
         <form
           ref={formRef}
