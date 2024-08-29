@@ -19,12 +19,12 @@ type Message = {
   content: string;
 };
 
-// // Define the TokenInfo type
-// type TokenInfo = {
-//   inputCount: number;
-//   outputCount: number;
-//   totalCount: number;
-// };
+// Define the TokenInfo type
+type TokenInfo = {
+  inputCount: number;
+  outputCount: number;
+  totalCount: number;
+};
 
 // Example users
 const users = [
@@ -40,19 +40,6 @@ const examples = [
   "Return all open opportunities",
   "What was our last closed case in Salesforce"
 ];
-
-// // New component to display token information
-// const TokenInfo = ({ tokenInfo }: { tokenInfo: TokenInfo | null }) => {
-//   if (!tokenInfo) return null;
-
-//   return (
-//     <div className="mt-2 text-sm text-gray-500">
-//       <p>Input tokens: {tokenInfo.inputCount}</p>
-//       <p>Output tokens: {tokenInfo.outputCount}</p>
-//       <p>Total tokens: {tokenInfo.totalCount}</p>
-//     </div>
-//   );
-// };
 
 export default function Chat() {
   const formRef = useRef<HTMLFormElement>(null);
