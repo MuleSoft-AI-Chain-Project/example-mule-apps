@@ -49,6 +49,9 @@ export default function Chat() {
   const [currentTokenInfo, setCurrentTokenInfo] = useState<TokenInfo | null>(null);
   const [selectedUser, setSelectedUser] = useState<{ clientId: string; name: string } | null>(null);
   const [tokenUsage, setTokenUsage] = useState<Record<string, TokenInfo>>({});
+  const [showTokenUsageDetails, setShowTokenUsageDetails] = useState(false);
+
+  const toggleTokenUsageDetails = () => setShowTokenUsageDetails(!showTokenUsageDetails);
 
   const handleUserSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const user = users.find(u => u.clientId === e.target.value);
@@ -243,7 +246,21 @@ export default function Chat() {
       )}
       <div className="fixed bottom-0 flex w-full flex-col items-center space-y-3 bg-gradient-to-b from-transparent via-gray-100 to-gray-100 p-5 pb-3 sm:px-0">
         <div className="w-full max-w-screen-md">
-          <TokenUsageTable tokenUsage={tokenUsage} />
+          <div className="token-usage-summary flex justify-between items-center bg-gray-100 p-2 rounded-t-md">
+            <span>Total Tokens Used: {Object.values(tokenUsage).reduce((sum, user) => sum + user.totalCount, 0)}</span>
+            <button
+              onClick={toggleTokenUsageDetails}
+              className="text-blue-500 hover:text-blue-700"
+            >
+              {showTokenUsageDetails ? 'Hide Details' : 'Show Details'}
+            </button>
+          </div>
+          {showTokenUsageDetails && (
+            <div className="token-usage-details bg-white border border-gray-200 rounded-b-md p-4">
+              <h3 className="text-lg font-semibold mb-2">Token Usage Details</h3>
+              <TokenUsageTable tokenUsage={tokenUsage} />
+            </div>
+          )}
         </div>
         <form
           ref={formRef}
