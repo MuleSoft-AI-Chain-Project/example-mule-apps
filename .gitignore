@@ -72,3 +72,7 @@ jira_bug_agent/.vscode/
 
 knowledge-store/exchange-docs/
 knowledge-store/.vscode/
+/mac-webcrawler-demo/mac-knowledge-store-webapp/node_modules
+mac-webcrawler-demo/mac-knowledge-store-webapp/pnpm-lock.yaml
+mac-webcrawler-demo/mac-knowledge-store-webapp/pnpm-lock.yaml
+mac-webcrawler-demo/mac-knowledge-store-webapp/pnpm-lock.yaml
