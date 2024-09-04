@@ -1,4 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import { Components } from 'react-markdown';
 
 interface QueryResult {
     getLatest: boolean;
@@ -48,7 +51,9 @@ const AccordionItem: React.FC<{ source: QueryResult['sources'][number] }> = ({ s
             </button>
             {isOpen && (
                 <div className="mt-2 pl-4 text-sm text-gray-700">
-                    {source.textSegment}
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                        {source.textSegment}
+                    </ReactMarkdown>
                 </div>
             )}
         </div>
@@ -70,12 +75,27 @@ const RenderMessage: React.FC<RenderMessageProps> = ({ message, selectedStore })
     }
 
     const content = message.content as QueryResult;
+
+    // Custom components for ReactMarkdown
+    const components: Components = {
+        // This will render paragraphs with preserved line breaks
+        p: ({ children }) => <p className="whitespace-pre-line">{children}</p>,
+        // Open links in new tab
+        a: ({ node, ...props }) => <a target="_blank" rel="noopener noreferrer" {...props} />,
+    };
+
     return (
         <div className={`${bgClass} p-4 rounded-lg mb-2 w-full ${alignClass}`}>
             <p className={`${textClass} font-semibold mb-2`}>{label}</p>
             <div className="space-y-5">
                 <div className="bg-white p-3 rounded-lg shadow-sm">
-                    <p className="text-gray-800 whitespace-pre-wrap">{content.response}</p>
+                    <ReactMarkdown
+                        className="prose max-w-none"
+                        remarkPlugins={[remarkGfm]}
+                        components={components}
+                    >
+                        {content.response}
+                    </ReactMarkdown>
                 </div>
                 {content.sources && content.sources.length > 0 && (
                     <div>
