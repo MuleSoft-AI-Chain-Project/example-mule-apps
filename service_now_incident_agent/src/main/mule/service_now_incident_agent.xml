@@ -1,20 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:servicenow="http://www.mulesoft.org/schema/mule/servicenow" xmlns:mulechain="http://www.mulesoft.org/schema/mule/mulechain"
-	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
-	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:os="http://www.mulesoft.org/schema/mule/os" xmlns:jira="http://www.mulesoft.org/schema/mule/jira" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+<mule xmlns:ms-aichain="http://www.mulesoft.org/schema/mule/ms-aichain" xmlns:servicenow="http://www.mulesoft.org/schema/mule/servicenow"
+	xmlns:mulechain="http://www.mulesoft.org/schema/mule/mulechain"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:os="http://www.mulesoft.org/schema/mule/os" xmlns:jira="http://www.mulesoft.org/schema/mule/jira" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/jira http://www.mulesoft.org/schema/mule/jira/current/mule-jira.xsd
 http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
 http://www.mulesoft.org/schema/mule/mulechain http://www.mulesoft.org/schema/mule/mulechain/current/mule-mulechain.xsd
-http://www.mulesoft.org/schema/mule/servicenow http://www.mulesoft.org/schema/mule/servicenow/current/mule-servicenow.xsd">
+http://www.mulesoft.org/schema/mule/servicenow http://www.mulesoft.org/schema/mule/servicenow/current/mule-servicenow.xsd
+http://www.mulesoft.org/schema/mule/ms-aichain http://www.mulesoft.org/schema/mule/ms-aichain/current/mule-ms-aichain.xsd">
 	<servicenow:config name="ServiceNow_Config" doc:name="ServiceNow Config" doc:id="9946d2d8-5f8a-4983-acfd-78d31c507500" >
 		<servicenow:basic-connection username="${servicenow.user}" password="${servicenow.password}" serviceAddress="${servicenow.url}" />
 	</servicenow:config>
 	<os:object-store name="Object_store" doc:name="Object store" doc:id="e29bf0bf-61da-4719-9e06-231b4280f9e1" />
-	<mulechain:llm-configuration-config name="MuleChain_Llm_configuration" llmType="OPENAI" doc:name="MuleChain Llm configuration" doc:id="dfa2b210-1b6f-4287-b63b-53c4b271b271" configType="Configuration Json" filePath='#[mule.home ++ "/apps/" ++ app.name ++ "/envVars.json"]'/>
 	<configuration-properties doc:name="Configuration properties" doc:id="4bacfb03-c970-4dcd-9deb-657e25a356d8" file="connections.yaml" />
+	<ms-aichain:config name="MuleSoft_AI_Chain_Config" llmType="OPENAI" configType="Configuration Json" doc:name="MuleSoft AI Chain Config" doc:id="b258912c-5a94-4909-97c1-34f410f3b7f7" filePath='#[mule.home ++ "/apps/" ++ app.name ++ "/envVars.json"]' modelName="gpt-4"/>
 	<flow name="ServiceNow-AI-Summary-Sentiments" doc:id="50d07f4f-220e-40e7-9878-4354a8e088a3" >
 		<servicenow:new-or-updated-record-listener tableName="incident" doc:name="On New / Updated Record" doc:id="cd574cec-11a1-4b8b-8d61-72e2625d9645" config-ref="ServiceNow_Config" displaySystemRefs="ALL">
 			<scheduling-strategy >
@@ -62,7 +63,10 @@ output application/java
 write(payload, "application/json")]]></ee:set-payload>
 					</ee:message>
 				</ee:transform>
-				<mulechain:agent-define-prompt-template doc:name="PT Service Agent" doc:id="d04e0a7e-25dc-43a9-92ab-1799f04caf5d" config-ref="MuleChain_Llm_configuration" template="You are a support representative who is tasked with creating a short summary of a case that happened between a customer and a company support rep. " instructions="Follow the instructions precisely, do not add any information not provided. Summarize in 1 sentence, and use clear, concise, and straightforward language using the active voice and strictly avoiding the use of filler words and phrases and redundant language. Guide the next steps as maximum 2 bullet points. Keep the emotion of the summary relaxed." dataset='#[payload]'/>
+				<ms-aichain:agent-define-prompt-template doc:name="Agent define prompt template" doc:id="ea2b3e32-9d04-4c79-ba8f-d94bff0ad97f" config-ref="MuleSoft_AI_Chain_Config">
+					<ms-aichain:template ><![CDATA[You are a support representative who is tasked with creating a short summary of a case that happened between a customer and a company support rep.]]></ms-aichain:template>
+					<ms-aichain:instructions ><![CDATA[Follow the instructions precisely, do not add any information not provided. Summarize in 1 sentence, and use clear, concise, and straightforward language using the active voice and strictly avoiding the use of filler words and phrases and redundant language. Guide the next steps as maximum 2 bullet points. Keep the emotion of the summary relaxed.]]></ms-aichain:instructions>
+				</ms-aichain:agent-define-prompt-template>
 				<ee:transform doc:name="AI Summary" doc:id="f2850226-95bd-413c-bd34-d707b4f68794" >
 					<ee:message >
 						<ee:set-payload ><![CDATA[%dw 2.0
