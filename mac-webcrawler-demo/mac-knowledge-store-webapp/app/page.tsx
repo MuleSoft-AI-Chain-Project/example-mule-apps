@@ -7,6 +7,7 @@ import CreateStore from './components/CreateStore'
 import UploadDocument from './components/UploadDocument'
 import QueryStore from './components/QueryStore'
 import CrawlWebsite from './components/CrawlWebsite'
+import TabsCard from './components/TabsCard';
 
 export default function Home() {
 
@@ -35,15 +36,21 @@ export default function Home() {
   }
 
   return (
-    <main className="flex flex-col md:flex-row gap-5 max-w-full mx-auto max-h-[calc(100vh-4rem)]">
-      <div className="w-full max-w-screen-lg md:w-1/5 space-y-5">
-        <CreateStore onStoreCreated={addStoreName} />
-        <CrawlWebsite storeNames={storeNames} onStoreCreated={addStoreName} />
-        <UploadDocument storeNames={storeNames} />
-      </div>
-      <div className="w-full md:w-4/5 flex">
-        <QueryStore className="flex-grow" storeNames={storeNames} />
-      </div>
-    </main>
+<main className="flex flex-col md:flex-row gap-5 max-w-full mx-auto max-h-[calc(100vh-4rem)]">
+  <div className="w-full max-w-screen-lg md:w-2/5 space-y-5">
+    <CreateStore onStoreCreated={addStoreName} />
+    
+    {/* Adjust the height of the TabsCard */}
+    <TabsCard 
+      storeNames={storeNames} 
+      onStoreCreated={addStoreName} 
+      className="max-h-[400px] overflow-auto" // Set the max height and handle overflow
+    />
+  </div>
+
+  <div className="w-full md:w-3/5 flex">
+    <QueryStore className="flex-grow" storeNames={storeNames} />
+  </div>
+</main>
   )
 }
