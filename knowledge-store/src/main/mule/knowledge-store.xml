@@ -3,7 +3,6 @@
 <mule xmlns:ms-aichain="http://www.mulesoft.org/schema/mule/ms-aichain" xmlns:file="http://www.mulesoft.org/schema/mule/file"
 	xmlns:http="http://www.mulesoft.org/schema/mule/http"
 	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:sftp="http://www.mulesoft.org/schema/mule/sftp" xmlns:mulechain="http://www.mulesoft.org/schema/mule/mulechain" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
-http://www.mulesoft.org/schema/mule/mulechain http://www.mulesoft.org/schema/mule/mulechain/current/mule-mulechain.xsd
 http://www.mulesoft.org/schema/mule/sftp http://www.mulesoft.org/schema/mule/sftp/current/mule-sftp.xsd
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
@@ -69,7 +68,7 @@ vars.sourcepath splitBy("/") ]]></ee:set-payload>
 		<set-variable value="#[payload]" doc:name="Save payload" doc:id="f8de8e4b-1022-4a08-bbfa-25dbae028abc" variableName="payload"/>
 		<sftp:read doc:name="Get Embedding Store" doc:id="48fc165b-a057-4949-8d74-031caa72b1d0" config-ref="Embedding" path='#["/upload/embedding/knowledge.store"]' />
 		<file:write doc:name="Load Embedding Store" doc:id="6e38701e-f739-4c25-afe1-8cc2cfbf6618" path='#[mule.home ++ "/apps/" ++ app.name ++ "/knowledge.store"]' />
-		<ms-aichain:embedding-get-info-from-store doc:name="Embedding get info from store" doc:id="168588c2-46f2-4543-acfc-16029a29217f" config-ref="OpenAI_AI_Chain_Config" storeName='#[mule.home ++ "/apps/" ++ app.name ++ "/knowledge.store"]'>
+		<ms-aichain:embedding-get-info-from-store doc:name="Embedding get info from store" doc:id="168588c2-46f2-4543-acfc-16029a29217f" config-ref="Mistral_AI_Chain_Config" storeName='#[mule.home ++ "/apps/" ++ app.name ++ "/knowledge.store"]'>
 			<ms-aichain:data ><![CDATA[#[vars.payload.question]]]></ms-aichain:data>
 		</ms-aichain:embedding-get-info-from-store>
 	</flow>
@@ -78,7 +77,7 @@ vars.sourcepath splitBy("/") ]]></ee:set-payload>
 		<set-variable value="#[payload]" doc:name="Save payload" doc:id="0b5c8d13-def3-43e8-92f5-800c212630a6" variableName="payload" />
 		<sftp:read doc:name="Get Embedding Store" doc:id="d45a68cd-0074-4da0-995a-4dd6140c797c" config-ref="Embedding" path='#["/upload/embedding/knowledge.store"]' />
 		<file:write doc:name="Load Embedding Store" doc:id="8ebd9079-cf42-49ab-95ff-15af3c883938" path='#[mule.home ++ "/apps/" ++ app.name ++ "/knowledge.store"]' />
-		<ms-aichain:embedding-get-info-from-store-legacy doc:name="Embedding get info from store legacy" doc:id="3d7d6d03-b3a5-47ff-ac14-44dc67befde9" config-ref="OpenAI_AI_Chain_Config" storeName="storeName='#[mule.home ++ &quot;/apps/&quot; ++ app.name ++ &quot;/knowledge.store&quot;]'">
+		<ms-aichain:embedding-get-info-from-store-legacy doc:name="Embedding get info from store legacy" doc:id="3d7d6d03-b3a5-47ff-ac14-44dc67befde9" config-ref="Mistral_AI_Chain_Config" storeName='#[mule.home ++ "/apps/" ++ app.name ++ "/knowledge.store"]'>
 			<ms-aichain:data ><![CDATA[#[vars.payload.question]]]></ms-aichain:data>
 		</ms-aichain:embedding-get-info-from-store-legacy>
 	</flow>
