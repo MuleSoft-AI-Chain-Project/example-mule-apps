@@ -1,25 +1,33 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:http="http://www.mulesoft.org/schema/mule/http"
-	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
-	xmlns:sftp="http://www.mulesoft.org/schema/mule/sftp" xmlns:mulechain="http://www.mulesoft.org/schema/mule/mulechain" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
-http://www.mulesoft.org/schema/mule/mulechain http://www.mulesoft.org/schema/mule/mulechain/current/mule-mulechain.xsd
+<mule xmlns:ms-aichain="http://www.mulesoft.org/schema/mule/ms-aichain" xmlns:file="http://www.mulesoft.org/schema/mule/file"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:sftp="http://www.mulesoft.org/schema/mule/sftp" xmlns:mulechain="http://www.mulesoft.org/schema/mule/mulechain" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/sftp http://www.mulesoft.org/schema/mule/sftp/current/mule-sftp.xsd
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
-http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd">
-	<mulechain:llm-configuration-config name="OpenAI" llmType="OPENAI" configType="Configuration Json" doc:name="MuleChain AI Llm configuration" doc:id="a2ee79c0-5075-4b11-8b45-ea1eb4854ec4" filePath='#[mule.home ++ "/apps/" ++ app.name ++ "/envVars.json"]' />
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+http://www.mulesoft.org/schema/mule/ms-aichain http://www.mulesoft.org/schema/mule/ms-aichain/current/mule-ms-aichain.xsd">
 	<sftp:config name="Knowledge_Ingestion" doc:name="SFTP Config" doc:id="c07937cb-417c-4596-b4d8-ace8e5fe2eaa" >
-		<sftp:connection host="${sftp.host}" port="${sftp.port}" username="${sftp.username}" password="${sftp.password}" workingDir="${sftp.knowledgeIngestionDirectory}"/>
+		<sftp:connection host="${sftp.host}" port="${sftp.port}" username="${sftp.username}" password="${sftp.password}" workingDir="${sftp.knowledgeIngestionDirectory}" connectionTimeout="60" responseTimeout="60">
+			<reconnection >
+				<reconnect />
+			</reconnection>
+		</sftp:connection>
 	</sftp:config>
 	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="c3d78db9-cd23-4054-bf0b-186456f9a001" >
 		<http:listener-connection host="0.0.0.0" port="8081" />
 	</http:listener-config>
 	<sftp:config name="Embedding" doc:name="SFTP Config" doc:id="a8377f0b-8b4c-4c08-a9b3-6622ae1c1aa2" >
-		<sftp:connection workingDir="${sftp.embeddingWorkingDirectory}" host="${sftp.host}" port="${sftp.port}" username="${sftp.username}" password="${sftp.password}" />
+		<sftp:connection workingDir="${sftp.embeddingWorkingDirectory}" host="${sftp.host}" port="${sftp.port}" username="${sftp.username}" password="${sftp.password}" connectionTimeout="60" responseTimeout="60">
+			<reconnection >
+				<reconnect />
+			</reconnection>
+		</sftp:connection>
 	</sftp:config>
-	<mulechain:llm-configuration-config name="MISTRAL_AI" llmType="MISTRAL_AI" configType="Configuration Json" doc:name="MuleChain AI Llm configuration" doc:id="ebb23366-52a3-4798-9d09-3e49b8b337f2" filePath='#[mule.home ++ "/apps/" ++ app.name ++ "/envVars.json"]' />
 	<configuration-properties doc:name="Configuration properties" doc:id="e4e4dad5-991c-42e8-9568-25c67d13df29" file="connections.yaml" />
+	<ms-aichain:config name="OpenAI_AI_Chain_Config" llmType="OPENAI" configType="Configuration Json" doc:name="MuleSoft AI Chain Config" doc:id="d888cbd0-f3cc-4b6d-9eee-dc1b8f8916bc" filePath='#[mule.home ++ "/apps/" ++ app.name ++ "/envVars.json"]' modelName="gpt-4"/>
+	<ms-aichain:config name="Mistral_AI_Chain_Config" llmType="MISTRAL_AI" configType="Configuration Json" doc:name="MuleSoft AI Chain Config" doc:id="91323996-99f4-40ab-bcfb-85dcbdf78f86" filePath='#[mule.home ++ "/apps/" ++ app.name ++ "/envVars.json"]' modelName="mistral-large-latest"/>
 	<flow name="ingest-knowledge" doc:id="5f4f9328-d6e0-4f46-b12d-ea426a4e6ccc" >
 		<sftp:listener doc:name="On New or Updated File" doc:id="fbbf585a-5745-4fbc-976d-74722ff464c2" config-ref="Knowledge_Ingestion">
 			<scheduling-strategy >
@@ -42,31 +50,35 @@ vars.sourcepath splitBy("/") ]]></ee:set-payload>
 		</file:write>
 		<sftp:read doc:name="Get Embedding Store" doc:id="022bc75d-1520-435c-b4fc-377f1ca284c7" config-ref="Embedding" path='#["/upload/embedding/knowledge.store"]' />
 		<file:write doc:name="Load Embedding Store" doc:id="af9ab034-d9bc-43c5-9301-9e1d6e9c0cf0" path='#[mule.home ++ "/apps/" ++ app.name ++ "/knowledge.store"]'/>
-		<mulechain:embedding-add-document-to-store doc:name="Embedding add document to store" doc:id="1017b73c-f569-49a9-8254-ad0864fc6665" config-ref="MISTRAL_AI" storeName='#[mule.home ++ "/apps/" ++ app.name ++ "/knowledge.store"]' contextPath='#[mule.home ++ "/apps/" ++ app.name ++ "/" ++ vars.filename]' fileType="pdf" modelName="mistral-large-latest"/>
+		<ms-aichain:embedding-add-document-to-store doc:name="Embedding add document to store" doc:id="3f284096-ae8a-47d6-8dd8-5e8f0debcec4"  storeName='#[mule.home ++ "/apps/" ++ app.name ++ "/knowledge.store"]' contextPath='#[mule.home ++ "/apps/" ++ app.name ++ "/" ++ vars.filename]' fileType="any" maxSegmentSizeInChars="100000" maxOverlapSizeInChars="100000"/>
 		<file:read doc:name="Reload Embedding Store" doc:id="35535a95-a375-4b07-ba62-252176eb070f" path='#[mule.home ++ "/apps/" ++ app.name ++ "/knowledge.store"]'/>
-		<sftp:write doc:name="Save Embedding" doc:id="b9686b6a-dfd2-4c7c-be3f-023429a9df9f" config-ref="Embedding" path="knowledge.store"/>
+		<sftp:write doc:name="Save Embedding" doc:id="b9686b6a-dfd2-4c7c-be3f-023429a9df9f" config-ref="Embedding" path='#["/upload/embedding/knowledge.store"]'/>
 		<sftp:move doc:name="Move processed file" doc:id="127981e8-5db7-491d-97ea-9bcff89b6158" config-ref="Knowledge_Ingestion" sourcePath="#[vars.sourcepath]" targetPath='#["/upload/processed/"]'/>
 		<file:delete doc:name="Delete local file" doc:id="74b0d31e-e444-4c47-9978-7d001595fd8a" path='#[mule.home ++ "/apps/" ++ app.name ++ "/" ++ vars.filename]' />
 	</flow>
 	<flow name="knowledge-new-store" doc:id="b55f9a23-bd96-421d-8426-449ed3c17a4c" >
 		<http:listener doc:name="Listener" doc:id="8934cc7e-80c6-4fc4-96cd-c90b1bd31a5c" config-ref="HTTP_Listener_config" path="/embedding" allowedMethods="POST"/>
 		<set-variable value="#[payload]" doc:name="Save Payload" doc:id="51e34eda-25bd-4aaa-b74f-dfd6a2020a5e" variableName="payload"/>
-		<mulechain:embedding-new-store doc:name="Embedding new store" doc:id="dc875444-5da2-4945-85d6-df21ef290141" storeName='#[mule.home ++ "/apps/" ++ app.name ++ "/" ++ vars.payload.storeName]'/>
+		<ms-aichain:embedding-new-store doc:name="Embedding new store" doc:id="20ef4a13-6ec5-488a-8e3c-35f2df2d5bd8" storeName='#[mule.home ++ "/apps/" ++ app.name ++ "/" ++ vars.payload.storeName]'/>
 		<file:read doc:name="Read Embedding Store" doc:id="d9264b79-97c1-43a2-b1a4-5f062ae27557" path='#[mule.home ++ "/apps/" ++ app.name ++ "/" ++ vars.payload.storeName]'/>
-		<sftp:write doc:name="Copy it to SFTP" doc:id="af59081e-6c16-46d0-826d-d9f8fb56cd3b" config-ref="Embedding" path="#[vars.payload.storeName]"/>
+		<sftp:write doc:name="Copy it to SFTP" doc:id="af59081e-6c16-46d0-826d-d9f8fb56cd3b" config-ref="Embedding" path='#["/upload/embedding/knowledge.store"]'/>
 	</flow>
 	<flow name="knowledge-ask-question" doc:id="59e6e20e-002e-4155-939e-285da76c13b9" >
 		<http:listener doc:name="Listener" doc:id="4ee3fd28-1571-429a-9754-1e681bfb6cc3" config-ref="HTTP_Listener_config" path="/prompt" allowedMethods="POST"/>
 		<set-variable value="#[payload]" doc:name="Save payload" doc:id="f8de8e4b-1022-4a08-bbfa-25dbae028abc" variableName="payload"/>
 		<sftp:read doc:name="Get Embedding Store" doc:id="48fc165b-a057-4949-8d74-031caa72b1d0" config-ref="Embedding" path='#["/upload/embedding/knowledge.store"]' />
 		<file:write doc:name="Load Embedding Store" doc:id="6e38701e-f739-4c25-afe1-8cc2cfbf6618" path='#[mule.home ++ "/apps/" ++ app.name ++ "/knowledge.store"]' />
-		<mulechain:embedding-get-info-from-store doc:name="Embedding get info from store" doc:id="2a8a5682-e292-4204-a7c5-9c9107d58043" config-ref="MISTRAL_AI" storeName='#[mule.home ++ "/apps/" ++ app.name ++ "/knowledge.store"]' data="#[vars.payload.question]" modelName="mistral-large-latest"/>
+		<ms-aichain:embedding-get-info-from-store doc:name="Embedding get info from store" doc:id="168588c2-46f2-4543-acfc-16029a29217f" config-ref="Mistral_AI_Chain_Config" storeName='#[mule.home ++ "/apps/" ++ app.name ++ "/knowledge.store"]'>
+			<ms-aichain:data ><![CDATA[#[vars.payload.question]]]></ms-aichain:data>
+		</ms-aichain:embedding-get-info-from-store>
 	</flow>
 	<flow name="knowledge-ask-question-legacy" doc:id="82c5e0bb-fbb7-42fb-b91d-346de9fc1512" >
 		<http:listener doc:name="Listener" doc:id="013ff781-f96f-4dde-b2d7-0b8ab0e30cf2" config-ref="HTTP_Listener_config" path="/promptL" allowedMethods="POST" />
 		<set-variable value="#[payload]" doc:name="Save payload" doc:id="0b5c8d13-def3-43e8-92f5-800c212630a6" variableName="payload" />
 		<sftp:read doc:name="Get Embedding Store" doc:id="d45a68cd-0074-4da0-995a-4dd6140c797c" config-ref="Embedding" path='#["/upload/embedding/knowledge.store"]' />
 		<file:write doc:name="Load Embedding Store" doc:id="8ebd9079-cf42-49ab-95ff-15af3c883938" path='#[mule.home ++ "/apps/" ++ app.name ++ "/knowledge.store"]' />
-		<mulechain:embedding-get-info-from-store-legacy doc:name="Embedding get info from store legacy" doc:id="38d1be96-14c1-4679-a999-2a97b7eb3c8f" config-ref="OpenAI" storeName='#[mule.home ++ "/apps/" ++ app.name ++ "/knowledge.store"]' data="#[vars.payload.question]"/>
+		<ms-aichain:embedding-get-info-from-store-legacy doc:name="Embedding get info from store legacy" doc:id="3d7d6d03-b3a5-47ff-ac14-44dc67befde9" config-ref="Mistral_AI_Chain_Config" storeName='#[mule.home ++ "/apps/" ++ app.name ++ "/knowledge.store"]'>
+			<ms-aichain:data ><![CDATA[#[vars.payload.question]]]></ms-aichain:data>
+		</ms-aichain:embedding-get-info-from-store-legacy>
 	</flow>
 </mule>
