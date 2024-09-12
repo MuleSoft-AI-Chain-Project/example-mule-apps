@@ -3,9 +3,9 @@
 This is an example mule app to demonstrate how to built a knowledge store with MuleChain Connector. 
 
 The mule flow uses the following connectors:
-- MuleChain AI Connector v0.1.0
+- MuleChain AI Connector v0.2.29
 - File Connector 1.5.2
-- SFTP Connector 2.1.0
+- SFTP Connector 2.2.2
 
 
 ## Systems involved
@@ -21,7 +21,7 @@ This mule app has 3 flows:
 **Ingest PDF Files into Knowledge Store**
 - ingest-knowledge: This flows take pdf files dropped on the SFTP's upload/new path and ingest it into the knowledge store. The knowledge store is being exported back to the SFTP upload/embedding path. 
 
-![App Screenshot](src/main/resources/ingestFlow.png)
+![App Screenshot](src/main/resources/ingestflow.png)
 
 **New Store Creation**
 - knowledge-new-store: Create a new in-memory Knowledge Store and export it to a physical file on the SFTP Server "upload/embeddings"
@@ -44,8 +44,8 @@ The mule apps maintains a connections.yaml file under ``/knowledge-store/src/mai
 
 ```yaml
 sftp:
-  embeddingWorkingDirectory: "/upload/new"
-  knowledgeIngestionDirectory: "/upload/embedding"
+  embeddingWorkingDirectory: "/upload/embedding/"
+  knowledgeIngestionDirectory: "/upload/new/"
   host: "sftp.yourcompany.com"
   port: "3859"
   username: "admin"
