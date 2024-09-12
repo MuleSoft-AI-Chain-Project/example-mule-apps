@@ -19,12 +19,12 @@ The mule flow uses the following connectors:
 This mule app has 3 flows:
 
 **Ingest PDF Files into Knowledge Store**
-- ingest-knowledge: This flows take pdf files dropped on the SFTP's upload/new path and ingest it into the knowledge store. The knowledge store is being exported back to the SFTP upload/embedding path. 
+- ingest-knowledge: This flows take pdf files dropped on the SFTP's "/upload/new" path and ingest it into the knowledge store. The knowledge store is being exported back to the SFTP "/upload/embedding" path. 
 
 ![App Screenshot](src/main/resources/ingestflow.png)
 
 **New Store Creation**
-- knowledge-new-store: Create a new in-memory Knowledge Store and export it to a physical file on the SFTP Server "upload/embeddings"
+- knowledge-new-store: Create a new in-memory Knowledge Store and export it to a physical file on the SFTP Server "/upload/embedding"
 
 ![App Screenshot](src/main/resources/knowledgeNewStore.png)
 
