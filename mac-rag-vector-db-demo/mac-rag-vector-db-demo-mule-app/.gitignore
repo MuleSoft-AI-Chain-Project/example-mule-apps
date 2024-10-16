@@ -1,0 +1,74 @@
+# IntelliJ IDEA
+.idea/
+*.iws
+*.iml
+*.ipr
+.java-version
+# Maven
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+
+# MuleSoft
+.mule/
+.mule/plugins/
+mule-artifact.json
+exchange-docs/
+
+# Logs
+*.log
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# IDEs and Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# macOS
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+.nfs*
+
+# Compiled class files
+*.class
+
+# Generated files
+generated-sources/
+generated-test-sources/
+
+# Configuration files
+.vscode/
+.classpath
+.project
+.settings/
+
+# Miscellaneous
+*.bak
+*.tmp
+
+# Project specific items
+service_now_incident_agent/exchange-docs/
+service_now_incident_agent/.vscode/
+
+jira_bug_agent/exchange-docs/
+jira_bug_agent/.vscode/
+
+knowledge-store/exchange-docs/
+knowledge-store/.vscode/
