@@ -102,57 +102,55 @@ export default function UploadDocument({ className = '', storeNames }: UploadDoc
     }
 
     return (
-        <div className={`bg-white border-2 p-6 rounded-lg shadow-md ${className}`}>
-            <h2 className="text-2xl font-bold mb-6 text-gray-800">Upload Document</h2>
-            <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                    <label htmlFor="storeSelect" className="block text-sm font-medium text-gray-700 mb-1">
-                        Select Store
-                    </label>
-                    <select
-                        id="storeSelect"
-                        value={selectedStore}
-                        onChange={(e) => setSelectedStore(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-indigo-100 focus:border-indigo-300 text-gray-900"
-                        required
-                    >
-                        <option value="">Select a store</option>
-                        {storeNames.map((name) => (
-                            <option key={name} value={name}>
-                                {name}
-                            </option>
-                        ))}
-                    </select>
+        <div className={`flex flex-col h-full ${className}`}>
+            <h2 className="text-xl font-bold text-gray-700 mb-6">Add Knowledge</h2>
+            <form onSubmit={handleSubmit} className="space-y-3">
+                <div className="grid grid-cols-2 gap-3">
+                    <div>
+                        <label htmlFor="storeSelect" className="text-sm font-medium text-gray-600">
+                            Store
+                        </label>
+                        <select
+                            id="storeSelect"
+                            value={selectedStore}
+                            onChange={(e) => setSelectedStore(e.target.value)}
+                            className="mt-1 w-full px-3 py-1.5 text-sm border rounded-md"
+                            required
+                        >
+                            <option value="">Select store</option>
+                            {storeNames.map((name) => (
+                                <option key={name} value={name}>{name}</option>
+                            ))}
+                        </select>
+                    </div>
+                    <div>
+                        <label htmlFor="fileType" className="text-sm font-medium  text-gray-600">
+                            File Type
+                        </label>
+                        <select
+                            id="fileType"
+                            value={fileType}
+                            onChange={(e) => setFileType(e.target.value)}
+                            className="mt-1 w-full px-3 py-1.5 text-sm border rounded-md"
+                        >
+                            <option value="text">Text</option>
+                            <option value="PDF">PDF</option>
+                        </select>
+                    </div>
                 </div>
-                <div>
-                    <label htmlFor="fileType" className="block text-sm font-medium text-gray-700 mb-1">
-                        File Type
-                    </label>
-                    <select
-                        id="fileType"
-                        value={fileType}
-                        onChange={(e) => setFileType(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-indigo-100 focus:border-indigo-300 text-gray-900"
-                    >
-                        <option value="text">Text</option>
-                        <option value="PDF">PDF</option>
-                    </select>
-                </div>
+
                 <div
                     onDragEnter={handleDragEnter}
                     onDragOver={handleDragOver}
                     onDragLeave={handleDragLeave}
                     onDrop={handleDrop}
-                    className={`border-2 border-dashed rounded-md p-8 text-center cursor-pointer transition-colors ${isDragging ? 'border-indigo-500 bg-indigo-50' : 'border-gray-300 hover:border-indigo-400'
-                        }`}
+                    className={`border-2 border-dashed rounded-md p-4 text-center cursor-pointer 
+                        ${isDragging ? 'border-indigo-500 bg-indigo-50' : 'border-gray-300'}`}
                 >
                     {file ? (
-                        <p className="text-gray-700">File selected: {file.name}</p>
+                        <p className="text-sm text-gray-700">File: {file.name}</p>
                     ) : (
-                        <>
-                            <p className="text-gray-700 mb-2">Drag and drop your file here, or click to select</p>
-                            <p className="text-sm text-gray-500">Supported file types: Text, PDF</p>
-                        </>
+                        <p className="text-sm text-gray-500">Drop file here or click to select</p>
                     )}
                     <input
                         type="file"
@@ -162,17 +160,20 @@ export default function UploadDocument({ className = '', storeNames }: UploadDoc
                         accept=".txt,.pdf"
                     />
                 </div>
+
                 <button
                     type="submit"
                     disabled={isUploading || !file}
-                    className={`w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${isUploading || !file ? 'opacity-50 cursor-not-allowed' : ''
-                        }`}
+                    className={`w-full py-1.5 px-4 text-sm font-medium text-white 
+                        bg-indigo-600 hover:bg-indigo-700 rounded-md 
+                        ${isUploading || !file ? 'opacity-50' : ''}`}
                 >
                     {isUploading ? 'Uploading...' : 'Upload Document'}
                 </button>
             </form>
-            {message && <p className="mt-4 text-sm text-green-600">{message}</p>}
-            {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
+            <div className="flex-1" />
+            {message && <p className="text-xs text-green-600">{message}</p>}
+            {error && <p className="text-xs text-red-600">{error}</p>}
         </div>
     )
 }

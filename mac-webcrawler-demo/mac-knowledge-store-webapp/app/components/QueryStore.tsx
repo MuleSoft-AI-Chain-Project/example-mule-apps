@@ -177,7 +177,7 @@ export default function QueryStore({ className = '', storeNames }: QueryStorePro
 
     return (
         <div className={`bg-white p-6 border-2 rounded-lg shadow-md flex flex-col h-full ${className}`}>
-            <h2 className="text-2xl font-bold mb-6 text-gray-800">Query Knowledge Base</h2>
+            <h2 className="text-xl font-bold text-gray-700 mb-6 ">Query Knowledge Base</h2>
             <div className="flex-grow overflow-y-auto mb-4 flex flex-col">
                 {messages.map((message, index) => (
                     <RenderMessage key={index} message={message} selectedStore={selectedStore} />

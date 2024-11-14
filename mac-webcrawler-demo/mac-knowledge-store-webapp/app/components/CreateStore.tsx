@@ -47,10 +47,10 @@ export default function CreateStore({ className = '', onStoreCreated }: CreateSt
 
     return (
         <div className="bg-white p-6 border-2 rounded-lg shadow-sm">
-            <h2 className="text-2xl font-bold mb-6 text-gray-800">Create Store</h2>
+            <h2 className="text-xl mb-6 text-gray-900 font-bold">Create Store</h2>
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                    <label htmlFor="createStoreName" className="block text-sm font-medium text-gray-700 mb-1">
+                    <label htmlFor="createStoreName" className="block text-sm text-gray-700 mb-1">
                         Store Name
                     </label>
                     <input

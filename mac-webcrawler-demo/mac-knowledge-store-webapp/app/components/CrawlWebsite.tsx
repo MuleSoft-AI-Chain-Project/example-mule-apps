@@ -50,12 +50,12 @@ export default function CrawlWebsite({ className = '', storeNames, onStoreCreate
     }
 
     return (
-        <div className="bg-white p-6 border-2 rounded-lg shadow-sm">
-            <h2 className="text-2xl font-bold mb-6 text-gray-800">Crawl Website</h2>
+        <div className={`flex flex-col h-full ${className}`}>
+            <h2 className="text-xl font-bold text-gray-700 mb-6">Add Knowledge</h2>
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                     <label htmlFor="crawlWebsiteName" className="block text-sm font-medium text-gray-700 mb-1">
-                        Website Url
+                        Website URL
                     </label>
                     <input
                         id="crawlWebsiteName"
@@ -68,46 +68,47 @@ export default function CrawlWebsite({ className = '', storeNames, onStoreCreate
                     />
                 </div>
                 
-                {/* Step 2: Add the depth input field */}
-                <div>
-                    <label htmlFor="crawlDepth" className="block text-sm font-medium text-gray-700 mb-1">
-                        Depth
-                    </label>
-                    <input
-                        id="crawlDepth"
-                        type="number"
-                        value={depth}
-                        onChange={(e) => setDepth(Number(e.target.value))}
-                        placeholder="Enter depth"
-                        className="w-full px-3 py-2 placeholder-gray-400 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-indigo-100 focus:border-indigo-300 text-gray-900"
-                        min="0"
-                        required
-                    />
-                </div>
-                <div>
-                    <label htmlFor="storeSelect" className="block text-sm font-medium text-gray-700 mb-1">
-                        Select Store
-                    </label>
-                    <select
-                        id="storeSelect"
-                        value={selectedStore}
-                        onChange={(e) => setSelectedStore(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-indigo-100 focus:border-indigo-300 text-gray-900"
-                        required
-                    >
-                        <option value="">Select a store</option>
-                        {storeNames.map((name) => (
-                            <option key={name} value={name}>
-                                {name}
-                            </option>
-                        ))}
-                    </select>
+                <div className="grid grid-cols-2 gap-4">
+                    <div>
+                        <label htmlFor="crawlDepth" className="block text-sm font-medium text-gray-700 mb-1">
+                            Depth
+                        </label>
+                        <input
+                            id="crawlDepth"
+                            type="number"
+                            value={depth}
+                            onChange={(e) => setDepth(Number(e.target.value))}
+                            placeholder="0"
+                            className="w-full px-3 py-2 placeholder-gray-400 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-indigo-100 focus:border-indigo-300 text-gray-900"
+                            min="0"
+                            required
+                        />
+                    </div>
+                    <div>
+                        <label htmlFor="storeSelect" className="block text-sm font-medium text-gray-700 mb-1">
+                            Store
+                        </label>
+                        <select
+                            id="storeSelect"
+                            value={selectedStore}
+                            onChange={(e) => setSelectedStore(e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-indigo-100 focus:border-indigo-300 text-gray-900"
+                            required
+                        >
+                            <option value="">Select store</option>
+                            {storeNames.map((name) => (
+                                <option key={name} value={name}>{name}</option>
+                            ))}
+                        </select>
+                    </div>
                 </div>
                 
                 <button
                     type="submit"
                     disabled={isCreating}
-                    className={`w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${isCreating ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    className={`w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${
+                        isCreating ? 'opacity-50 cursor-not-allowed' : ''
+                    }`}
                 >
                     {isCreating ? 'Crawling...' : 'Crawl Website'}
                 </button>
