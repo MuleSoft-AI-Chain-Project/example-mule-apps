@@ -6,38 +6,13 @@ import { useState, useEffect, useCallback } from 'react'
 import CreateStore from './components/CreateStore'
 import QueryStore from './components/QueryStore'
 import TabsCard from './components/TabsCard'
+import LLMSettingsPanel from './components/LLMSettingsPanel'
+import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/20/solid'
+import { HomeIcon, Cog6ToothIcon, DocumentTextIcon, ChartBarIcon } from '@heroicons/react/24/outline'
 
 export default function Home() {
   const [storeNames, setStoreNames] = useState<string[]>([]);
-  const [sidebarWidth, setSidebarWidth] = useState(320); // 320px = 20rem
-  const [isResizing, setIsResizing] = useState(false);
-
-  const startResizing = useCallback((mouseDownEvent: React.MouseEvent) => {
-    mouseDownEvent.preventDefault();
-    setIsResizing(true);
-  }, []);
-
-  const stopResizing = useCallback(() => {
-    setIsResizing(false);
-  }, []);
-
-  const resize = useCallback((mouseMoveEvent: MouseEvent) => {
-    if (isResizing) {
-      const newWidth = mouseMoveEvent.clientX;
-      if (newWidth > 200 && newWidth < 600) { // Min 200px, Max 600px
-        setSidebarWidth(newWidth);
-      }
-    }
-  }, [isResizing]);
-
-  useEffect(() => {
-    window.addEventListener('mousemove', resize);
-    window.addEventListener('mouseup', stopResizing);
-    return () => {
-      window.removeEventListener('mousemove', resize);
-      window.removeEventListener('mouseup', stopResizing);
-    };
-  }, [resize, stopResizing]);
+  const [isSidebarHidden, setIsSidebarHidden] = useState(false);
 
   useEffect(() => {
     // Fetch store names from the server-side API
@@ -62,72 +37,22 @@ export default function Home() {
   }
 
   return (
-    <div className="flex min-h-screen">
-      {/* Resizable Left Panel */}
-      <div 
-        className="bg-gray-50 border-r shadow-sm relative flex-shrink-0" 
-        style={{ width: sidebarWidth }}
-      >
-        <div className="p-6 space-y-6">
-          <h2 className="text-2xl font-semibold mb-4">LLM Settings</h2>
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Model</label>
-              <select
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-              >
-                <option value="claude-3-sonnet">Claude 3 Sonnet</option>
-              </select>
+    <div className="flex min-h-screen relative">
+      {/* Fixed-width Left Panel with logo */}
+      <div className="bg-[#1C1F2E] fixed left-0 top-0 h-full w-80">
+        <div className="flex items-center gap-2 p-4 border-b border-gray-700">
+            <div className="text-white text-xl font-semibold flex items-center gap-2">
+                <div className="text-indigo-400">
+                    <span className="text-2xl">⚡</span>
+                </div>
+                <span>LLM Settings</span>
             </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Temperature: 0.7
-              </label>
-              <input
-                type="range"
-                min="0"
-                max="1"
-                step="0.1"
-                defaultValue="0.7"
-                className="w-full"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Max Tokens: 500
-              </label>
-              <input
-                type="range"
-                min="100"
-                max="2000"
-                step="100"
-                defaultValue="500"
-                className="w-full"
-              />
-            </div>
-          </div>
         </div>
-
-        {/* Modern Resize Handle */}
-        <div
-          className="absolute right-0 top-0 bottom-0 w-4 cursor-col-resize 
-            group flex items-center justify-center
-            hover:bg-gray-100 transition-colors duration-150 ease-in-out"
-          onMouseDown={startResizing}
-        >
-          {/* Vertical dots pattern */}
-          <div className="flex flex-col gap-1">
-            <div className={`w-1 h-8 rounded-full transition-colors duration-150
-              ${isResizing ? 'bg-indigo-600' : 'bg-gray-300 group-hover:bg-indigo-400'}`}>
-            </div>
-          </div>
-        </div>
+        <LLMSettingsPanel />
       </div>
 
       {/* Main Content */}
-      <main className="flex-1 p-6">
+      <main className="ml-80 flex-1 p-6">
         <div className="max-w-[1400px] mx-auto">
           <div className="grid grid-cols-12 gap-6 h-[calc(100vh-4rem)]">
             {/* Left Column - Store Management (4 columns = 1/3) */}
