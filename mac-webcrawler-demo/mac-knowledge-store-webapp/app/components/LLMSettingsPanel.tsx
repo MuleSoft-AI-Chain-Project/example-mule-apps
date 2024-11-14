@@ -7,7 +7,8 @@ import {
     BoltIcon,
     ChartBarIcon,
     ChevronUpIcon,
-    ChevronDownIcon
+    ChevronDownIcon,
+    DocumentTextIcon
 } from '@heroicons/react/24/outline';
 
 interface AccordionProps {
@@ -61,6 +62,8 @@ export default function SettingsPanel({ className = '' }: SettingsPanelProps) {
         completionTokens: 0,
         totalTokens: 0
     });
+    const [prePrompt, setPrePrompt] = useState('');
+    const [postPrompt, setPostPrompt] = useState('');
 
     const providerModels = {
         openai: ['gpt-4', 'gpt-3.5-turbo'],
@@ -140,6 +143,31 @@ export default function SettingsPanel({ className = '' }: SettingsPanelProps) {
                         />
                         <span className="text-sm text-gray-400">Chat Memory</span>
                     </label>
+                </Accordion>
+
+                <Accordion title="Prompt Decoration" icon={DocumentTextIcon}>
+                    <div className="space-y-4">
+                        <div>
+                            <label className="block text-sm text-gray-400 mb-2">Pre-Prompt</label>
+                            <textarea
+                                value={prePrompt}
+                                onChange={(e) => setPrePrompt(e.target.value)}
+                                placeholder="Text to add before the prompt..."
+                                rows={3}
+                                className="w-full bg-gray-800/50 text-gray-300 px-3 py-2 rounded-md border border-gray-700/50 resize-none"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm text-gray-400 mb-2">Post-Prompt</label>
+                            <textarea
+                                value={postPrompt}
+                                onChange={(e) => setPostPrompt(e.target.value)}
+                                placeholder="Text to add after the prompt..."
+                                rows={3}
+                                className="w-full bg-gray-800/50 text-gray-300 px-3 py-2 rounded-md border border-gray-700/50 resize-none"
+                            />
+                        </div>
+                    </div>
                 </Accordion>
 
                 <Accordion title="Usage Statistics" icon={ChartBarIcon}>
