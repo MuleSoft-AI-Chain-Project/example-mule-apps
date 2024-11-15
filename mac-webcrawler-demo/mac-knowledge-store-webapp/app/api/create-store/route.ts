@@ -1,28 +1,38 @@
 // app/api/create-store/route.ts
-import { NextResponse } from 'next/server';
+import { NextResponse } from "next/server";
+
+const API_BASE_URL = process.env.CREATE_STORE_URL 
 
 export async function POST(request: Request) {
   try {
     const { storeName } = await request.json();
 
-    const response = await fetch('http://localhost:8081/store', {
-      method: 'POST',
+    if (!storeName || typeof storeName !== "string") {
+      return NextResponse.json(
+        { error: "Invalid input: 'storeName' is required and must be a string." },
+        { status: 400 }
+      );
+    }
+
+    const apiResponse = await fetch(`${API_BASE_URL}/store`, {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({ storeName }),
     });
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+    if (!apiResponse.ok) {
+      const errorText = await apiResponse.text(); // Read response body for error details
+      throw new Error(`Upstream API error: ${errorText || apiResponse.status}`);
     }
 
-    const data = await response.json();
+    const data = await apiResponse.json();
     return NextResponse.json(data);
-  } catch (error) {
-    console.error('Error in create-store route:', error);
+  } catch (error: any) {
+    console.error("Error in create-store route:", error);
     return NextResponse.json(
-      { error: 'Internal Server Error', details: error.message },
+      { error: "Internal Server Error", details: error.message || "Unknown error" },
       { status: 500 }
     );
   }
