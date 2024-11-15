@@ -8,7 +8,10 @@ import {
     ChartBarIcon,
     ChevronUpIcon,
     ChevronDownIcon,
-    DocumentTextIcon
+    DocumentTextIcon,
+    WrenchScrewdriverIcon,
+    ArrowDownTrayIcon,
+    PlusCircleIcon
 } from '@heroicons/react/24/outline';
 
 interface AccordionProps {
@@ -23,7 +26,7 @@ function Accordion({ title, children, icon: Icon, defaultOpen = false, isCollaps
     const [isOpen, setIsOpen] = useState(defaultOpen);
 
     return (
-        <div className="border-b border-gray-700/50">
+        <div>
             <button
                 className={`w-full flex justify-between items-center py-3 text-gray-200 
                     bg-gray-800/40 hover:bg-gray-700/50 rounded-lg my-1
@@ -71,12 +74,23 @@ export default function SettingsPanel({ className = '', isCollapsed = false }: S
     });
     const [prePrompt, setPrePrompt] = useState('');
     const [postPrompt, setPostPrompt] = useState('');
+    const [toolsEndpoint, setToolsEndpoint] = useState('')
+    const [isRetrieveModalOpen, setIsRetrieveModalOpen] = useState(false)
+    const [isAddToolModalOpen, setIsAddToolModalOpen] = useState(false)
 
     const providerModels = {
         openai: ['gpt-4', 'gpt-3.5-turbo'],
         anthropic: ['claude-3-opus', 'claude-3-sonnet'],
         mistral: ['mistral-large', 'mistral-medium'],
     };
+
+    const handleRetrieveTools = () => {
+        setIsRetrieveModalOpen(true)
+    }
+
+    const handleAddTool = () => {
+        setIsAddToolModalOpen(true)
+    }
 
     return (
         <div className={`flex flex-col ${className} h-full overflow-hidden`}>
@@ -191,6 +205,31 @@ export default function SettingsPanel({ className = '', isCollapsed = false }: S
                             <span className="text-sm text-gray-300">Total Tokens:</span>
                             <span className="text-sm text-gray-300">{tokenUsage.totalTokens}</span>
                         </div>
+                    </div>
+                </Accordion>
+
+                <Accordion
+                    title="Tools Endpoints"
+                    icon={WrenchScrewdriverIcon}
+                    isCollapsed={isCollapsed}
+                >
+                    <div className="flex gap-2 w-full">
+                        <button
+                            onClick={handleRetrieveTools}
+                            className="flex-1 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 
+                                     rounded-md text-white text-xs flex items-center justify-center gap-1"
+                        >
+                            <ArrowDownTrayIcon className="h-3.5 w-3.5" />
+                            Retrieve Tools
+                        </button>
+                        <button
+                            onClick={handleAddTool}
+                            className="flex-1 px-3 py-1.5 bg-green-600 hover:bg-green-700 
+                                     rounded-md text-white text-xs flex items-center justify-center gap-1"
+                        >
+                            <PlusCircleIcon className="h-3.5 w-3.5" />
+                            Add Tool
+                        </button>
                     </div>
                 </Accordion>
             </div>

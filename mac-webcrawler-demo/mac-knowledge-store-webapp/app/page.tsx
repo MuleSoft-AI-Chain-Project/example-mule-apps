@@ -65,12 +65,12 @@ export default function Home() {
         </button>
       </div>
 
-      {/* Main Content - adjusted margin */}
-      <main className={`transition-all duration-300 ease-in-out ${isCollapsed ? 'ml-[60px]' : 'ml-80'} flex-1 p-6 bg-[#0B0E17]`}>
-        <div className="max-w-[1400px] mx-auto">
-          <div className="grid grid-cols-12 gap-6 h-[calc(100vh-4rem)]">
-            {/* Left Column - Store Management (4 columns = 1/3) */}
-            <div className="col-span-4 flex flex-col gap-6 h-full">
+      {/* Main Content - adjust the height and overflow handling */}
+      <main className={`transition-all duration-300 ease-in-out ${isCollapsed ? 'ml-[60px]' : 'ml-80'} flex-1 p-6 bg-[#0B0E17] h-screen overflow-hidden`}>
+        <div className="h-full">
+          <div className="grid grid-cols-12 gap-6 h-full">
+            {/* Left Column - Store Management */}
+            <div className="col-span-4 flex flex-col gap-6 h-full overflow-hidden">
               <div className="flex-none">
                 <CreateStore onStoreCreated={addStoreName} />
               </div>
@@ -84,8 +84,8 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Right Column - Query Interface (8 columns = 2/3) */}
-            <div className="col-span-8 h-full">
+            {/* Right Column - Query Interface */}
+            <div className="col-span-8 h-full overflow-hidden">
               <QueryStore 
                 className="h-full" 
                 storeNames={storeNames} 

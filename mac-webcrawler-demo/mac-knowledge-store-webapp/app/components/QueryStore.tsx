@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import ReactMarkdown from 'react-markdown';
+import ReactMarkdown, { Components } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { ChatBubbleBottomCenterTextIcon } from '@heroicons/react/24/outline';
 
 interface QueryResult {
     getLatest: boolean;
@@ -34,22 +35,34 @@ interface RenderMessageProps {
     selectedStore: string;
 }
 
+const components: Components = {
+    p: ({ children }) => <p className="whitespace-pre-line text-white">{children}</p>,
+    a: ({ node, ...props }) => (
+        <a 
+            className="text-blue-400 hover:text-blue-300" 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            {...props} 
+        />
+    ),
+};
+
 const AccordionItem: React.FC<{ source: QueryResult['sources'][number] }> = ({ source }) => {
     const [isOpen, setIsOpen] = useState(false);
 
     return (
-        <div className="border-b border-gray-200 p-2">
+        <div className="border-b border-gray-700/50 p-2">
             <button
                 className="flex justify-between items-center w-full text-left"
                 onClick={() => setIsOpen(!isOpen)}
             >
-                <span className="font-medium text-gray-800">{source.fileName}</span>
-                <span className="text-sm text-gray-600">
+                <span className="font-medium text-white">{source.fileName}</span>
+                <span className="text-sm text-gray-300">
                     {isOpen ? '▲' : '▼'}
                 </span>
             </button>
             {isOpen && (
-                <div className="mt-2 pl-4 text-sm text-gray-700">
+                <div className="mt-2 pl-4 text-sm text-white">
                     <ReactMarkdown remarkPlugins={[remarkGfm]}>
                         {source.textSegment}
                     </ReactMarkdown>
@@ -60,56 +73,57 @@ const AccordionItem: React.FC<{ source: QueryResult['sources'][number] }> = ({ s
 };
 
 const RenderMessage: React.FC<RenderMessageProps> = ({ message, selectedStore }) => {
-    const label = message.type === 'user' ? 'User:' : 'Agent:';
-    const alignClass = message.type === 'user' ? 'self-end' : 'self-start';
-    const bgClass = message.type === 'user' ? 'bg-[#1C1F2E]' : 'bg-[#212534]';
-    const textClass = 'text-gray-100';
+    const isUser = message.type === 'user';
+    const alignClass = isUser ? 'self-end' : 'self-start';
+    const bgClass = isUser ? 'bg-[#3B82F6]' : 'bg-[#1E2235]';
 
     if (typeof message.content === 'string') {
         return (
-            <div className={`${bgClass} p-3 rounded-lg mb-2 max-w-3/4 ${alignClass} border border-gray-700/50`}>
-                <p className={`${textClass} font-semibold`}>{label} {message.content}</p>
+            <div className={`${bgClass} p-4 rounded-lg mb-2 max-w-3/4 ${alignClass} border border-gray-700/50`}>
+                <div className="mb-2">
+                    <span className="text-white text-base font-bold">
+                        {isUser ? 'User:' : 'Agent:'}
+                    </span>
+                </div>
+                <div className="text-white">
+                    {message.content}
+                </div>
+                {!isUser && (
+                    <div className="mt-3 pt-3 border-t border-gray-700/50 text-sm text-gray-300">
+                        <span className="font-medium">Store Path:</span> {selectedStore}
+                    </div>
+                )}
             </div>
         );
     }
 
+    // For agent responses with QueryResult content
     const content = message.content as QueryResult;
-
     return (
         <div className={`${bgClass} p-4 rounded-lg mb-2 w-full ${alignClass} border border-gray-700/50`}>
-            <p className={`${textClass} font-semibold mb-2`}>{label}</p>
-            <div className="space-y-5">
-                <div className="bg-[#151929] p-3 rounded-lg shadow-sm border border-gray-700/50">
-                    <ReactMarkdown
-                        className="prose prose-invert max-w-none"
-                        remarkPlugins={[remarkGfm]}
-                        components={components}
-                    >
-                        {content.response}
-                    </ReactMarkdown>
-                </div>
-                {content.sources && content.sources.length > 0 && (
-                    <div>
-                        <p className="font-medium text-gray-300 mb-1">Sources:</p>
-                        <div className="bg-[#151929] rounded-lg border border-gray-700/50">
-                            {content.sources.map((source, idx) => (
-                                <AccordionItem key={idx} source={source} />
-                            ))}
-                        </div>
-                    </div>
-                )}
-                <hr className="border-gray-700/50" />
-                <div className="text-sm text-gray-400">
-                    <p><strong className="text-gray-300">Store Path:</strong> {selectedStore}</p>
-                </div>
-                {content.tokenUsage && (
-                    <div className="text-sm text-gray-400">
-                        <p className="font-medium text-gray-300">Token Usage:</p>
-                        <p>Input: {content.tokenUsage.inputCount}</p>
-                        <p>Output: {content.tokenUsage.outputCount}</p>
-                        <p>Total: {content.tokenUsage.totalCount}</p>
-                    </div>
-                )}
+            <div className="mb-2">
+                <span className="text-white text-base font-bold">Agent:</span>
+            </div>
+            <div className="text-white">
+                <ReactMarkdown
+                    className="prose prose-invert max-w-none text-white
+                        prose-p:text-white 
+                        prose-headings:text-white 
+                        prose-strong:text-white 
+                        prose-ul:text-white 
+                        prose-ol:text-white 
+                        prose-li:text-white
+                        prose-code:text-white
+                        [&>*]:text-white"
+                    remarkPlugins={[remarkGfm]}
+                    components={components}
+                >
+                    {content.response}
+                </ReactMarkdown>
+            </div>
+            {/* Sources and token usage sections */}
+            <div className="mt-3 pt-3 border-t border-gray-700/50 text-sm text-gray-300">
+                <span className="font-medium">Store Path:</span> {selectedStore}
             </div>
         </div>
     );
@@ -167,48 +181,60 @@ export default function QueryStore({ className = '', storeNames }: QueryStorePro
     };
 
     return (
-        <div className={`bg-[#151929] p-6 rounded-xl border border-gray-800/40 shadow-lg flex flex-col h-full ${className}`}>
-            <h2 className="text-xl font-semibold text-gray-100 mb-6">Query Knowledge Base</h2>
-            <div className="flex-grow overflow-y-auto mb-4 flex flex-col">
-                {messages.map((message, index) => (
-                    <RenderMessage key={index} message={message} selectedStore={selectedStore} />
-                ))}
-                <div ref={chatEndRef} />
+        <div className={`bg-[#151929] rounded-xl border border-gray-800/40 shadow-lg 
+            flex flex-col h-full ${className}`}>
+            <div className="flex-none p-6 pb-2">
+                <h2 className="text-xl text-white font-medium flex items-center gap-3">
+                    <ChatBubbleBottomCenterTextIcon className="h-5 w-5 text-gray-400" />
+                    Query Knowledge Base
+                </h2>
             </div>
-            <form onSubmit={handleSubmit} className="flex space-x-2">
-                <select
-                    value={selectedStore}
-                    onChange={(e) => setSelectedStore(e.target.value)}
-                    className="px-3 py-2.5 bg-[#1C1F2E] text-gray-100 border border-gray-700/40 
-                        rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                    required
-                >
-                    <option value="">Select a store</option>
-                    {storeNames.map((name) => (
-                        <option key={name} value={name}>{name}</option>
+
+            <div className="flex-1 overflow-y-auto px-6 py-4">
+                <div className="flex flex-col">
+                    {messages.map((message, index) => (
+                        <RenderMessage key={index} message={message} selectedStore={selectedStore} />
                     ))}
-                </select>
-                <input
-                    type="text"
-                    value={prompt}
-                    onChange={(e) => setPrompt(e.target.value)}
-                    placeholder="Enter your query"
-                    className="flex-grow px-3 py-2.5 bg-[#1C1F2E] text-gray-100 placeholder-gray-500 
-                        border border-gray-700/40 rounded-lg focus:outline-none focus:ring-1 
-                        focus:ring-blue-500 focus:border-blue-500"
-                    required
-                />
-                <button
-                    type="submit"
-                    disabled={isQuerying}
-                    className={`px-4 py-2.5 border border-gray-200/20 rounded-lg shadow-sm text-sm font-medium 
-                        text-white bg-[#151929] hover:bg-[#1C2438] focus:outline-none focus:ring-2 
-                        focus:ring-offset-2 focus:ring-[#151929] focus:ring-offset-[#0F1117]
-                        ${isQuerying ? 'opacity-50 cursor-not-allowed' : ''}`}
-                >
-                    {isQuerying ? 'Querying...' : 'Send'}
-                </button>
-            </form>
+                    <div ref={chatEndRef} />
+                </div>
+            </div>
+
+            <div className="flex-none p-6 pt-2 border-t border-gray-800/40">
+                <form onSubmit={handleSubmit} className="flex space-x-2">
+                    <select
+                        value={selectedStore}
+                        onChange={(e) => setSelectedStore(e.target.value)}
+                        className="px-3 py-2.5 bg-[#1C1F2E] text-gray-100 border border-gray-700/40 
+                            rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                        required
+                    >
+                        <option value="">Select a store</option>
+                        {storeNames.map((name) => (
+                            <option key={name} value={name}>{name}</option>
+                        ))}
+                    </select>
+                    <input
+                        type="text"
+                        value={prompt}
+                        onChange={(e) => setPrompt(e.target.value)}
+                        placeholder="Enter your query"
+                        className="flex-grow px-3 py-2.5 bg-[#1C1F2E] text-gray-100 placeholder-gray-500 
+                            border border-gray-700/40 rounded-lg focus:outline-none focus:ring-1 
+                            focus:ring-blue-500 focus:border-blue-500"
+                        required
+                    />
+                    <button
+                        type="submit"
+                        disabled={isQuerying}
+                        className={`px-4 py-2.5 border border-gray-200/20 rounded-lg shadow-sm text-sm font-medium 
+                            text-white bg-[#151929] hover:bg-[#1C2438] focus:outline-none focus:ring-2 
+                            focus:ring-offset-2 focus:ring-[#151929] focus:ring-offset-[#0F1117]
+                            ${isQuerying ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    >
+                        {isQuerying ? 'Querying...' : 'Send'}
+                    </button>
+                </form>
+            </div>
         </div>
     );
 }
