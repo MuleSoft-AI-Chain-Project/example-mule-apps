@@ -16,29 +16,35 @@ interface AccordionProps {
     children: React.ReactNode;
     icon: any;
     defaultOpen?: boolean;
+    isCollapsed?: boolean;
 }
 
-function Accordion({ title, children, icon: Icon, defaultOpen = false }: AccordionProps) {
+function Accordion({ title, children, icon: Icon, defaultOpen = false, isCollapsed = false }: AccordionProps) {
     const [isOpen, setIsOpen] = useState(defaultOpen);
 
     return (
         <div className="border-b border-gray-700/50">
             <button
-                className="w-full flex justify-between items-center py-3 px-3 text-gray-200 
-                bg-gray-800/40 hover:bg-gray-700/50 rounded-lg my-1"
-                onClick={() => setIsOpen(!isOpen)}
+                className={`w-full flex justify-between items-center py-3 text-gray-200 
+                    bg-gray-800/40 hover:bg-gray-700/50 rounded-lg my-1
+                    ${isCollapsed ? 'px-2' : 'px-3'}`}
+                onClick={() => setIsOpen(!isCollapsed && !isOpen)}
             >
                 <div className="flex items-center gap-3">
                     <Icon className="h-5 w-5" />
-                    <span className="text-[15px] font-medium">{title}</span>
+                    {!isCollapsed && (
+                        <span className="text-[15px] font-medium">{title}</span>
+                    )}
                 </div>
-                {isOpen ? (
-                    <ChevronUpIcon className="h-4 w-4 text-gray-400" />
-                ) : (
-                    <ChevronDownIcon className="h-4 w-4 text-gray-400" />
+                {!isCollapsed && (
+                    isOpen ? (
+                        <ChevronUpIcon className="h-4 w-4 text-gray-400" />
+                    ) : (
+                        <ChevronDownIcon className="h-4 w-4 text-gray-400" />
+                    )
                 )}
             </button>
-            {isOpen && (
+            {!isCollapsed && isOpen && (
                 <div className="py-4 space-y-4 px-3">
                     {children}
                 </div>
@@ -49,9 +55,10 @@ function Accordion({ title, children, icon: Icon, defaultOpen = false }: Accordi
 
 interface SettingsPanelProps {
     className?: string;
+    isCollapsed?: boolean;
 }
 
-export default function SettingsPanel({ className = '' }: SettingsPanelProps) {
+export default function SettingsPanel({ className = '', isCollapsed = false }: SettingsPanelProps) {
     const [provider, setProvider] = useState('openai');
     const [model, setModel] = useState('');
     const [temperature, setTemperature] = useState(0.7);
@@ -73,8 +80,8 @@ export default function SettingsPanel({ className = '' }: SettingsPanelProps) {
 
     return (
         <div className={`flex flex-col ${className} h-full overflow-hidden`}>
-            <div className="overflow-y-auto px-4 space-y-4">
-                <Accordion title="LLM Configuration" icon={Cog6ToothIcon}>
+            <div className={`overflow-y-auto ${isCollapsed ? 'px-2' : 'px-4'} space-y-4`}>
+                <Accordion title="LLM Configuration" icon={Cog6ToothIcon} isCollapsed={isCollapsed}>
                     <div className="space-y-4">
                         <div>
                             <label className="block text-sm text-gray-400 mb-2">LLM Provider</label>
@@ -104,7 +111,7 @@ export default function SettingsPanel({ className = '' }: SettingsPanelProps) {
                     </div>
                 </Accordion>
 
-                <Accordion title="Generation Parameters" icon={AdjustmentsHorizontalIcon}>
+                <Accordion title="Generation Parameters" icon={AdjustmentsHorizontalIcon} isCollapsed={isCollapsed}>
                     <div className="space-y-4">
                         <div>
                             <label className="block text-sm text-gray-400 mb-2">Temperature</label>
@@ -133,7 +140,7 @@ export default function SettingsPanel({ className = '' }: SettingsPanelProps) {
                     </div>
                 </Accordion>
 
-                <Accordion title="Memory Settings" icon={BoltIcon}>
+                <Accordion title="Memory Settings" icon={BoltIcon} isCollapsed={isCollapsed}>
                     <label className="flex items-center space-x-3">
                         <input
                             type="checkbox"
@@ -145,7 +152,7 @@ export default function SettingsPanel({ className = '' }: SettingsPanelProps) {
                     </label>
                 </Accordion>
 
-                <Accordion title="Prompt Decoration" icon={DocumentTextIcon}>
+                <Accordion title="Prompt Decoration" icon={DocumentTextIcon} isCollapsed={isCollapsed}>
                     <div className="space-y-4">
                         <div>
                             <label className="block text-sm text-gray-400 mb-2">Pre-Prompt</label>
@@ -170,7 +177,7 @@ export default function SettingsPanel({ className = '' }: SettingsPanelProps) {
                     </div>
                 </Accordion>
 
-                <Accordion title="Usage Statistics" icon={ChartBarIcon}>
+                <Accordion title="Usage Statistics" icon={ChartBarIcon} isCollapsed={isCollapsed}>
                     <div className="space-y-4">
                         <div className="flex justify-between">
                             <span className="text-sm text-gray-400">Prompt Tokens:</span>

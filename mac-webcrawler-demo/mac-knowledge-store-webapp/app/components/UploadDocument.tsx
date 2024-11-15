@@ -103,18 +103,18 @@ export default function UploadDocument({ className = '', storeNames }: UploadDoc
 
     return (
         <div className={`flex flex-col h-full ${className}`}>
-            <h2 className="text-xl font-bold text-gray-700 mb-6">Add Knowledge</h2>
-            <form onSubmit={handleSubmit} className="space-y-3">
-                <div className="grid grid-cols-2 gap-3">
+            <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="grid grid-cols-2 gap-4">
                     <div>
-                        <label htmlFor="storeSelect" className="text-sm font-medium text-gray-600">
+                        <label htmlFor="storeSelect" className="block text-base text-gray-400 mb-3">
                             Store
                         </label>
                         <select
                             id="storeSelect"
                             value={selectedStore}
                             onChange={(e) => setSelectedStore(e.target.value)}
-                            className="mt-1 w-full px-3 py-1.5 text-sm border rounded-md"
+                            className="w-full px-4 py-3.5 bg-[#1C1F2E] text-gray-100 border-0
+                                rounded-xl focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm"
                             required
                         >
                             <option value="">Select store</option>
@@ -124,14 +124,15 @@ export default function UploadDocument({ className = '', storeNames }: UploadDoc
                         </select>
                     </div>
                     <div>
-                        <label htmlFor="fileType" className="text-sm font-medium  text-gray-600">
+                        <label htmlFor="fileType" className="block text-base text-gray-400 mb-3">
                             File Type
                         </label>
                         <select
                             id="fileType"
                             value={fileType}
                             onChange={(e) => setFileType(e.target.value)}
-                            className="mt-1 w-full px-3 py-1.5 text-sm border rounded-md"
+                            className="w-full px-4 py-3.5 bg-[#1C1F2E] text-gray-100 border-0
+                                rounded-xl focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm"
                         >
                             <option value="text">Text</option>
                             <option value="PDF">PDF</option>
@@ -144,11 +145,11 @@ export default function UploadDocument({ className = '', storeNames }: UploadDoc
                     onDragOver={handleDragOver}
                     onDragLeave={handleDragLeave}
                     onDrop={handleDrop}
-                    className={`border-2 border-dashed rounded-md p-4 text-center cursor-pointer 
-                        ${isDragging ? 'border-indigo-500 bg-indigo-50' : 'border-gray-300'}`}
+                    className={`border-2 border-dashed rounded-xl p-4 text-center cursor-pointer 
+                        ${isDragging ? 'border-blue-500 bg-[#1C1F2E]' : 'border-gray-700'}`}
                 >
                     {file ? (
-                        <p className="text-sm text-gray-700">File: {file.name}</p>
+                        <p className="text-sm text-gray-300">File: {file.name}</p>
                     ) : (
                         <p className="text-sm text-gray-500">Drop file here or click to select</p>
                     )}
@@ -164,16 +165,15 @@ export default function UploadDocument({ className = '', storeNames }: UploadDoc
                 <button
                     type="submit"
                     disabled={isUploading || !file}
-                    className={`w-full py-1.5 px-4 text-sm font-medium text-white 
-                        bg-indigo-600 hover:bg-indigo-700 rounded-md 
-                        ${isUploading || !file ? 'opacity-50' : ''}`}
+                    className={`w-full py-3.5 px-4 rounded-xl text-sm font-medium
+                        text-white bg-blue-500 hover:bg-blue-600 focus:outline-none focus:ring-1 
+                        focus:ring-blue-500 ${isUploading || !file ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                     {isUploading ? 'Uploading...' : 'Upload Document'}
                 </button>
             </form>
-            <div className="flex-1" />
-            {message && <p className="text-xs text-green-600">{message}</p>}
-            {error && <p className="text-xs text-red-600">{error}</p>}
+            {message && <p className="mt-4 text-sm text-green-400">{message}</p>}
+            {error && <p className="mt-4 text-sm text-red-400">{error}</p>}
         </div>
     )
 }

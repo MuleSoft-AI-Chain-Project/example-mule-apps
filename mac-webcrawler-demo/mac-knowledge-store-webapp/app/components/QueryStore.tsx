@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { Components } from 'react-markdown';
 
 interface QueryResult {
     getLatest: boolean;
@@ -63,12 +62,12 @@ const AccordionItem: React.FC<{ source: QueryResult['sources'][number] }> = ({ s
 const RenderMessage: React.FC<RenderMessageProps> = ({ message, selectedStore }) => {
     const label = message.type === 'user' ? 'User:' : 'Agent:';
     const alignClass = message.type === 'user' ? 'self-end' : 'self-start';
-    const bgClass = message.type === 'user' ? 'bg-indigo-100' : 'bg-gray-100';
-    const textClass = message.type === 'user' ? 'text-indigo-800' : 'text-gray-800';
+    const bgClass = message.type === 'user' ? 'bg-[#1C1F2E]' : 'bg-[#212534]';
+    const textClass = 'text-gray-100';
 
     if (typeof message.content === 'string') {
         return (
-            <div className={`${bgClass} p-3 rounded-lg mb-2 max-w-3/4 ${alignClass}`}>
+            <div className={`${bgClass} p-3 rounded-lg mb-2 max-w-3/4 ${alignClass} border border-gray-700/50`}>
                 <p className={`${textClass} font-semibold`}>{label} {message.content}</p>
             </div>
         );
@@ -76,21 +75,13 @@ const RenderMessage: React.FC<RenderMessageProps> = ({ message, selectedStore })
 
     const content = message.content as QueryResult;
 
-    // Custom components for ReactMarkdown
-    const components: Components = {
-        // This will render paragraphs with preserved line breaks
-        p: ({ children }) => <p className="whitespace-pre-line">{children}</p>,
-        // Open links in new tab
-        a: ({ node, ...props }) => <a target="_blank" rel="noopener noreferrer" {...props} />,
-    };
-
     return (
-        <div className={`${bgClass} p-4 rounded-lg mb-2 w-full ${alignClass}`}>
+        <div className={`${bgClass} p-4 rounded-lg mb-2 w-full ${alignClass} border border-gray-700/50`}>
             <p className={`${textClass} font-semibold mb-2`}>{label}</p>
             <div className="space-y-5">
-                <div className="bg-white p-3 rounded-lg shadow-sm">
+                <div className="bg-[#151929] p-3 rounded-lg shadow-sm border border-gray-700/50">
                     <ReactMarkdown
-                        className="prose max-w-none"
+                        className="prose prose-invert max-w-none"
                         remarkPlugins={[remarkGfm]}
                         components={components}
                     >
@@ -99,21 +90,21 @@ const RenderMessage: React.FC<RenderMessageProps> = ({ message, selectedStore })
                 </div>
                 {content.sources && content.sources.length > 0 && (
                     <div>
-                        <p className="font-medium text-gray-700 mb-1">Sources:</p>
-                        <div className="bg-white rounded shadow-sm">
+                        <p className="font-medium text-gray-300 mb-1">Sources:</p>
+                        <div className="bg-[#151929] rounded-lg border border-gray-700/50">
                             {content.sources.map((source, idx) => (
                                 <AccordionItem key={idx} source={source} />
                             ))}
                         </div>
                     </div>
                 )}
-                <hr />
-                <div className="text-sm text-gray-600">
-                    <p><strong>Store Path:</strong> {selectedStore}</p>
+                <hr className="border-gray-700/50" />
+                <div className="text-sm text-gray-400">
+                    <p><strong className="text-gray-300">Store Path:</strong> {selectedStore}</p>
                 </div>
                 {content.tokenUsage && (
-                    <div className="text-sm text-gray-600">
-                        <p className="font-medium">Token Usage:</p>
+                    <div className="text-sm text-gray-400">
+                        <p className="font-medium text-gray-300">Token Usage:</p>
                         <p>Input: {content.tokenUsage.inputCount}</p>
                         <p>Output: {content.tokenUsage.outputCount}</p>
                         <p>Total: {content.tokenUsage.totalCount}</p>
@@ -176,8 +167,8 @@ export default function QueryStore({ className = '', storeNames }: QueryStorePro
     };
 
     return (
-        <div className={`bg-white p-6 border-2 rounded-lg shadow-md flex flex-col h-full ${className}`}>
-            <h2 className="text-xl font-bold text-gray-700 mb-6 ">Query Knowledge Base</h2>
+        <div className={`bg-[#151929] p-6 rounded-xl border border-gray-800/40 shadow-lg flex flex-col h-full ${className}`}>
+            <h2 className="text-xl font-semibold text-gray-100 mb-6">Query Knowledge Base</h2>
             <div className="flex-grow overflow-y-auto mb-4 flex flex-col">
                 {messages.map((message, index) => (
                     <RenderMessage key={index} message={message} selectedStore={selectedStore} />
@@ -188,14 +179,13 @@ export default function QueryStore({ className = '', storeNames }: QueryStorePro
                 <select
                     value={selectedStore}
                     onChange={(e) => setSelectedStore(e.target.value)}
-                    className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-indigo-100 focus:border-indigo-300 text-gray-900"
+                    className="px-3 py-2.5 bg-[#1C1F2E] text-gray-100 border border-gray-700/40 
+                        rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                     required
                 >
                     <option value="">Select a store</option>
                     {storeNames.map((name) => (
-                        <option key={name} value={name}>
-                            {name}
-                        </option>
+                        <option key={name} value={name}>{name}</option>
                     ))}
                 </select>
                 <input
@@ -203,14 +193,18 @@ export default function QueryStore({ className = '', storeNames }: QueryStorePro
                     value={prompt}
                     onChange={(e) => setPrompt(e.target.value)}
                     placeholder="Enter your query"
-                    className="flex-grow px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-indigo-100 focus:border-indigo-300 text-gray-900"
+                    className="flex-grow px-3 py-2.5 bg-[#1C1F2E] text-gray-100 placeholder-gray-500 
+                        border border-gray-700/40 rounded-lg focus:outline-none focus:ring-1 
+                        focus:ring-blue-500 focus:border-blue-500"
                     required
                 />
                 <button
                     type="submit"
                     disabled={isQuerying}
-                    className={`px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${isQuerying ? 'opacity-50 cursor-not-allowed' : ''
-                        }`}
+                    className={`px-4 py-2.5 border border-gray-200/20 rounded-lg shadow-sm text-sm font-medium 
+                        text-white bg-[#151929] hover:bg-[#1C2438] focus:outline-none focus:ring-2 
+                        focus:ring-offset-2 focus:ring-[#151929] focus:ring-offset-[#0F1117]
+                        ${isQuerying ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                     {isQuerying ? 'Querying...' : 'Send'}
                 </button>

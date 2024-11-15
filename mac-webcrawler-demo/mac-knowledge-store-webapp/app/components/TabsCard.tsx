@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import CrawlWebsite from './CrawlWebsite';
 import UploadDocument from './UploadDocument';
+import { GlobeAltIcon } from '@heroicons/react/24/outline';
 
 interface TabsCardProps {
   storeNames: string[];
@@ -14,31 +15,38 @@ export default function TabsCard({ storeNames, onStoreCreated, className = '' }:
   const [activeTab, setActiveTab] = useState('crawl');
 
   return (
-    <div className={`bg-white border-2 rounded-lg shadow-sm flex flex-col ${className}`}>
-      <div className="flex border-b flex-none">
+    <div className={`bg-[#151929] rounded-2xl flex flex-col ${className}`}>
+      <div className="px-6 pt-6 pb-3">
+        <h2 className="text-xl text-white font-medium flex items-center gap-3">
+          <GlobeAltIcon className="h-5 w-5 text-gray-400" />
+          Add Knowledge
+        </h2>
+      </div>
+
+      <div className="flex">
         <button
           onClick={() => setActiveTab('crawl')}
-          className={`flex-1 px-4 py-2 text-sm font-medium ${
+          className={`flex-1 px-4 py-2 text-base transition-colors duration-200 ${
             activeTab === 'crawl'
-              ? 'text-indigo-600 border-b-2 border-indigo-600 bg-indigo-50'
-              : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+              ? 'text-blue-400 bg-[#151929] border-b-2 border-blue-500'
+              : 'text-gray-500 bg-[#1C1F2E] hover:text-gray-400'
           }`}
         >
           Crawl Website
         </button>
         <button
           onClick={() => setActiveTab('upload')}
-          className={`flex-1 px-4 py-2 text-sm font-medium ${
+          className={`flex-1 px-4 py-2 text-base transition-colors duration-200 ${
             activeTab === 'upload'
-              ? 'text-indigo-600 border-b-2 border-indigo-600 bg-indigo-50'
-              : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+              ? 'text-blue-400 bg-[#151929] border-b-2 border-blue-500'
+              : 'text-gray-500 bg-[#1C1F2E] hover:text-gray-400'
           }`}
         >
-          Upload Document
+          Upload Docs
         </button>
       </div>
 
-      <div className="flex-1 p-6">
+      <div className="p-6">
         <div className={activeTab === 'crawl' ? 'block' : 'hidden'}>
           <CrawlWebsite storeNames={storeNames} onStoreCreated={onStoreCreated} />
         </div>

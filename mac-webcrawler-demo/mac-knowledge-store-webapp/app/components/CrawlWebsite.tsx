@@ -2,6 +2,7 @@
 
 // components/CrawlWebsite.tsx
 import React, { useState } from 'react'
+import { GlobeAltIcon } from '@heroicons/react/24/outline';
 
 interface CrawlWebsiteProps {
     className?: string;
@@ -50,11 +51,10 @@ export default function CrawlWebsite({ className = '', storeNames, onStoreCreate
     }
 
     return (
-        <div className={`flex flex-col h-full ${className}`}>
-            <h2 className="text-xl font-bold text-gray-700 mb-6">Add Knowledge</h2>
-            <form onSubmit={handleSubmit} className="space-y-4">
+        <div className={className}>
+            <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
-                    <label htmlFor="crawlWebsiteName" className="block text-sm font-medium text-gray-700 mb-1">
+                    <label htmlFor="crawlWebsiteName" className="block text-base text-gray-400 mb-3">
                         Website URL
                     </label>
                     <input
@@ -63,14 +63,15 @@ export default function CrawlWebsite({ className = '', storeNames, onStoreCreate
                         value={websiteUrl}
                         onChange={(e) => setStoreName(e.target.value)}
                         placeholder="Enter website URL"
-                        className="w-full px-3 py-2 placeholder-gray-400 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-indigo-100 focus:border-indigo-300 text-gray-900"
+                        className="w-full px-4 py-3.5 bg-[#1C1F2E] text-gray-100 placeholder-gray-500 
+                            rounded-xl focus:outline-none focus:ring-1 focus:ring-blue-500 border-0"
                         required
                     />
                 </div>
                 
-                <div className="grid grid-cols-2 gap-4">
-                    <div>
-                        <label htmlFor="crawlDepth" className="block text-sm font-medium text-gray-700 mb-1">
+                <div className="flex gap-4">
+                    <div className="w-1/3">
+                        <label htmlFor="crawlDepth" className="block text-base text-gray-400 mb-3">
                             Depth
                         </label>
                         <input
@@ -79,20 +80,22 @@ export default function CrawlWebsite({ className = '', storeNames, onStoreCreate
                             value={depth}
                             onChange={(e) => setDepth(Number(e.target.value))}
                             placeholder="0"
-                            className="w-full px-3 py-2 placeholder-gray-400 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-indigo-100 focus:border-indigo-300 text-gray-900"
+                            className="w-full px-4 py-3.5 bg-[#1C1F2E] text-gray-100 placeholder-gray-500 
+                                rounded-xl focus:outline-none focus:ring-1 focus:ring-blue-500 border-0"
                             min="0"
                             required
                         />
                     </div>
-                    <div>
-                        <label htmlFor="storeSelect" className="block text-sm font-medium text-gray-700 mb-1">
+                    <div className="flex-1">
+                        <label htmlFor="storeSelect" className="block text-base text-gray-400 mb-3">
                             Store
                         </label>
                         <select
                             id="storeSelect"
                             value={selectedStore}
                             onChange={(e) => setSelectedStore(e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-indigo-100 focus:border-indigo-300 text-gray-900"
+                            className="w-full px-4 py-3.5 bg-[#1C1F2E] text-gray-100 
+                                rounded-xl focus:outline-none focus:ring-1 focus:ring-blue-500 border-0"
                             required
                         >
                             <option value="">Select store</option>
@@ -106,15 +109,15 @@ export default function CrawlWebsite({ className = '', storeNames, onStoreCreate
                 <button
                     type="submit"
                     disabled={isCreating}
-                    className={`w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${
-                        isCreating ? 'opacity-50 cursor-not-allowed' : ''
-                    }`}
+                    className={`w-full py-3.5 px-4 rounded-xl text-sm font-medium
+                        text-white bg-blue-500 hover:bg-blue-600 focus:outline-none focus:ring-1 
+                        focus:ring-blue-500 ${isCreating ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                     {isCreating ? 'Crawling...' : 'Crawl Website'}
                 </button>
             </form>
-            {message && <p className="mt-4 text-sm text-green-600">{message}</p>}
-            {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
+            {message && <p className="mt-4 text-sm text-green-400">{message}</p>}
+            {error && <p className="mt-4 text-sm text-red-400">{error}</p>}
         </div>
     )
 }

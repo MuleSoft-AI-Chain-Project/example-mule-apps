@@ -12,7 +12,7 @@ import { HomeIcon, Cog6ToothIcon, DocumentTextIcon, ChartBarIcon } from '@heroic
 
 export default function Home() {
   const [storeNames, setStoreNames] = useState<string[]>([]);
-  const [isSidebarHidden, setIsSidebarHidden] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   useEffect(() => {
     // Fetch store names from the server-side API
@@ -37,22 +37,36 @@ export default function Home() {
   }
 
   return (
-    <div className="flex min-h-screen relative">
-      {/* Fixed-width Left Panel with logo */}
-      <div className="bg-[#1C1F2E] fixed left-0 top-0 h-full w-80">
-        <div className="flex items-center gap-2 p-4 border-b border-gray-700">
-            <div className="text-white text-xl font-semibold flex items-center gap-2">
-                <div className="text-indigo-400">
-                    <span className="text-2xl">⚡</span>
-                </div>
-                <span>LLM Settings</span>
-            </div>
+    <div className="flex min-h-screen relative bg-[#0B0E17]">
+      {/* Collapsible Left Panel */}
+      <div className={`fixed left-0 top-0 h-full transition-all duration-300 ease-in-out
+        ${isCollapsed ? 'w-[60px]' : 'w-80'} bg-[#151929]`}>
+        {/* Logo Section */}
+        <div className="flex items-center p-4 border-b border-gray-800">
+          <div className="text-indigo-400 text-xl">
+            <span className="text-2xl">⚡</span>
+          </div>
+          {!isCollapsed && <span className="text-white font-semibold ml-2">Agent Settings</span>}
         </div>
-        <LLMSettingsPanel />
+
+        {/* Settings Panel */}
+        <LLMSettingsPanel isCollapsed={isCollapsed} />
+
+        {/* Collapse Toggle Button */}
+        <button
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          className="absolute -right-3 top-4 bg-[#0B0E17] rounded-full p-1 border border-gray-800 hover:bg-[#1C1F2E]"
+        >
+          {isCollapsed ? (
+            <ChevronRightIcon className="h-4 w-4 text-gray-400" />
+          ) : (
+            <ChevronLeftIcon className="h-4 w-4 text-gray-400" />
+          )}
+        </button>
       </div>
 
-      {/* Main Content */}
-      <main className="ml-80 flex-1 p-6">
+      {/* Main Content - adjusted margin */}
+      <main className={`transition-all duration-300 ease-in-out ${isCollapsed ? 'ml-[60px]' : 'ml-80'} flex-1 p-6 bg-[#0B0E17]`}>
         <div className="max-w-[1400px] mx-auto">
           <div className="grid grid-cols-12 gap-6 h-[calc(100vh-4rem)]">
             {/* Left Column - Store Management (4 columns = 1/3) */}

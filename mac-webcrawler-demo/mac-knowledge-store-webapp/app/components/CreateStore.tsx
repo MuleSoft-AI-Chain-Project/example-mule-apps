@@ -2,6 +2,7 @@
 
 // components/CreateStore.tsx
 import React, { useState } from 'react'
+import { PlusCircleIcon } from '@heroicons/react/24/outline';
 
 interface CreateStoreProps {
     className?: string;
@@ -46,11 +47,14 @@ export default function CreateStore({ className = '', onStoreCreated }: CreateSt
     }
 
     return (
-        <div className="bg-white p-6 border-2 rounded-lg shadow-sm">
-            <h2 className="text-xl mb-6 text-gray-900 font-bold">Create Store</h2>
+        <div className="bg-[#151929] p-6 rounded-xl border border-gray-800/40 shadow-lg">
+            <h2 className="text-xl text-white font-medium flex items-center gap-3">
+                <PlusCircleIcon className="h-5 w-5 text-gray-400" />
+                Create Store
+            </h2>
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                    <label htmlFor="createStoreName" className="block text-sm text-gray-700 mb-1">
+                    <label htmlFor="createStoreName" className="block text-sm text-gray-400 mb-2">
                         Store Name
                     </label>
                     <input
@@ -59,21 +63,25 @@ export default function CreateStore({ className = '', onStoreCreated }: CreateSt
                         value={storeName}
                         onChange={(e) => setStoreName(e.target.value)}
                         placeholder="Enter store name"
-                        className="w-full px-3 py-2 placeholder-gray-400 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-indigo-100 focus:border-indigo-300 text-gray-900"
+                        className="w-full px-3 py-2.5 bg-[#1C1F2E] text-gray-100 placeholder-gray-500 
+                            border border-gray-700/40 rounded-lg focus:outline-none focus:ring-1 
+                            focus:ring-blue-500 focus:border-blue-500"
                         required
                     />
                 </div>
                 <button
                     type="submit"
                     disabled={isCreating}
-                    className={`w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ${isCreating ? 'opacity-50 cursor-not-allowed' : ''
-                        }`}
+                    className={`w-full py-2.5 px-4 border border-gray-200/20 rounded-lg shadow-sm text-sm font-medium 
+                        text-white bg-blue-500 hover:bg-blue-600 focus:outline-none focus:ring-2 
+                        focus:ring-offset-2 focus:ring-blue-500 focus:ring-offset-[#151929]
+                        ${isCreating ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                     {isCreating ? 'Creating...' : 'Create Store'}
                 </button>
             </form>
-            {message && <p className="mt-4 text-sm text-green-600">{message}</p>}
-            {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
+            {message && <p className="mt-4 text-sm text-green-400">{message}</p>}
+            {error && <p className="mt-4 text-sm text-red-400">{error}</p>}
         </div>
     )
 }
