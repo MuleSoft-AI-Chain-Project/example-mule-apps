@@ -1,7 +1,10 @@
 // app/api/create-store/route.ts
 import { NextResponse } from "next/server";
 
-const API_BASE_URL = process.env.CREATE_STORE_URL 
+const createStoreUrl = process.env.CREATE_STORE_URL;
+if (!createStoreUrl) {
+  throw new Error("CREATE_STORE_URL environment variable is not set");
+}
 
 export async function POST(request: Request) {
   try {
@@ -14,7 +17,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const apiResponse = await fetch(`${API_BASE_URL}`, {
+    const apiResponse = await fetch(createStoreUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

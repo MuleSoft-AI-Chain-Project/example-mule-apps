@@ -9,6 +9,28 @@ import {
   PaperAirplaneIcon,
 } from "@heroicons/react/24/outline";
 
+interface LLMSettings {
+  llmType: "OPENAI" | "MISTRAL" | "";
+  modelName: string;
+  temperature: number;
+  inputLimit: number;
+  maxToken: number;
+  chatMemory: boolean;
+  maxMessages: number;
+  tokenUsageData: {
+    session: string;
+    inputTokens: number;
+    outputTokens: number;
+  }[];
+  preDecoration: string;
+  postDecoration: string;
+  isRetrieveModalOpen: boolean;
+  isAddToolModalOpen: boolean;
+  tools: { name: string; description: string }[];
+  newToolJson: string;
+  toxicityDetection: boolean;
+}
+
 interface QueryResult {
   getLatest: boolean;
   question: string;
@@ -34,6 +56,7 @@ interface Message {
 interface QueryStoreProps {
   className?: string;
   storeNames: string[];
+  llmSettings: LLMSettings;
 }
 
 interface RenderMessageProps {
@@ -146,6 +169,7 @@ const RenderMessage: React.FC<RenderMessageProps> = ({ message }) => {
 export default function QueryStore({
   className = "",
   storeNames,
+  llmSettings,
 }: QueryStoreProps) {
   const [selectedStore, setSelectedStore] = useState("");
   const [prompt, setPrompt] = useState("");
@@ -190,10 +214,26 @@ export default function QueryStore({
     setMessages((prev) => [...prev, { type: "user", content: prompt }]);
 
     try {
+      const fullPrompt = `${llmSettings.preDecoration}${prompt}${llmSettings.postDecoration}`;
+
       const response = await fetch("/api/query-store", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ storeName: selectedStore, prompt }),
+        headers: {
+          "Content-Type": "application/json",
+          "X-LLM-Type": llmSettings.llmType,
+          "X-LLM-Model": llmSettings.modelName,
+          "X-Temperature": llmSettings.temperature.toString(),
+          "X-Max-Tokens": llmSettings.maxToken.toString(),
+          "X-Input-Limit": llmSettings.inputLimit.toString(),
+          "X-Chat-Memory": llmSettings.chatMemory.toString(),
+          "X-Max-Messages": llmSettings.maxMessages.toString(),
+          "X-Toxicity-Detection": llmSettings.toxicityDetection.toString(),
+        },
+        body: JSON.stringify({
+          storeName: selectedStore,
+          prompt: fullPrompt,
+          tools: llmSettings.tools,
+        }),
       });
 
       if (!response.ok) {
@@ -201,6 +241,14 @@ export default function QueryStore({
       }
 
       const data: QueryResult = await response.json();
+
+      const newUsageData = {
+        session: new Date().toISOString(),
+        inputTokens: data.tokenUsage.inputCount,
+        outputTokens: data.tokenUsage.outputCount,
+      };
+
+      llmSettings.tokenUsageData.push(newUsageData);
 
       setMessages((prev) => [
         ...prev,
@@ -242,7 +290,6 @@ export default function QueryStore({
       </div>
 
       <div className="flex-none p-6 pt-2 border-t border-gray-800/40">
-        {/* Store Selection Dropdown - Moved above the input area, compact width */}
         <div className="flex items-center mb-4">
           <label
             htmlFor="store-select"
@@ -281,7 +328,6 @@ export default function QueryStore({
           onSubmit={handleSubmit}
           className="flex items-center space-x-4 bg-[#1C1F2E] rounded-full px-4 py-3 border border-gray-700/40"
         >
-          {/* Voice Recording Button */}
           <button
             type="button"
             className="flex items-center justify-center text-gray-400 hover:text-gray-300 focus:outline-none"
@@ -289,7 +335,6 @@ export default function QueryStore({
             <MicrophoneIcon className="h-6 w-6" />
           </button>
 
-          {/* Prompt Input */}
           <input
             type="text"
             value={prompt}
@@ -305,7 +350,6 @@ export default function QueryStore({
             <p className="text-sm text-red-400 mt-1">{inputErrors.prompt}</p>
           )}
 
-          {/* Submit Button */}
           <button
             type="submit"
             disabled={isQuerying}

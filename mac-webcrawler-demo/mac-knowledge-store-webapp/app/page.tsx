@@ -8,9 +8,48 @@ import LLMSettingsPanel from "./components/LLMSettingsPanel";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/20/solid";
 import Image from "next/image";
 
+interface LLMSettings {
+  llmType: "OPENAI" | "MISTRAL" | "";
+  modelName: string;
+  temperature: number;
+  inputLimit: number;
+  maxToken: number;
+  chatMemory: boolean;
+  maxMessages: number;
+  tokenUsageData: {
+    session: string;
+    inputTokens: number;
+    outputTokens: number;
+  }[];
+  preDecoration: string;
+  postDecoration: string;
+  isRetrieveModalOpen: boolean;
+  isAddToolModalOpen: boolean;
+  tools: { name: string; description: string }[];
+  newToolJson: string;
+  toxicityDetection: boolean;
+}
+
 export default function Home() {
   const [storeNames, setStoreNames] = useState<string[]>([]);
   const [isCollapsed, setIsCollapsed] = useState<boolean>(false);
+  const [llmSettings, setLLMSettings] = useState<LLMSettings>({
+    llmType: "",
+    modelName: "",
+    temperature: 0.7,
+    inputLimit: 4000,
+    maxToken: 1000,
+    chatMemory: false,
+    maxMessages: 10,
+    tokenUsageData: [],
+    preDecoration: "",
+    postDecoration: "",
+    isRetrieveModalOpen: false,
+    isAddToolModalOpen: false,
+    tools: [],
+    newToolJson: "",
+    toxicityDetection: false,
+  });
 
   useEffect(() => {
     const fetchStoreNames = async () => {
@@ -70,6 +109,8 @@ export default function Home() {
         <LLMSettingsPanel
           isCollapsed={isCollapsed}
           onExpand={handlePanelExpand}
+          settings={llmSettings}
+          onSettingsChange={setLLMSettings}
         />
 
         {/* Collapse Toggle Button */}
@@ -113,7 +154,11 @@ export default function Home() {
             {/* Right Column - Query Interface */}
             {/* Wrap QueryStore in a div with hover effect */}
             <div className="col-span-8 h-full overflow-hidden hover:border hover:border-blue-500 rounded-md transition duration-200">
-              <QueryStore className="h-full" storeNames={storeNames} />
+              <QueryStore
+                className="h-full"
+                storeNames={storeNames}
+                llmSettings={llmSettings}
+              />
             </div>
           </div>
         </div>

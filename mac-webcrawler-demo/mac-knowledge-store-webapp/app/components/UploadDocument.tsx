@@ -12,7 +12,6 @@ export default function UploadDocument({
   storeNames,
 }: UploadDocumentProps) {
   const [selectedStore, setSelectedStore] = useState("");
-  const [fileType, setFileType] = useState("text");
   const [file, setFile] = useState<File | null>(null);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -20,13 +19,12 @@ export default function UploadDocument({
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Validation state
   const [inputErrors, setInputErrors] = useState({
     selectedStore: "",
-    fileType: "",
     file: "",
   });
 
+  // Util function to read the file as Base64
   const readFileAsBase64 = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -36,6 +34,7 @@ export default function UploadDocument({
     });
   };
 
+  // File Drag and Drop Event Handlers
   const handleDragEnter = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
@@ -72,7 +71,6 @@ export default function UploadDocument({
     let hasError = false;
     const errors = {
       selectedStore: "",
-      fileType: "",
       file: "",
     };
 
@@ -111,7 +109,6 @@ export default function UploadDocument({
           storeName: selectedStore,
           fileName: file!.name,
           fileContent,
-          fileType,
         }),
       });
 
@@ -120,7 +117,6 @@ export default function UploadDocument({
       if (response.ok) {
         setMessage(`Document uploaded successfully to "${selectedStore}".`);
         setSelectedStore("");
-        setFileType("text");
         setFile(null);
         if (fileInputRef.current) {
           fileInputRef.current.value = "";
@@ -136,79 +132,55 @@ export default function UploadDocument({
   };
 
   return (
-    <div className={`flex flex-col h-full ${className}`}>
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="grid grid-cols-2 gap-4">
-          {/* Store Selection */}
-          <div>
-            <label
-              htmlFor="storeSelect"
-              className="block text-base text-gray-400 mb-2"
-            >
-              Store
-            </label>
-            <select
-              id="storeSelect"
-              value={selectedStore}
-              onChange={(e) => {
-                setSelectedStore(e.target.value);
-                setInputErrors((prev) => ({ ...prev, selectedStore: "" }));
-              }}
-              className="w-full px-3 py-2.5 bg-[#1C1F2E] text-gray-100 text-sm
-                border border-gray-700/40 rounded-lg focus:outline-none focus:ring-1 
-                focus:ring-blue-500 focus:border-blue-500"
-              required
-            >
-              <option value="">Select store</option>
-              {storeNames.map((name) => (
-                <option key={name} value={name}>
-                  {name}
-                </option>
-              ))}
-            </select>
-            {inputErrors.selectedStore && (
-              <p className="text-sm text-red-400 mt-1">
-                {inputErrors.selectedStore}
-              </p>
-            )}
-          </div>
-
-          {/* File Type Selection */}
-          <div>
-            <label
-              htmlFor="fileType"
-              className="block text-base text-gray-400 mb-2"
-            >
-              File Type
-            </label>
-            <select
-              id="fileType"
-              value={fileType}
-              onChange={(e) => setFileType(e.target.value)}
-              className="w-full px-3 py-2.5 bg-[#1C1F2E] text-gray-100 text-sm
-                border border-gray-700/40 rounded-lg focus:outline-none focus:ring-1 
-                focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="text">Text</option>
-              <option value="PDF">PDF</option>
-            </select>
-          </div>
+    <div
+      className={`flex flex-col h-full bg-[#151929] p-6 rounded-3xl border border-gray-800/40 shadow-lg ${className}`}
+    >
+      <form onSubmit={handleSubmit} className="flex flex-col space-y-6">
+        {/* Store Selection */}
+        <div className="flex items-center space-x-4">
+          <label
+            htmlFor="store-select"
+            className="text-sm font-medium text-white flex-none"
+          >
+            Select Knowledge Store
+          </label>
+          <select
+            id="store-select"
+            value={selectedStore}
+            onChange={(e) => {
+              setSelectedStore(e.target.value);
+              setInputErrors((prev) => ({ ...prev, selectedStore: "" }));
+            }}
+            className="flex-grow px-4 py-2 bg-[#1C1F2E] text-gray-100 text-sm border border-gray-700/40 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+            required
+          >
+            <option value="">Select a store</option>
+            {storeNames.map((name) => (
+              <option key={name} value={name}>
+                {name}
+              </option>
+            ))}
+          </select>
+          {inputErrors.selectedStore && (
+            <p className="text-sm text-red-400 ml-3">
+              {inputErrors.selectedStore}
+            </p>
+          )}
         </div>
 
-        {/* File Drop Zone */}
+        {/* Drag & Drop Area */}
         <div
           onClick={() => fileInputRef.current?.click()}
           onDragEnter={handleDragEnter}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
-          className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer 
-            ${
-              isDragging ? "border-blue-500 bg-[#1C1F2E]" : "border-gray-700/40"
-            }`}
+          className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition ${
+            isDragging ? "border-blue-500 bg-[#1C1F2E]" : "border-gray-700/40"
+          } ${isDragging ? "shadow-lg" : ""}`}
         >
           {file ? (
-            <p className="text-sm text-gray-300">File: {file.name}</p>
+            <p className="text-sm text-gray-300">Selected File: {file.name}</p>
           ) : (
             <p className="text-sm text-gray-500">
               Drag & drop a file here or click to select
@@ -226,20 +198,19 @@ export default function UploadDocument({
           <p className="text-sm text-red-400 mt-1">{inputErrors.file}</p>
         )}
 
-        {/* Submit Button */}
+        {/* Upload Button */}
         <button
           type="submit"
           disabled={isUploading || !file}
-          className={`w-full py-2.5 px-4 rounded-lg text-sm font-medium
-              text-white bg-blue-500 hover:bg-blue-600 focus:outline-none focus:ring-2 
-              focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-[#151929]
-              ${isUploading || !file ? "opacity-50 cursor-not-allowed" : ""}`}
+          className={`w-full py-3 px-4 rounded-lg text-sm font-medium text-white bg-blue-500 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-[#151929] transition ${
+            isUploading || !file ? "opacity-50 cursor-not-allowed" : ""
+          }`}
         >
           {isUploading ? "Uploading..." : "Upload Document"}
         </button>
       </form>
 
-      {/* Success and Error Messages */}
+      {/* Status Messages */}
       {message && <p className="mt-4 text-sm text-green-400">{message}</p>}
       {error && <p className="mt-4 text-sm text-red-400">{error}</p>}
     </div>

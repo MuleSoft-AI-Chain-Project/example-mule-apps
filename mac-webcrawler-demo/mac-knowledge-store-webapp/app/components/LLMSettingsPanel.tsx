@@ -1,212 +1,162 @@
+// LLMSettingsPanel.tsx
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo, Suspense, lazy } from "react";
 import {
   Cog6ToothIcon,
   AdjustmentsHorizontalIcon,
   BoltIcon,
   ChartBarIcon,
-  ChevronUpIcon,
-  ChevronDownIcon,
   DocumentTextIcon,
   WrenchScrewdriverIcon,
   ArrowDownTrayIcon,
   PlusCircleIcon,
-  XMarkIcon,
 } from "@heroicons/react/24/outline";
-
+import Accordion from "./ui/Accordion";
+import Modal from "./ui/Modal";
 import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from "recharts";
+  LLMSettings,
+  SettingsPanelProps,
+  LLMType,
+  ProviderModels,
+} from "../types/types";
 
-interface AccordionProps {
-  title: string;
-  children: React.ReactNode;
-  icon: React.ElementType;
-  defaultOpen?: boolean;
-  isCollapsed?: boolean;
-  onCollapsedClick?: () => void;
-}
+const LineChart = lazy(() =>
+  import("recharts").then((module) => ({ default: module.LineChart }))
+);
+const Line = lazy(() =>
+  import("recharts").then((module) => ({ default: module.Line }))
+);
+const XAxis = lazy(() =>
+  import("recharts").then((module) => ({ default: module.XAxis }))
+);
+const YAxis = lazy(() =>
+  import("recharts").then((module) => ({ default: module.YAxis }))
+);
+const CartesianGrid = lazy(() =>
+  import("recharts").then((module) => ({ default: module.CartesianGrid }))
+);
+const Tooltip = lazy(() =>
+  import("recharts").then((module) => ({ default: module.Tooltip }))
+);
+const Legend = lazy(() =>
+  import("recharts").then((module) => ({ default: module.Legend }))
+);
+const ResponsiveContainer = lazy(() =>
+  import("recharts").then((module) => ({ default: module.ResponsiveContainer }))
+);
 
-function Accordion({
-  title,
-  children,
-  icon: Icon,
-  defaultOpen = false,
-  isCollapsed = false,
-  onCollapsedClick,
-}: AccordionProps) {
-  const [isOpen, setIsOpen] = useState(defaultOpen);
+const LLMSettingsPanel: React.FC<SettingsPanelProps> = ({
+  isCollapsed,
+  onExpand,
+  settings,
+  onSettingsChange,
+}) => {
+  const {
+    llmType,
+    modelName,
+    temperature,
+    inputLimit,
+    maxToken,
+    chatMemory,
+    maxMessages,
+    tokenUsageData,
+    preDecoration,
+    postDecoration,
+    isRetrieveModalOpen,
+    isAddToolModalOpen,
+    tools,
+    newToolJson,
+    toxicityDetection,
+  } = settings;
 
-  const handleClick = () => {
-    if (isCollapsed && onCollapsedClick) {
-      onCollapsedClick();
-      setIsOpen(true); // Open this accordion when expanding
-    } else if (!isCollapsed) {
-      setIsOpen(!isOpen);
-    }
+  const [loading, setLoading] = useState(false);
+
+  const providerModels: ProviderModels = {
+    [LLMType.OPENAI]: [
+      "gpt-4",
+      "gpt-4o",
+      "gpt-4o-mini",
+      "gpt-4o-turbo-preview",
+    ],
+    [LLMType.MISTRAL]: ["mistral-small", "mistral-large-latest"],
   };
 
-  return (
-    <div
-      className={`w-full my-2 rounded-lg ${
-        isOpen ? "border border-blue-500 shadow-md" : ""
-      }`}
-    >
-      <button
-        aria-expanded={isOpen}
-        className={`w-full flex items-center ${
-          isCollapsed ? "justify-center" : "justify-between"
-        } py-3 text-gray-200 hover:bg-blue-800 rounded-lg ${
-          isCollapsed ? "px-0" : "px-3"
-        } ${isOpen ? "bg-blue-800" : "bg-gray-800/40"}`}
-        onClick={handleClick}
-      >
-        <div
-          className={`flex ${
-            isCollapsed ? "justify-center w-full" : "items-center gap-3"
-          }`}
-        >
-          <Icon className="h-6 w-6" />
-          {!isCollapsed && (
-            <span className="text-[15px] font-medium">{title}</span>
-          )}
-        </div>
-        {!isCollapsed &&
-          (isOpen ? (
-            <ChevronUpIcon className="h-4 w-4 text-gray-400" />
-          ) : (
-            <ChevronDownIcon className="h-4 w-4 text-gray-400" />
-          ))}
-      </button>
-      {!isCollapsed && isOpen && (
-        <div className="py-4 space-y-4 px-3 bg-gray-800/40 rounded-b-lg">
-          {children}
-        </div>
-      )}
-    </div>
+  const filteredModels = useMemo(
+    () => (llmType ? providerModels[llmType] : []),
+    [llmType]
   );
-}
-
-interface ModalProps {
-  title: string;
-  children: React.ReactNode;
-  onClose: () => void;
-}
-
-function Modal({ title, children, onClose }: ModalProps) {
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-      <div className="bg-[#151929] w-full max-w-lg mx-auto rounded-lg shadow-lg p-6 relative">
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 text-gray-400 hover:text-gray-200"
-        >
-          <XMarkIcon className="h-6 w-6" />
-        </button>
-        <h2 className="text-xl text-white font-medium mb-4">{title}</h2>
-        {children}
-      </div>
-    </div>
-  );
-}
-
-interface Tool {
-  name: string;
-  description: string;
-}
-
-interface SettingsPanelProps {
-  className?: string;
-  isCollapsed?: boolean;
-  onExpand?: () => void;
-}
-
-export default function SettingsPanel({
-  className = "",
-  isCollapsed = false,
-  onExpand,
-}: SettingsPanelProps) {
-  const [provider, setProvider] = useState<Provider | "">("");
-  const [model, setModel] = useState("");
-  const [temperature, setTemperature] = useState(0.7);
-  const [maxInputTokens, setMaxInputTokens] = useState(3000);
-  const [maxOutputTokens, setMaxOutputTokens] = useState(500);
-  const [chatMemory, setChatMemory] = useState(false);
-  const [maxMessages, setMaxMessages] = useState(20);
-  const [tokenUsageData] = useState([
-    { session: "Session 1", inputTokens: 1500, outputTokens: 500 },
-    { session: "Session 2", inputTokens: 2000, outputTokens: 800 },
-    { session: "Session 3", inputTokens: 1800, outputTokens: 600 },
-  ]);
-  const [prePrompt, setPrePrompt] = useState("");
-  const [postPrompt, setPostPrompt] = useState("");
-  const [isRetrieveModalOpen, setIsRetrieveModalOpen] = useState(false);
-  const [isAddToolModalOpen, setIsAddToolModalOpen] = useState(false);
-  const [tools, setTools] = useState<Tool[]>([]);
-  const [newToolJson, setNewToolJson] = useState("");
-
-  const providerModels = {
-    openai: ["gpt-4", "gpt-4o", "gpt-4o-mini", "gpt-4o-turbo-preview"],
-    mistral: ["mistral-small", "mistral-large-latest"],
-  } as const;
-
-  type Provider = keyof typeof providerModels;
-
-  const filteredModels = provider ? providerModels[provider] : [];
 
   const estimateTokens = (text: string) => Math.ceil(text.length / 4);
 
   const totalPromptTokens =
-    estimateTokens(prePrompt) + estimateTokens(postPrompt);
+    estimateTokens(preDecoration) + estimateTokens(postDecoration);
 
-  const handleRetrieveTools = () => {
-    setIsRetrieveModalOpen(true);
-    // Replace with actual API call in production
-    setTools([
-      { name: "Tool 1", description: "Description of Tool 1" },
-      { name: "Tool 2", description: "Description of Tool 2" },
-    ]);
+  const handleRetrieveTools = async () => {
+    setLoading(true);
+    try {
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      onSettingsChange({
+        ...settings,
+        isRetrieveModalOpen: true,
+        tools: [
+          { name: "Tool 1", description: "Description of Tool 1" },
+          { name: "Tool 2", description: "Description of Tool 2" },
+        ],
+      });
+    } catch (error) {
+      console.error(error);
+      alert("Failed to retrieve tools.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleAddTool = () => {
-    setIsAddToolModalOpen(true);
+    onSettingsChange({
+      ...settings,
+      isAddToolModalOpen: true,
+    });
   };
 
   const handleCloseRetrieveModal = () => {
-    setIsRetrieveModalOpen(false);
-    setTools([]);
+    onSettingsChange({
+      ...settings,
+      isRetrieveModalOpen: false,
+      tools: [],
+    });
   };
 
   const handleCloseAddToolModal = () => {
-    setIsAddToolModalOpen(false);
-    setNewToolJson("");
+    onSettingsChange({
+      ...settings,
+      isAddToolModalOpen: false,
+      newToolJson: "",
+    });
   };
 
   const handleSaveTool = () => {
     try {
       const tool = JSON.parse(newToolJson);
       if (tool.name && tool.description) {
-        setTools([...tools, tool]);
-        setIsAddToolModalOpen(false);
-        setNewToolJson("");
+        onSettingsChange({
+          ...settings,
+          tools: [...tools, tool],
+          isAddToolModalOpen: false,
+          newToolJson: "",
+        });
+        alert("Tool added successfully.");
       } else {
-        alert("Invalid tool JSON: Missing name or description");
+        alert("Invalid tool JSON: Missing name or description.");
       }
     } catch (error) {
-      alert("Invalid JSON format");
+      alert("Invalid JSON format.");
     }
   };
 
   return (
-    <div className={`flex flex-col ${className} h-full overflow-hidden`}>
+    <div className={`flex flex-col h-full overflow-hidden`}>
       <div className={`overflow-y-auto space-y-2`}>
         {/* LLM Configuration */}
         <Accordion
@@ -222,20 +172,22 @@ export default function SettingsPanel({
                 LLM Provider
               </label>
               <select
-                value={provider}
+                value={llmType}
                 onChange={(e) => {
-                  setProvider(e.target.value as Provider);
-                  setModel("");
+                  onSettingsChange({
+                    ...settings,
+                    llmType: e.target.value as LLMType,
+                    modelName: "",
+                  });
                 }}
                 className="w-full bg-gray-800/50 text-gray-300 text-sm px-3 py-2 rounded-md border border-gray-700/50"
               >
                 <option value="" className="text-sm">
                   Select provider
                 </option>
-                {Object.keys(providerModels).map((providerOption) => (
-                  <option key={providerOption} value={providerOption}>
-                    {providerOption.charAt(0).toUpperCase() +
-                      providerOption.slice(1)}
+                {Object.values(LLMType).map((provider) => (
+                  <option key={provider} value={provider}>
+                    {provider}
                   </option>
                 ))}
               </select>
@@ -246,11 +198,16 @@ export default function SettingsPanel({
                 LLM Model
               </label>
               <select
-                value={model}
-                onChange={(e) => setModel(e.target.value)}
-                disabled={!provider}
+                value={modelName}
+                onChange={(e) =>
+                  onSettingsChange({
+                    ...settings,
+                    modelName: e.target.value,
+                  })
+                }
+                disabled={!llmType}
                 className={`w-full bg-gray-800/50 text-gray-300 text-sm px-3 py-2 rounded-md border border-gray-700/50 ${
-                  !provider ? "opacity-50 cursor-not-allowed" : ""
+                  !llmType ? "opacity-50 cursor-not-allowed" : ""
                 }`}
               >
                 <option value="" className="text-sm">
@@ -281,8 +238,13 @@ export default function SettingsPanel({
               </label>
               <input
                 type="number"
-                value={maxOutputTokens}
-                onChange={(e) => setMaxOutputTokens(Number(e.target.value))}
+                value={maxToken}
+                onChange={(e) =>
+                  onSettingsChange({
+                    ...settings,
+                    maxToken: Number(e.target.value),
+                  })
+                }
                 min="1"
                 max="2000"
                 className="w-full bg-gray-800/50 text-gray-300 text-sm px-3 py-2 rounded-md border border-gray-700/50"
@@ -299,8 +261,13 @@ export default function SettingsPanel({
               </label>
               <input
                 type="number"
-                value={maxInputTokens}
-                onChange={(e) => setMaxInputTokens(Number(e.target.value))}
+                value={inputLimit}
+                onChange={(e) =>
+                  onSettingsChange({
+                    ...settings,
+                    inputLimit: Number(e.target.value),
+                  })
+                }
                 min="1"
                 max="6000"
                 className="w-full bg-gray-800/50 text-gray-300 text-sm px-3 py-2 rounded-md border border-gray-700/50"
@@ -321,7 +288,12 @@ export default function SettingsPanel({
                 max="2"
                 step="0.05"
                 value={temperature}
-                onChange={(e) => setTemperature(Number(e.target.value))}
+                onChange={(e) =>
+                  onSettingsChange({
+                    ...settings,
+                    temperature: Number(e.target.value),
+                  })
+                }
                 className="w-full"
               />
               <div className="text-sm text-gray-400 text-right">
@@ -347,7 +319,12 @@ export default function SettingsPanel({
               <input
                 type="checkbox"
                 checked={chatMemory}
-                onChange={(e) => setChatMemory(e.target.checked)}
+                onChange={(e) =>
+                  onSettingsChange({
+                    ...settings,
+                    chatMemory: e.target.checked,
+                  })
+                }
                 className="h-5 w-5 text-indigo-600 bg-gray-800 border-gray-700 rounded focus:ring-indigo-500"
               />
               <span className="text-sm text-gray-400">Enable Chat Memory</span>
@@ -361,7 +338,12 @@ export default function SettingsPanel({
                 <input
                   type="number"
                   value={maxMessages}
-                  onChange={(e) => setMaxMessages(Number(e.target.value))}
+                  onChange={(e) =>
+                    onSettingsChange({
+                      ...settings,
+                      maxMessages: Number(e.target.value),
+                    })
+                  }
                   min="0"
                   max="100"
                   className="w-full bg-gray-800/50 text-gray-300 px-3 py-2 rounded-md border border-gray-700/50"
@@ -395,8 +377,13 @@ export default function SettingsPanel({
               </label>
               <textarea
                 aria-label="Pre-Prompt"
-                value={prePrompt}
-                onChange={(e) => setPrePrompt(e.target.value)}
+                value={preDecoration}
+                onChange={(e) =>
+                  onSettingsChange({
+                    ...settings,
+                    preDecoration: e.target.value,
+                  })
+                }
                 placeholder="Text to add before the prompt..."
                 rows={3}
                 maxLength={1000}
@@ -405,8 +392,8 @@ export default function SettingsPanel({
                   focus:ring-blue-500 focus:border-blue-500"
               />
               <div className="text-xs text-gray-500 text-right">
-                {prePrompt.length} characters (~
-                {estimateTokens(prePrompt)} tokens)
+                {preDecoration.length} characters (~
+                {estimateTokens(preDecoration)} tokens)
               </div>
             </div>
 
@@ -423,8 +410,13 @@ export default function SettingsPanel({
               </label>
               <textarea
                 aria-label="Post-Prompt"
-                value={postPrompt}
-                onChange={(e) => setPostPrompt(e.target.value)}
+                value={postDecoration}
+                onChange={(e) =>
+                  onSettingsChange({
+                    ...settings,
+                    postDecoration: e.target.value,
+                  })
+                }
                 placeholder="Text to add after the prompt..."
                 rows={3}
                 maxLength={1000}
@@ -433,16 +425,16 @@ export default function SettingsPanel({
                   focus:ring-blue-500 focus:border-blue-500"
               />
               <div className="text-xs text-gray-500 text-right">
-                {postPrompt.length} characters (~
-                {estimateTokens(postPrompt)} tokens)
+                {postDecoration.length} characters (~
+                {estimateTokens(postDecoration)} tokens)
               </div>
             </div>
 
             {/* Combined Length Warning */}
-            {totalPromptTokens > maxInputTokens && (
+            {totalPromptTokens > inputLimit && (
               <p className="text-sm text-red-500">
                 The combined length of your pre-prompt and post-prompt exceeds
-                the maximum input limit of {maxInputTokens} tokens.
+                the maximum input limit of {inputLimit} tokens.
               </p>
             )}
 
@@ -455,9 +447,9 @@ export default function SettingsPanel({
                 className="p-3 bg-gray-800/50 text-gray-300 rounded-md border border-gray-700/50
                   max-h-48 overflow-auto whitespace-pre-wrap break-words text-sm"
               >
-                {prePrompt}
+                {preDecoration}
                 <span className="text-blue-400"> [User Input] </span>
-                {postPrompt}
+                {postDecoration}
               </div>
             </div>
           </div>
@@ -473,16 +465,23 @@ export default function SettingsPanel({
           <div className="flex gap-2 w-full">
             <button
               onClick={handleRetrieveTools}
+              disabled={loading}
               className="flex-1 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 
-                               rounded-md text-white text-xs flex items-center justify-center gap-1"
+                rounded-md text-white text-xs flex items-center justify-center gap-1"
             >
-              <ArrowDownTrayIcon className="h-4 w-4" />
-              Retrieve Tools
+              {loading ? (
+                "Loading..."
+              ) : (
+                <>
+                  <ArrowDownTrayIcon className="h-4 w-4" />
+                  Retrieve Tools
+                </>
+              )}
             </button>
             <button
               onClick={handleAddTool}
               className="flex-1 px-3 py-1.5 bg-green-600 hover:bg-green-700 
-                               rounded-md text-white text-xs flex items-center justify-center gap-1"
+                rounded-md text-white text-xs flex items-center justify-center gap-1"
             >
               <PlusCircleIcon className="h-4 w-4" />
               Add Tool
@@ -498,31 +497,33 @@ export default function SettingsPanel({
           onCollapsedClick={onExpand}
         >
           <div className="w-full h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart
-                data={tokenUsageData}
-                margin={{ top: 20, right: 30, left: 0, bottom: 0 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="session" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Line
-                  type="monotone"
-                  dataKey="inputTokens"
-                  stroke="#8884d8"
-                  activeDot={{ r: 8 }}
-                  name="Input Tokens"
-                />
-                <Line
-                  type="monotone"
-                  dataKey="outputTokens"
-                  stroke="#82ca9d"
-                  name="Output Tokens"
-                />
-              </LineChart>
-            </ResponsiveContainer>
+            <Suspense fallback={<div>Loading Chart...</div>}>
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart
+                  data={tokenUsageData}
+                  margin={{ top: 20, right: 30, left: 0, bottom: 0 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="session" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Line
+                    type="monotone"
+                    dataKey="inputTokens"
+                    stroke="#8884d8"
+                    activeDot={{ r: 8 }}
+                    name="Input Tokens"
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="outputTokens"
+                    stroke="#82ca9d"
+                    name="Output Tokens"
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </Suspense>
           </div>
         </Accordion>
       </div>
@@ -559,25 +560,30 @@ export default function SettingsPanel({
             </label>
             <textarea
               value={newToolJson}
-              onChange={(e) => setNewToolJson(e.target.value)}
+              onChange={(e) =>
+                onSettingsChange({
+                  ...settings,
+                  newToolJson: e.target.value,
+                })
+              }
               placeholder="Paste your tool JSON here..."
               rows={10}
               className="w-full px-3 py-2 bg-gray-800 text-gray-300 placeholder-gray-500 text-sm
-                    border border-gray-700 rounded-md resize-y focus:outline-none focus:ring-1
-                    focus:ring-blue-500 focus:border-blue-500"
+                border border-gray-700 rounded-md resize-y focus:outline-none focus:ring-1
+                focus:ring-blue-500 focus:border-blue-500"
             />
             <div className="flex justify-end space-x-2">
               <button
                 onClick={handleCloseAddToolModal}
                 className="px-4 py-2 bg-gray-600 hover:bg-gray-700 
-                      rounded-md text-white text-sm"
+                  rounded-md text-white text-sm"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSaveTool}
                 className="px-4 py-2 bg-blue-600 hover:bg-blue-700 
-                      rounded-md text-white text-sm"
+                  rounded-md text-white text-sm"
               >
                 Save
               </button>
@@ -587,4 +593,6 @@ export default function SettingsPanel({
       )}
     </div>
   );
-}
+};
+
+export default React.memo(LLMSettingsPanel);
