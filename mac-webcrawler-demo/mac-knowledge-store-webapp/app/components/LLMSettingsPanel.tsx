@@ -227,9 +227,11 @@ export default function SettingsPanel({
                   setProvider(e.target.value as Provider);
                   setModel("");
                 }}
-                className="w-full bg-gray-800/50 text-gray-300 px-3 py-2 rounded-md border border-gray-700/50"
+                className="w-full bg-gray-800/50 text-gray-300 text-sm px-3 py-2 rounded-md border border-gray-700/50"
               >
-                <option value="">Select provider</option>
+                <option value="" className="text-sm">
+                  Select provider
+                </option>
                 {Object.keys(providerModels).map((providerOption) => (
                   <option key={providerOption} value={providerOption}>
                     {providerOption.charAt(0).toUpperCase() +
@@ -247,11 +249,13 @@ export default function SettingsPanel({
                 value={model}
                 onChange={(e) => setModel(e.target.value)}
                 disabled={!provider}
-                className={`w-full bg-gray-800/50 text-gray-300 px-3 py-2 rounded-md border border-gray-700/50 ${
+                className={`w-full bg-gray-800/50 text-gray-300 text-sm px-3 py-2 rounded-md border border-gray-700/50 ${
                   !provider ? "opacity-50 cursor-not-allowed" : ""
                 }`}
               >
-                <option value="">Select model</option>
+                <option value="" className="text-sm">
+                  Select model
+                </option>
                 {filteredModels.map((modelOption) => (
                   <option key={modelOption} value={modelOption}>
                     {modelOption}
@@ -281,7 +285,7 @@ export default function SettingsPanel({
                 onChange={(e) => setMaxOutputTokens(Number(e.target.value))}
                 min="1"
                 max="2000"
-                className="w-full bg-gray-800/50 text-gray-300 px-3 py-2 rounded-md border border-gray-700/50"
+                className="w-full bg-gray-800/50 text-gray-300 text-sm px-3 py-2 rounded-md border border-gray-700/50"
               />
               <small className="text-xs text-gray-500">
                 Max. number of tokens the model can generate
@@ -299,7 +303,7 @@ export default function SettingsPanel({
                 onChange={(e) => setMaxInputTokens(Number(e.target.value))}
                 min="1"
                 max="6000"
-                className="w-full bg-gray-800/50 text-gray-300 px-3 py-2 rounded-md border border-gray-700/50"
+                className="w-full bg-gray-800/50 text-gray-300 text-sm px-3 py-2 rounded-md border border-gray-700/50"
               />
               <small className="text-xs text-gray-500">
                 Max. number of tokens allowed in the input prompt (1-6000).
@@ -396,7 +400,7 @@ export default function SettingsPanel({
                 placeholder="Text to add before the prompt..."
                 rows={3}
                 maxLength={1000}
-                className="w-full px-3 py-2 bg-gray-800/50 text-gray-300 placeholder-gray-500
+                className="w-full px-3 py-2 bg-gray-800/50 text-gray-300 placeholder-gray-500 text-sm
                   border border-gray-700/50 rounded-md resize-y focus:outline-none focus:ring-1
                   focus:ring-blue-500 focus:border-blue-500"
               />
@@ -424,7 +428,7 @@ export default function SettingsPanel({
                 placeholder="Text to add after the prompt..."
                 rows={3}
                 maxLength={1000}
-                className="w-full px-3 py-2 bg-gray-800/50 text-gray-300 placeholder-gray-500
+                className="w-full px-3 py-2 bg-gray-800/50 text-gray-300 placeholder-gray-500 text-sm
                   border border-gray-700/50 rounded-md resize-y focus:outline-none focus:ring-1
                   focus:ring-blue-500 focus:border-blue-500"
               />
@@ -449,7 +453,7 @@ export default function SettingsPanel({
               </label>
               <div
                 className="p-3 bg-gray-800/50 text-gray-300 rounded-md border border-gray-700/50
-                  max-h-48 overflow-auto whitespace-pre-wrap break-words"
+                  max-h-48 overflow-auto whitespace-pre-wrap break-words text-sm"
               >
                 {prePrompt}
                 <span className="text-blue-400"> [User Input] </span>
@@ -558,7 +562,7 @@ export default function SettingsPanel({
               onChange={(e) => setNewToolJson(e.target.value)}
               placeholder="Paste your tool JSON here..."
               rows={10}
-              className="w-full px-3 py-2 bg-gray-800 text-gray-300 placeholder-gray-500
+              className="w-full px-3 py-2 bg-gray-800 text-gray-300 placeholder-gray-500 text-sm
                     border border-gray-700 rounded-md resize-y focus:outline-none focus:ring-1
                     focus:ring-blue-500 focus:border-blue-500"
             />

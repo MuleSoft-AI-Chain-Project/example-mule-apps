@@ -3,7 +3,11 @@
 import React, { useState, useRef, useEffect } from "react";
 import ReactMarkdown, { Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { ChatBubbleBottomCenterTextIcon } from "@heroicons/react/24/outline";
+import {
+  ChatBubbleBottomCenterTextIcon,
+  MicrophoneIcon,
+  PaperAirplaneIcon,
+} from "@heroicons/react/24/outline";
 
 interface QueryResult {
   getLatest: boolean;
@@ -81,69 +85,60 @@ const AccordionItem: React.FC<{ source: QueryResult["sources"][number] }> = ({
 const RenderMessage: React.FC<RenderMessageProps> = ({ message }) => {
   const isUser = message.type === "user";
   const alignClass = isUser ? "self-end" : "self-start";
-  const bgClass = isUser ? "bg-blue-500" : "bg-[#1E2235]";
+  const bubbleClass = isUser
+    ? "bg-blue-500 text-right"
+    : "bg-[#1E2235] text-left";
 
-  if (typeof message.content === "string") {
-    return (
-      <div
-        className={`${bgClass} p-4 rounded-lg mb-2 max-w-3/4 ${alignClass} border border-gray-700/50`}
-      >
-        <div className="mb-2">
-          <span className="text-white text-base font-bold">
-            {isUser ? "User:" : "Agent:"}
-          </span>
-        </div>
-        <div className="text-white">{message.content}</div>
-      </div>
-    );
-  }
-
-  // For agent responses with QueryResult content
-  const content = message.content as QueryResult;
   return (
-    <div
-      className={`${bgClass} p-4 rounded-lg mb-2 w-full ${alignClass} border border-gray-700/50`}
-    >
-      <div className="mb-2">
-        <span className="text-white text-base font-bold">Agent:</span>
-      </div>
-      <div className="text-white">
-        <ReactMarkdown
-          className="prose prose-invert max-w-none text-white"
-          remarkPlugins={[remarkGfm]}
-          components={markdownComponents}
-        >
-          {content.response}
-        </ReactMarkdown>
-      </div>
-      {/* Sources Section */}
-      {content.sources && content.sources.length > 0 && (
-        <div className="mt-4">
-          <h3 className="text-white text-base font-semibold mb-2">Sources:</h3>
-          <div className="border border-gray-700/50 rounded-lg overflow-hidden">
-            {content.sources.map((source, index) => (
-              <AccordionItem key={index} source={source} />
-            ))}
-          </div>
+    <div className={`flex flex-col mb-2 ${alignClass} max-w-lg`}>
+      <div
+        className={`${bubbleClass} p-4 rounded-3xl border border-gray-700/50 shadow-lg`}
+      >
+        <div className="text-white">
+          {typeof message.content === "string" ? (
+            message.content
+          ) : (
+            <>
+              <ReactMarkdown
+                className="prose prose-invert max-w-none"
+                remarkPlugins={[remarkGfm]}
+                components={markdownComponents}
+              >
+                {message.content.response}
+              </ReactMarkdown>
+              {message.content.sources &&
+                message.content.sources.length > 0 && (
+                  <div className="mt-4">
+                    <h3 className="text-white text-base font-semibold mb-2">
+                      Sources:
+                    </h3>
+                    <div className="border border-gray-700/50 rounded-lg overflow-hidden">
+                      {message.content.sources.map((source, index) => (
+                        <AccordionItem key={index} source={source} />
+                      ))}
+                    </div>
+                  </div>
+                )}
+              {message.content.tokenUsage && (
+                <div className="mt-3 pt-3 border-t border-gray-700/50 text-sm text-gray-300">
+                  <p>
+                    <span className="font-medium">Input Tokens:</span>{" "}
+                    {message.content.tokenUsage.inputCount}
+                  </p>
+                  <p>
+                    <span className="font-medium">Output Tokens:</span>{" "}
+                    {message.content.tokenUsage.outputCount}
+                  </p>
+                  <p>
+                    <span className="font-medium">Total Tokens:</span>{" "}
+                    {message.content.tokenUsage.totalCount}
+                  </p>
+                </div>
+              )}
+            </>
+          )}
         </div>
-      )}
-      {/* Token Usage Section */}
-      {content.tokenUsage && (
-        <div className="mt-3 pt-3 border-t border-gray-700/50 text-sm text-gray-300">
-          <p>
-            <span className="font-medium">Input Tokens:</span>{" "}
-            {content.tokenUsage.inputCount}
-          </p>
-          <p>
-            <span className="font-medium">Output Tokens:</span>{" "}
-            {content.tokenUsage.outputCount}
-          </p>
-          <p>
-            <span className="font-medium">Total Tokens:</span>{" "}
-            {content.tokenUsage.totalCount}
-          </p>
-        </div>
-      )}
+      </div>
     </div>
   );
 };
@@ -227,7 +222,7 @@ export default function QueryStore({
 
   return (
     <div
-      className={`bg-[#151929] rounded-xl border border-gray-800/40 shadow-lg 
+      className={`bg-[#151929] rounded-3xl border border-gray-800/40 shadow-lg 
         flex flex-col h-full ${className}`}
     >
       <div className="flex-none p-6 pb-2">
@@ -238,7 +233,7 @@ export default function QueryStore({
       </div>
 
       <div className="flex-1 overflow-y-auto px-6 py-4">
-        <div className="flex flex-col">
+        <div className="flex flex-col gap-4">
           {messages.map((message, index) => (
             <RenderMessage key={index} message={message} />
           ))}
@@ -247,65 +242,78 @@ export default function QueryStore({
       </div>
 
       <div className="flex-none p-6 pt-2 border-t border-gray-800/40">
-        <form onSubmit={handleSubmit} className="flex items-start space-x-2">
-          {/* Store Selection */}
-          <div className="flex flex-col w-1/4">
-            <select
-              value={selectedStore}
-              onChange={(e) => {
-                setSelectedStore(e.target.value);
-                setInputErrors((prev) => ({ ...prev, selectedStore: "" }));
-              }}
-              className="w-full px-3 py-2.5 bg-[#1C1F2E] text-gray-100 text-sm border border-gray-700/40 
-                rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-              required
-            >
-              <option value="" className="text-sm">
-                Select a store
+        {/* Store Selection Dropdown - Moved above the input area, compact width */}
+        <div className="flex items-center mb-4">
+          <label
+            htmlFor="store-select"
+            className="text-white text-sm mr-3 flex-none"
+          >
+            Select Knowledge Store
+          </label>
+          <select
+            id="store-select"
+            value={selectedStore}
+            onChange={(e) => {
+              setSelectedStore(e.target.value);
+              setInputErrors((prev) => ({ ...prev, selectedStore: "" }));
+            }}
+            className="inline-flex px-4 py-2 bg-[#1C1F2E] text-gray-100 text-sm border border-gray-700/40 
+              rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+            required
+          >
+            <option value="" className="text-sm">
+              Select a store
+            </option>
+            {storeNames.map((name) => (
+              <option key={name} value={name} className="text-sm">
+                {name}
               </option>
-              {storeNames.map((name) => (
-                <option key={name} value={name} className="text-sm">
-                  {name}
-                </option>
-              ))}
-            </select>
-            {inputErrors.selectedStore && (
-              <p className="text-sm text-red-400 mt-1">
-                {inputErrors.selectedStore}
-              </p>
-            )}
-          </div>
+            ))}
+          </select>
+          {inputErrors.selectedStore && (
+            <p className="text-sm text-red-400 ml-3">
+              {inputErrors.selectedStore}
+            </p>
+          )}
+        </div>
+
+        <form
+          onSubmit={handleSubmit}
+          className="flex items-center space-x-4 bg-[#1C1F2E] rounded-full px-4 py-3 border border-gray-700/40"
+        >
+          {/* Voice Recording Button */}
+          <button
+            type="button"
+            className="flex items-center justify-center text-gray-400 hover:text-gray-300 focus:outline-none"
+          >
+            <MicrophoneIcon className="h-6 w-6" />
+          </button>
 
           {/* Prompt Input */}
-          <div className="flex flex-col flex-grow">
-            <input
-              type="text"
-              value={prompt}
-              onChange={(e) => {
-                setPrompt(e.target.value);
-                setInputErrors((prev) => ({ ...prev, prompt: "" }));
-              }}
-              placeholder="Enter your query"
-              className="w-full px-3 py-2.5 bg-[#1C1F2E] text-gray-100 placeholder-gray-500 text-sm
-                  border border-gray-700/40 rounded-lg focus:outline-none focus:ring-1 
-                  focus:ring-blue-500 focus:border-blue-500"
-              required
-            />
-            {inputErrors.prompt && (
-              <p className="text-sm text-red-400 mt-1">{inputErrors.prompt}</p>
-            )}
-          </div>
+          <input
+            type="text"
+            value={prompt}
+            onChange={(e) => {
+              setPrompt(e.target.value);
+              setInputErrors((prev) => ({ ...prev, prompt: "" }));
+            }}
+            placeholder="Send a message..."
+            className="flex-grow px-3 py-1.5 bg-transparent text-gray-100 placeholder-gray-500 text-sm focus:outline-none"
+            required
+          />
+          {inputErrors.prompt && (
+            <p className="text-sm text-red-400 mt-1">{inputErrors.prompt}</p>
+          )}
 
           {/* Submit Button */}
           <button
             type="submit"
             disabled={isQuerying}
-            className={`px-4 py-2.5 mt-1 border border-gray-200/20 rounded-lg shadow-sm text-sm font-medium 
-                text-white bg-blue-500 hover:bg-blue-600 focus:outline-none focus:ring-2 
-                focus:ring-offset-2 focus:ring-blue-500 focus:ring-offset-[#151929]
+            className={`flex items-center justify-center h-10 w-10 rounded-full bg-blue-500 hover:bg-blue-600 
+                focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 focus:ring-offset-[#151929]
                 ${isQuerying ? "opacity-50 cursor-not-allowed" : ""}`}
           >
-            {isQuerying ? "Querying..." : "Send"}
+            <PaperAirplaneIcon className="h-5 w-5 text-white transform rotate-45" />
           </button>
         </form>
       </div>
