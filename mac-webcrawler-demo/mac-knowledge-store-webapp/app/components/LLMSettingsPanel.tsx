@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState } from "react";
 import {
   Cog6ToothIcon,
   AdjustmentsHorizontalIcon,
@@ -29,7 +29,7 @@ import {
 interface AccordionProps {
   title: string;
   children: React.ReactNode;
-  icon: any;
+  icon: React.ElementType;
   defaultOpen?: boolean;
   isCollapsed?: boolean;
   onCollapsedClick?: () => void;
@@ -118,6 +118,11 @@ function Modal({ title, children, onClose }: ModalProps) {
   );
 }
 
+interface Tool {
+  name: string;
+  description: string;
+}
+
 interface SettingsPanelProps {
   className?: string;
   isCollapsed?: boolean;
@@ -129,14 +134,14 @@ export default function SettingsPanel({
   isCollapsed = false,
   onExpand,
 }: SettingsPanelProps) {
-  const [provider, setProvider] = useState(""); // Initially no provider selected
+  const [provider, setProvider] = useState<Provider | "">("");
   const [model, setModel] = useState("");
   const [temperature, setTemperature] = useState(0.7);
-  const [inputLimit, setInputLimit] = useState(3000); // Default value
-  const [maxToken, setMaxToken] = useState(500); // Default value
+  const [maxInputTokens, setMaxInputTokens] = useState(3000);
+  const [maxOutputTokens, setMaxOutputTokens] = useState(500);
   const [chatMemory, setChatMemory] = useState(false);
-  const [maxMessages, setMaxMessages] = useState(20); // Default value
-  const [tokenUsageData, setTokenUsageData] = useState([
+  const [maxMessages, setMaxMessages] = useState(20);
+  const [tokenUsageData] = useState([
     { session: "Session 1", inputTokens: 1500, outputTokens: 500 },
     { session: "Session 2", inputTokens: 2000, outputTokens: 800 },
     { session: "Session 3", inputTokens: 1800, outputTokens: 600 },
@@ -145,30 +150,26 @@ export default function SettingsPanel({
   const [postPrompt, setPostPrompt] = useState("");
   const [isRetrieveModalOpen, setIsRetrieveModalOpen] = useState(false);
   const [isAddToolModalOpen, setIsAddToolModalOpen] = useState(false);
+  const [tools, setTools] = useState<Tool[]>([]);
+  const [newToolJson, setNewToolJson] = useState("");
 
-  // State variables for tools
-  const [tools, setTools] = useState<any[]>([]); // Mock data for tools
-  const [newToolJson, setNewToolJson] = useState(""); // For Add Tool modal
+  const providerModels = {
+    openai: ["gpt-4", "gpt-4o", "gpt-4o-mini", "gpt-4o-turbo-preview"],
+    mistral: ["mistral-small", "mistral-large-latest"],
+  } as const;
 
-  // Provider models according to your specifications
-  const providerModels = useMemo(
-    () => ({
-      openai: ["gpt-4", "gpt-4o", "gpt-4o-mini", "gpt-4o-turbo-preview"],
-      mistral: ["mistral-small", "mistral-large-latest"],
-    }),
-    []
-  );
+  type Provider = keyof typeof providerModels;
 
-  // Filter models based on selected provider
-  const filteredModels = useMemo(
-    () => (provider ? providerModels[provider] : []),
-    [provider, providerModels]
-  );
+  const filteredModels = provider ? providerModels[provider] : [];
+
+  const estimateTokens = (text: string) => Math.ceil(text.length / 4);
+
+  const totalPromptTokens =
+    estimateTokens(prePrompt) + estimateTokens(postPrompt);
 
   const handleRetrieveTools = () => {
     setIsRetrieveModalOpen(true);
-    // For now, we can populate tools with mock data
-    // Later, this can be replaced with an API call
+    // Replace with actual API call in production
     setTools([
       { name: "Tool 1", description: "Description of Tool 1" },
       { name: "Tool 2", description: "Description of Tool 2" },
@@ -181,27 +182,33 @@ export default function SettingsPanel({
 
   const handleCloseRetrieveModal = () => {
     setIsRetrieveModalOpen(false);
-    setTools([]); // Clear tools data when modal is closed
+    setTools([]);
   };
 
   const handleCloseAddToolModal = () => {
     setIsAddToolModalOpen(false);
-    setNewToolJson(""); // Reset the input field
+    setNewToolJson("");
   };
 
   const handleSaveTool = () => {
-    // For now, we'll just log the new tool JSON
-    // Later, this can be replaced with an API call
-    console.log("New Tool JSON:", newToolJson);
-    setIsAddToolModalOpen(false);
-    setNewToolJson("");
+    try {
+      const tool = JSON.parse(newToolJson);
+      if (tool.name && tool.description) {
+        setTools([...tools, tool]);
+        setIsAddToolModalOpen(false);
+        setNewToolJson("");
+      } else {
+        alert("Invalid tool JSON: Missing name or description");
+      }
+    } catch (error) {
+      alert("Invalid JSON format");
+    }
   };
 
   return (
     <div className={`flex flex-col ${className} h-full overflow-hidden`}>
-      <div
-        className={`overflow-y-auto ${isCollapsed ? "px-2" : "px-4"} space-y-4`}
-      >
+      <div className={`overflow-y-auto space-y-2`}>
+        {/* LLM Configuration */}
         <Accordion
           title="LLM Configuration"
           icon={Cog6ToothIcon}
@@ -217,14 +224,18 @@ export default function SettingsPanel({
               <select
                 value={provider}
                 onChange={(e) => {
-                  setProvider(e.target.value);
-                  setModel(""); // Reset model when provider changes
+                  setProvider(e.target.value as Provider);
+                  setModel("");
                 }}
                 className="w-full bg-gray-800/50 text-gray-300 px-3 py-2 rounded-md border border-gray-700/50"
               >
                 <option value="">Select provider</option>
-                <option value="openai">OpenAI</option>
-                <option value="mistral">Mistral</option>
+                {Object.keys(providerModels).map((providerOption) => (
+                  <option key={providerOption} value={providerOption}>
+                    {providerOption.charAt(0).toUpperCase() +
+                      providerOption.slice(1)}
+                  </option>
+                ))}
               </select>
             </div>
             {/* LLM Model Dropdown */}
@@ -235,7 +246,7 @@ export default function SettingsPanel({
               <select
                 value={model}
                 onChange={(e) => setModel(e.target.value)}
-                disabled={!provider} // Disable if no provider is selected
+                disabled={!provider}
                 className={`w-full bg-gray-800/50 text-gray-300 px-3 py-2 rounded-md border border-gray-700/50 ${
                   !provider ? "opacity-50 cursor-not-allowed" : ""
                 }`}
@@ -251,6 +262,7 @@ export default function SettingsPanel({
           </div>
         </Accordion>
 
+        {/* Generation Settings */}
         <Accordion
           title="Generation Settings"
           icon={AdjustmentsHorizontalIcon}
@@ -265,8 +277,8 @@ export default function SettingsPanel({
               </label>
               <input
                 type="number"
-                value={maxToken}
-                onChange={(e) => setMaxToken(Number(e.target.value))}
+                value={maxOutputTokens}
+                onChange={(e) => setMaxOutputTokens(Number(e.target.value))}
                 min="1"
                 max="2000"
                 className="w-full bg-gray-800/50 text-gray-300 px-3 py-2 rounded-md border border-gray-700/50"
@@ -283,8 +295,8 @@ export default function SettingsPanel({
               </label>
               <input
                 type="number"
-                value={inputLimit}
-                onChange={(e) => setInputLimit(Number(e.target.value))}
+                value={maxInputTokens}
+                onChange={(e) => setMaxInputTokens(Number(e.target.value))}
                 min="1"
                 max="6000"
                 className="w-full bg-gray-800/50 text-gray-300 px-3 py-2 rounded-md border border-gray-700/50"
@@ -319,7 +331,7 @@ export default function SettingsPanel({
           </div>
         </Accordion>
 
-        {/* Chat Memory Settings */}
+        {/* Chat Memory */}
         <Accordion
           title="Chat Memory"
           icon={BoltIcon}
@@ -327,7 +339,6 @@ export default function SettingsPanel({
           onCollapsedClick={onExpand}
         >
           <div className="space-y-4">
-            {/* Improved Checkbox UI */}
             <label className="flex items-center space-x-3">
               <input
                 type="checkbox"
@@ -338,7 +349,6 @@ export default function SettingsPanel({
               <span className="text-sm text-gray-400">Enable Chat Memory</span>
             </label>
 
-            {/* Max Messages Input */}
             {chatMemory && (
               <div>
                 <label className="block text-sm text-gray-400 mb-2">
@@ -387,11 +397,12 @@ export default function SettingsPanel({
                 rows={3}
                 maxLength={1000}
                 className="w-full px-3 py-2 bg-gray-800/50 text-gray-300 placeholder-gray-500
-              border border-gray-700/50 rounded-md resize-y focus:outline-none focus:ring-1
-              focus:ring-blue-500 focus:border-blue-500"
+                  border border-gray-700/50 rounded-md resize-y focus:outline-none focus:ring-1
+                  focus:ring-blue-500 focus:border-blue-500"
               />
               <div className="text-xs text-gray-500 text-right">
-                {prePrompt.length}/1000 characters
+                {prePrompt.length} characters (~
+                {estimateTokens(prePrompt)} tokens)
               </div>
             </div>
 
@@ -414,19 +425,20 @@ export default function SettingsPanel({
                 rows={3}
                 maxLength={1000}
                 className="w-full px-3 py-2 bg-gray-800/50 text-gray-300 placeholder-gray-500
-              border border-gray-700/50 rounded-md resize-y focus:outline-none focus:ring-1
-              focus:ring-blue-500 focus:border-blue-500"
+                  border border-gray-700/50 rounded-md resize-y focus:outline-none focus:ring-1
+                  focus:ring-blue-500 focus:border-blue-500"
               />
               <div className="text-xs text-gray-500 text-right">
-                {postPrompt.length}/1000 characters
+                {postPrompt.length} characters (~
+                {estimateTokens(postPrompt)} tokens)
               </div>
             </div>
 
             {/* Combined Length Warning */}
-            {prePrompt.length + postPrompt.length > inputLimit && (
+            {totalPromptTokens > maxInputTokens && (
               <p className="text-sm text-red-500">
                 The combined length of your pre-prompt and post-prompt exceeds
-                the maximum input limit of {inputLimit} characters.
+                the maximum input limit of {maxInputTokens} tokens.
               </p>
             )}
 
@@ -437,7 +449,7 @@ export default function SettingsPanel({
               </label>
               <div
                 className="p-3 bg-gray-800/50 text-gray-300 rounded-md border border-gray-700/50
-              max-h-48 overflow-auto whitespace-pre-wrap break-words"
+                  max-h-48 overflow-auto whitespace-pre-wrap break-words"
               >
                 {prePrompt}
                 <span className="text-blue-400"> [User Input] </span>
@@ -458,7 +470,7 @@ export default function SettingsPanel({
             <button
               onClick={handleRetrieveTools}
               className="flex-1 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 
-                                 rounded-md text-white text-xs flex items-center justify-center gap-1"
+                               rounded-md text-white text-xs flex items-center justify-center gap-1"
             >
               <ArrowDownTrayIcon className="h-4 w-4" />
               Retrieve Tools
@@ -466,7 +478,7 @@ export default function SettingsPanel({
             <button
               onClick={handleAddTool}
               className="flex-1 px-3 py-1.5 bg-green-600 hover:bg-green-700 
-                                 rounded-md text-white text-xs flex items-center justify-center gap-1"
+                               rounded-md text-white text-xs flex items-center justify-center gap-1"
             >
               <PlusCircleIcon className="h-4 w-4" />
               Add Tool
@@ -514,7 +526,6 @@ export default function SettingsPanel({
       {/* Retrieve Tools Modal */}
       {isRetrieveModalOpen && (
         <Modal onClose={handleCloseRetrieveModal} title="Retrieve Tools">
-          {/* Content of the Retrieve Tools modal */}
           <div className="space-y-4">
             {tools.length > 0 ? (
               <ul className="space-y-2">
@@ -538,7 +549,6 @@ export default function SettingsPanel({
       {/* Add Tool Modal */}
       {isAddToolModalOpen && (
         <Modal onClose={handleCloseAddToolModal} title="Add Tool">
-          {/* Content of the Add Tool modal */}
           <div className="space-y-4">
             <label className="block text-sm text-gray-400 mb-2">
               Tool JSON

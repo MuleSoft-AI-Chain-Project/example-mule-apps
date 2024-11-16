@@ -8,7 +8,10 @@ interface CreateStoreProps {
   onStoreCreated: (name: string) => void;
 }
 
-export default function CreateStore({ className = "", onStoreCreated }: CreateStoreProps) {
+export default function CreateStore({
+  className = "",
+  onStoreCreated,
+}: CreateStoreProps) {
   const [storeName, setStoreName] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -89,7 +92,7 @@ export default function CreateStore({ className = "", onStoreCreated }: CreateSt
             setInputError(validateStoreName(e.target.value)); // Validate in real-time
           }}
           placeholder="Enter store name"
-          className="w-full px-3 py-2.5 bg-[#1C1F2E] text-gray-100 placeholder-gray-500 
+          className="w-full px-3 py-2.5 bg-[#1C1F2E] text-gray-100 placeholder-gray-500 text-sm
             border border-gray-700/40 rounded-lg focus:outline-none focus:ring-1 
             focus:ring-blue-500 focus:border-blue-500"
           required

@@ -1,123 +1,235 @@
-"use client"
+"use client";
 
 // components/CrawlWebsite.tsx
-import React, { useState } from 'react'
-import { GlobeAltIcon } from '@heroicons/react/24/outline';
+import React, { useState } from "react";
+import { GlobeAltIcon } from "@heroicons/react/24/outline";
 
 interface CrawlWebsiteProps {
-    className?: string;
-    storeNames: string[];
-    onStoreCreated: (name: string) => void;
+  className?: string;
+  storeNames: string[];
+  onStoreCreated: (name: string) => void;
 }
 
-export default function CrawlWebsite({ className = '', storeNames, onStoreCreated }: CrawlWebsiteProps) {
-    const [selectedStore, setSelectedStore] = useState('')
-    const [websiteUrl, setStoreName] = useState('')
-    const [depth, setDepth] = useState<number>(0)  // Step 1: Add state for depth
-    const [message, setMessage] = useState('')
-    const [error, setError] = useState('')
-    const [isCreating, setIsCreating] = useState(false)
+export default function CrawlWebsite({
+  className = "",
+  storeNames,
+  onStoreCreated,
+}: CrawlWebsiteProps) {
+  const [selectedStore, setSelectedStore] = useState("");
+  const [websiteUrl, setWebsiteUrl] = useState("");
+  const [depth, setDepth] = useState<number>(0);
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
+  const [isCreating, setIsCreating] = useState(false);
+  const [inputErrors, setInputErrors] = useState({
+    websiteUrl: "",
+    depth: "",
+    selectedStore: "",
+  });
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault()
-        setMessage('')
-        setError('')
-        setIsCreating(true)
+  // Validation functions
+  const validateWebsiteUrl = (url: string): string => {
+    // Simple URL validation regex
+    const urlPattern = new RegExp(
+      "^(https?:\\/\\/)?" + // protocol
+        "([\\w\\d-]+\\.)+[\\w\\d]{2,}" + // domain name and extension
+        "(:\\d+)?(\\/.*)?$" // port and path
+    );
+    if (!urlPattern.test(url)) {
+      return "Please enter a valid URL.";
+    }
+    return "";
+  };
 
-        try {
-            const response = await fetch('/api/crawl-website', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ websiteUrl, depth, storeName: selectedStore }),  // Include depth in the request body
-            })
+  const validateDepth = (value: number): string => {
+    if (value < 0) {
+      return "Depth cannot be negative.";
+    }
+    return "";
+  };
 
-            const data = await response.json()
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setMessage("");
+    setError("");
+    setIsCreating(true);
 
-            if (response.ok) {
-                setMessage(`Crawl of ${websiteUrl} successful`)
-                //onStoreCreated(websiteUrl) // Call the callback with the new store name
-                //setStoreName('')
-                setDepth(0)  // Reset depth after submission
-            } else {
-                setError(`Error: ${data.error}`)
-            }
-        } catch (error) {
-            setError(`Error creating store: ${error.message}`)
-        } finally {
-            setIsCreating(false)
-        }
+    // Validate inputs
+    const websiteUrlError = validateWebsiteUrl(websiteUrl);
+    const depthError = validateDepth(depth);
+    const selectedStoreError = selectedStore ? "" : "Please select a store.";
+
+    if (websiteUrlError || depthError || selectedStoreError) {
+      setInputErrors({
+        websiteUrl: websiteUrlError,
+        depth: depthError,
+        selectedStore: selectedStoreError,
+      });
+      setIsCreating(false);
+      return;
+    } else {
+      setInputErrors({
+        websiteUrl: "",
+        depth: "",
+        selectedStore: "",
+      });
     }
 
-    return (
-        <div className={className}>
-            <form onSubmit={handleSubmit} className="space-y-6">
-                <div>
-                    <label htmlFor="crawlWebsiteName" className="block text-base text-gray-400 mb-3">
-                        Website URL
-                    </label>
-                    <input
-                        id="crawlWebsiteName"
-                        type="text"
-                        value={websiteUrl}
-                        onChange={(e) => setStoreName(e.target.value)}
-                        placeholder="Enter website URL"
-                        className="w-full px-4 py-3.5 bg-[#1C1F2E] text-gray-100 placeholder-gray-500 
-                            rounded-xl focus:outline-none focus:ring-1 focus:ring-blue-500 border-0"
-                        required
-                    />
-                </div>
-                
-                <div className="flex gap-4">
-                    <div className="w-1/3">
-                        <label htmlFor="crawlDepth" className="block text-base text-gray-400 mb-3">
-                            Depth
-                        </label>
-                        <input
-                            id="crawlDepth"
-                            type="number"
-                            value={depth}
-                            onChange={(e) => setDepth(Number(e.target.value))}
-                            placeholder="0"
-                            className="w-full px-4 py-3.5 bg-[#1C1F2E] text-gray-100 placeholder-gray-500 
-                                rounded-xl focus:outline-none focus:ring-1 focus:ring-blue-500 border-0"
-                            min="0"
-                            required
-                        />
-                    </div>
-                    <div className="flex-1">
-                        <label htmlFor="storeSelect" className="block text-base text-gray-400 mb-3">
-                            Store
-                        </label>
-                        <select
-                            id="storeSelect"
-                            value={selectedStore}
-                            onChange={(e) => setSelectedStore(e.target.value)}
-                            className="w-full px-4 py-3.5 bg-[#1C1F2E] text-gray-100 
-                                rounded-xl focus:outline-none focus:ring-1 focus:ring-blue-500 border-0"
-                            required
-                        >
-                            <option value="">Select store</option>
-                            {storeNames.map((name) => (
-                                <option key={name} value={name}>{name}</option>
-                            ))}
-                        </select>
-                    </div>
-                </div>
-                
-                <button
-                    type="submit"
-                    disabled={isCreating}
-                    className={`w-full py-3.5 px-4 rounded-xl text-sm font-medium
-                        text-white bg-blue-500 hover:bg-blue-600 focus:outline-none focus:ring-1 
-                        focus:ring-blue-500 ${isCreating ? 'opacity-50 cursor-not-allowed' : ''}`}
-                >
-                    {isCreating ? 'Crawling...' : 'Crawl Website'}
-                </button>
-            </form>
-            {message && <p className="mt-4 text-sm text-green-400">{message}</p>}
-            {error && <p className="mt-4 text-sm text-red-400">{error}</p>}
+    try {
+      const response = await fetch("/api/crawl-website", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          websiteUrl: websiteUrl.trim(),
+          depth,
+          storeName: selectedStore,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setMessage(`Crawl of ${websiteUrl.trim()} successful.`);
+        // Optionally, you can call onStoreCreated if needed
+        // onStoreCreated(selectedStore);
+        setWebsiteUrl("");
+        setDepth(0);
+        setSelectedStore("");
+      } else {
+        setError(data?.error || "An unknown error occurred.");
+      }
+    } catch (err: any) {
+      setError(`Error creating store: ${err.message}`);
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
+  return (
+    <div className={className}>
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Website URL Input */}
+        <div>
+          <label
+            htmlFor="crawlWebsiteUrl"
+            className="block text-base text-gray-400 mb-2"
+          >
+            Website URL
+          </label>
+          <input
+            id="crawlWebsiteUrl"
+            type="text"
+            value={websiteUrl}
+            onChange={(e) => {
+              setWebsiteUrl(e.target.value);
+              setInputErrors((prev) => ({
+                ...prev,
+                websiteUrl: validateWebsiteUrl(e.target.value),
+              }));
+            }}
+            placeholder="Enter website URL"
+            className="w-full px-3 py-2.5 bg-[#1C1F2E] text-gray-100 placeholder-gray-500 text-sm
+              border border-gray-700/40 rounded-lg focus:outline-none focus:ring-1 
+              focus:ring-blue-500 focus:border-blue-500"
+            required
+          />
+          {inputErrors.websiteUrl && (
+            <p className="text-sm text-red-400 mt-1">
+              {inputErrors.websiteUrl}
+            </p>
+          )}
         </div>
-    )
+
+        <div className="flex gap-4">
+          {/* Depth Input */}
+          <div className="w-1/3">
+            <label
+              htmlFor="crawlDepth"
+              className="block text-base text-gray-400 mb-2"
+            >
+              Depth
+            </label>
+            <input
+              id="crawlDepth"
+              type="number"
+              value={depth}
+              onChange={(e) => {
+                const value = Number(e.target.value);
+                setDepth(value);
+                setInputErrors((prev) => ({
+                  ...prev,
+                  depth: validateDepth(value),
+                }));
+              }}
+              placeholder="0"
+              className="w-full px-3 py-2.5 bg-[#1C1F2E] text-gray-100 placeholder-gray-500 text-sm
+                border border-gray-700/40 rounded-lg focus:outline-none focus:ring-1 
+                focus:ring-blue-500 focus:border-blue-500"
+              min="0"
+              max="5"
+              required
+            />
+            {inputErrors.depth && (
+              <p className="text-sm text-red-400 mt-1">{inputErrors.depth}</p>
+            )}
+          </div>
+
+          {/* Store Select */}
+          <div className="flex-1">
+            <label
+              htmlFor="storeSelect"
+              className="block text-base text-gray-400 mb-2"
+            >
+              Store
+            </label>
+            <select
+              id="storeSelect"
+              value={selectedStore}
+              onChange={(e) => {
+                setSelectedStore(e.target.value);
+                setInputErrors((prev) => ({
+                  ...prev,
+                  selectedStore: e.target.value ? "" : "Please select a store.",
+                }));
+              }}
+              className="w-full px-3 py-2.5 bg-[#1C1F2E] text-gray-100 text-sm
+                border border-gray-700/40 rounded-lg focus:outline-none focus:ring-1 
+                focus:ring-blue-500 focus:border-blue-500"
+              required
+            >
+              <option value="">Select store</option>
+              {storeNames.map((name) => (
+                <option key={name} value={name}>
+                  {name}
+                </option>
+              ))}
+            </select>
+            {inputErrors.selectedStore && (
+              <p className="text-sm text-red-400 mt-1">
+                {inputErrors.selectedStore}
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* Submit Button */}
+        <button
+          type="submit"
+          disabled={isCreating || Object.values(inputErrors).some((err) => err)}
+          className={`w-full py-2.5 px-4 rounded-lg text-sm font-medium
+              text-white bg-blue-500 hover:bg-blue-600 focus:outline-none focus:ring-2 
+              focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-[#151929]
+              ${isCreating ? "opacity-50 cursor-not-allowed" : ""}`}
+        >
+          {isCreating ? "Crawling..." : "Crawl Website"}
+        </button>
+      </form>
+
+      {/* Success and Error Messages */}
+      {message && <p className="mt-4 text-sm text-green-400">{message}</p>}
+      {error && <p className="mt-4 text-sm text-red-400">{error}</p>}
+    </div>
+  );
 }

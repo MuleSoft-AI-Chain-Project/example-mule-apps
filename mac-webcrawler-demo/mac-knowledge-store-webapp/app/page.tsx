@@ -1,5 +1,3 @@
-// app/page.tsx
-
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
@@ -8,41 +6,33 @@ import QueryStore from "./components/QueryStore";
 import TabsCard from "./components/TabsCard";
 import LLMSettingsPanel from "./components/LLMSettingsPanel";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/20/solid";
-import {
-  HomeIcon,
-  Cog6ToothIcon,
-  DocumentTextIcon,
-  ChartBarIcon,
-} from "@heroicons/react/24/outline";
 import Image from "next/image";
 
 export default function Home() {
   const [storeNames, setStoreNames] = useState<string[]>([]);
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState<boolean>(false);
 
   useEffect(() => {
-    // Fetch store names from the server-side API
     const fetchStoreNames = async () => {
       try {
         const response = await fetch("/api/get-store");
         if (!response.ok) {
           throw new Error("Failed to fetch store names");
         }
-        const data: string[] = await response.json();
+        const data = (await response.json()) as string[];
         setStoreNames(data);
       } catch (error) {
-        console.error(error);
+        console.error("Error fetching store names:", error);
       }
     };
 
     fetchStoreNames();
   }, []);
 
-  const addStoreName = (name: string) => {
+  const addStoreName = useCallback((name: string) => {
     setStoreNames((prev) => [...prev, name]);
-  };
+  }, []);
 
-  // Add this handler to expand the panel
   const handlePanelExpand = useCallback(() => {
     setIsCollapsed(false);
   }, []);
@@ -51,19 +41,21 @@ export default function Home() {
     <div className="flex min-h-screen relative bg-[#0B0E17]">
       {/* Collapsible Left Panel */}
       <div
-        className={`fixed left-0 top-0 h-full transition-all duration-300 ease-in-out
-        ${isCollapsed ? "w-[60px]" : "w-80"} bg-[#151929]`}
+        className={`fixed left-0 top-0 h-full transition-all duration-300 ease-in-out ${
+          isCollapsed ? "w-[60px]" : "w-80"
+        } bg-[#151929]`}
       >
         {/* Logo Section */}
         <div className="flex items-center p-4 border-b border-gray-800 bg-[#1A1E2A] shadow-md">
           <div className="flex items-center">
             <div className="text-indigo-400">
               <Image
-                src="/mac-logo.png" // Ensure your logo file is in the public directory
+                src="/mac-logo.png"
                 alt="Logo"
-                width={35} // Increased logo size for better visibility
+                width={35}
                 height={35}
-                className="rounded-full border border-blue-300 p-1" // Added border and padding for emphasis
+                className="rounded-full border border-blue-300 p-1"
+                priority
               />
             </div>
             {!isCollapsed && (
@@ -73,25 +65,27 @@ export default function Home() {
             )}
           </div>
         </div>
-        {/* Settings Panel - Add onExpand prop */}
+
+        {/* Settings Panel */}
         <LLMSettingsPanel
           isCollapsed={isCollapsed}
           onExpand={handlePanelExpand}
         />
+
         {/* Collapse Toggle Button */}
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className="absolute -right-3 top-4 bg-[#0B0E17] rounded-full p-1 border border-gray-800 hover:bg-[#1C1F2E]"
+          className="absolute -right-3 top-4 bg-blue-500 rounded-full p-1 border border-gray-800 hover:bg-blue-600"
         >
           {isCollapsed ? (
-            <ChevronRightIcon className="h-4 w-4 text-gray-400" />
+            <ChevronRightIcon className="h-4 w-4 text-white" />
           ) : (
-            <ChevronLeftIcon className="h-4 w-4 text-gray-400" />
+            <ChevronLeftIcon className="h-4 w-4 text-white" />
           )}
         </button>
       </div>
 
-      {/* Main Content - adjust the height and overflow handling */}
+      {/* Main Content */}
       <main
         className={`transition-all duration-300 ease-in-out ${
           isCollapsed ? "ml-[60px]" : "ml-80"
@@ -101,11 +95,13 @@ export default function Home() {
           <div className="grid grid-cols-12 gap-6 h-full">
             {/* Left Column - Store Management */}
             <div className="col-span-4 flex flex-col gap-6 h-full overflow-hidden">
-              <div className="flex-none">
+              {/* Wrap CreateStore in a div with hover effect */}
+              <div className="flex-none hover:border hover:border-blue-500 rounded-md transition duration-200">
                 <CreateStore onStoreCreated={addStoreName} />
               </div>
 
-              <div className="flex-1 overflow-hidden">
+              {/* Wrap TabsCard in a div with hover effect */}
+              <div className="flex-1 overflow-hidden hover:border hover:border-blue-500 rounded-md transition duration-200">
                 <TabsCard
                   storeNames={storeNames}
                   onStoreCreated={addStoreName}
@@ -115,7 +111,8 @@ export default function Home() {
             </div>
 
             {/* Right Column - Query Interface */}
-            <div className="col-span-8 h-full overflow-hidden">
+            {/* Wrap QueryStore in a div with hover effect */}
+            <div className="col-span-8 h-full overflow-hidden hover:border hover:border-blue-500 rounded-md transition duration-200">
               <QueryStore className="h-full" storeNames={storeNames} />
             </div>
           </div>
