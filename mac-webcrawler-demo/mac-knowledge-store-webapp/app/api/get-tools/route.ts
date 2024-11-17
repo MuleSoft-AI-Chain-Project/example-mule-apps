@@ -3,17 +3,16 @@ import { NextResponse } from 'next/server';
 export async function GET() {
   try {
     const toolsEndpoint = process.env.RETRIEVE_TOOLS_URL;
-    
     if (!toolsEndpoint) {
-      console.error(`[${new Date().toISOString()}] [Tools API] RETRIEVE_TOOLS_URL environment variable is not set`);
-      throw new Error('RETRIEVE_TOOLS_URL environment variable is not set');
+      console.error(`[Tools API] RETRIEVE_TOOLS_URL environment variable is not set`);
+      return NextResponse.json(
+        { error: 'Configuration error: RETRIEVE_TOOLS_URL is not set' },
+        { status: 500 }
+      );
     }
 
-    // Create an AbortController for timeout
     const controller = new AbortController();
-    const timeout = setTimeout(() => {
-      controller.abort();
-    }, 30000); // 30 seconds timeout
+    const timeout = setTimeout(() => controller.abort(), 30000); // 30 seconds timeout
 
     const response = await fetch(toolsEndpoint, {
       method: 'GET',
@@ -25,41 +24,34 @@ export async function GET() {
       cache: 'no-store',
     });
 
-    // Clear the timeout after the fetch completes
     clearTimeout(timeout);
 
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error(`[${new Date().toISOString()}] [Tools API] Request failed (${response.status}): ${errorText}`);
-      throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
+      console.error(`[Tools API] Failed request with status ${response.status}`);
+      return NextResponse.json(
+        { error: `Failed to retrieve tools`, status: response.status },
+        { status: response.status }
+      );
     }
 
     const result = await response.json();
-    console.log(`[${new Date().toISOString()}] [Tools API] Tools retrieved successfully`);
-    
     return NextResponse.json(result, {
       headers: {
         'Content-Type': 'application/json',
         'Cache-Control': 'no-cache, no-store, must-revalidate',
         'Pragma': 'no-cache',
         'Expires': '0',
-        'Surrogate-Control': 'no-store',
       },
     });
-    
-  } catch (error) {
-    console.error(`[${new Date().toISOString()}] [Tools API] Error: ${error.message || error}`);
+  } catch (error: unknown) {
+    if ((error as { name?: string }).name === 'AbortError') {
+      console.error(`[Tools API] Request timeout after 30 seconds`);
+    } else {
+      console.error(`[Tools API] Unexpected error: ${(error as Error).message}`);
+    }
     return NextResponse.json(
-      { error: 'Failed to retrieve tools', details: error.message || String(error) },
-      { 
-        status: 500,
-        headers: {
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
-          'Pragma': 'no-cache',
-          'Expires': '0',
-          'Surrogate-Control': 'no-store',
-        },
-      }
+      { error: 'Failed to retrieve tools due to server error' },
+      { status: 500 }
     );
   }
 }

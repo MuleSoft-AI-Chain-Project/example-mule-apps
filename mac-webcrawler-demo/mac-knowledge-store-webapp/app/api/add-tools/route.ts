@@ -1,18 +1,73 @@
 import { NextResponse } from 'next/server';
 
+export async function GET() {
+  try {
+    const toolsEndpoint = process.env.RETRIEVE_TOOLS_URL;
+    if (!toolsEndpoint) {
+      console.error(`[Tools API] RETRIEVE_TOOLS_URL environment variable is not set`);
+      return NextResponse.json(
+        { error: 'Configuration error: RETRIEVE_TOOLS_URL is not set' },
+        { status: 500 }
+      );
+    }
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 30000); // 30 seconds timeout
+
+    const response = await fetch(toolsEndpoint, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+      signal: controller.signal,
+      cache: 'no-store',
+    });
+
+    clearTimeout(timeout);
+
+    if (!response.ok) {
+      console.error(`[Tools API] Failed request with status ${response.status}`);
+      return NextResponse.json(
+        { error: `Failed to retrieve tools`, status: response.status },
+        { status: response.status }
+      );
+    }
+
+    const result = await response.json();
+    return NextResponse.json(result, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+      },
+    });
+  } catch (error: unknown) {
+    if (error instanceof Error && error.name === 'AbortError') {
+      console.error(`[Tools API] Request timeout after 30 seconds`);
+    } else {
+      console.error(`[Tools API] Unexpected error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+    return NextResponse.json(
+      { error: 'Failed to retrieve tools due to server error' },
+      { status: 500 }
+    );
+  }
+}
+
 export async function POST(request: Request) {
   try {
     const toolData = await request.json();
     const toolsEndpoint = process.env.ADD_TOOL_URL;
-    
-    console.log('[Tools API] Environment variable ADD_TOOL_URL:', toolsEndpoint);
     if (!toolsEndpoint) {
-      console.error('[Tools API] ADD_TOOL_URL environment variable is not set');
-      throw new Error('ADD_TOOL_URL environment variable is not set');
+      console.error(`[Tools API] ADD_TOOL_URL environment variable is not set`);
+      return NextResponse.json(
+        { error: 'Configuration error: ADD_TOOL_URL is not set' },
+        { status: 500 }
+      );
     }
-    
-    console.log(`[Tools API] Making POST request to: ${toolsEndpoint}`, toolData);
-    
+
     const response = await fetch(toolsEndpoint, {
       method: 'POST',
       headers: {
@@ -23,23 +78,26 @@ export async function POST(request: Request) {
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error(`[Tools API] Add tool request failed with status ${response.status}:`, errorText);
-      throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
+      console.error(`[Tools API] Add tool request failed with status ${response.status}`);
+      return NextResponse.json(
+        { error: `Failed to add tool`, status: response.status },
+        { status: response.status }
+      );
     }
 
     const result = await response.json();
-    console.log(`[Tools API] Successfully added tool:`, result);
-    return NextResponse.json(result);
-    
-  } catch (error) {
-    console.error('[Tools API] Error details:', {
-      message: error.message,
-      stack: error.stack,
-      cause: error.cause
+    return NextResponse.json(result, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+      },
     });
+  } catch (error: unknown) {
+    console.error(`[Tools API] Unexpected error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     return NextResponse.json(
-      { error: 'Failed to add tool', details: error.message },
+      { error: 'Failed to add tool due to server error' },
       { status: 500 }
     );
   }
