@@ -34,10 +34,10 @@ export default function Home() {
   const [storeNames, setStoreNames] = useState<string[]>([]);
   const [isCollapsed, setIsCollapsed] = useState<boolean>(false);
   const [llmSettings, setLLMSettings] = useState<LLMSettings>({
-    llmType: "",
-    modelName: "",
+    llmType: "OPENAI",
+    modelName: "gpt-4",
     temperature: 0.7,
-    inputLimit: 4000,
+    inputLimit: 100,
     maxToken: 1000,
     chatMemory: false,
     maxMessages: 10,
@@ -51,38 +51,50 @@ export default function Home() {
     toxicityDetection: false,
   });
 
-  useEffect(() => {
-    const fetchStoreNames = async () => {
-      try {
-        const response = await fetch("/api/get-store");
-        if (!response.ok) {
-          throw new Error("Failed to fetch store names");
-        }
-        const data = (await response.json()) as string[];
-        setStoreNames(data);
-      } catch (error) {
-        console.error("Error fetching store names:", error);
-      }
-    };
+  // Reusable function for updating LLM settings state
+  const updateLLMSettings = useCallback(
+    (updatedValues: Partial<LLMSettings>) => {
+      setLLMSettings((prev) => ({ ...prev, ...updatedValues }));
+    },
+    []
+  );
 
-    fetchStoreNames();
+  // Fetch store names when component mounts
+  const fetchStoreNames = useCallback(async () => {
+    try {
+      const response = await fetch("/api/get-store");
+      if (!response.ok) {
+        throw new Error("Failed to fetch store names");
+      }
+      const data = (await response.json()) as string[];
+      setStoreNames(data);
+    } catch (error) {
+      console.error("[Store API] Error fetching store names:", error);
+    }
   }, []);
 
+  useEffect(() => {
+    fetchStoreNames();
+  }, [fetchStoreNames]);
+
+  // Add new store name to state
   const addStoreName = useCallback((name: string) => {
     setStoreNames((prev) => [...prev, name]);
   }, []);
 
+  // Handle panel expand
   const handlePanelExpand = useCallback(() => {
     setIsCollapsed(false);
   }, []);
 
-  useEffect(() => {
-    setLLMSettings((prev) => ({
-      ...prev,
-      tools: [],
-      isRetrieveModalOpen: false,
-    }));
+  // Toggle panel collapse state
+  const togglePanelCollapse = useCallback(() => {
+    setIsCollapsed((prev) => !prev);
   }, []);
+
+  useEffect(() => {
+    updateLLMSettings({ tools: [], isRetrieveModalOpen: false });
+  }, [updateLLMSettings]);
 
   return (
     <div className="flex min-h-screen relative bg-[#0B0E17]">
@@ -118,12 +130,12 @@ export default function Home() {
           isCollapsed={isCollapsed}
           onExpand={handlePanelExpand}
           settings={llmSettings}
-          onSettingsChange={setLLMSettings}
+          onSettingsChange={updateLLMSettings}
         />
 
         {/* Collapse Toggle Button */}
         <button
-          onClick={() => setIsCollapsed(!isCollapsed)}
+          onClick={togglePanelCollapse}
           className="absolute -right-3 top-4 bg-blue-500 rounded-full p-1 border border-gray-800 hover:bg-blue-600"
         >
           {isCollapsed ? (

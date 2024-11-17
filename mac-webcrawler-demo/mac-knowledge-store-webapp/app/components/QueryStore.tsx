@@ -214,8 +214,7 @@ export default function QueryStore({
     setMessages((prev) => [...prev, { type: "user", content: prompt }]);
 
     try {
-      const fullPrompt = `${llmSettings.preDecoration}${prompt}${llmSettings.postDecoration}`;
-
+      // No concatenation; use the user's input directly as the prompt
       const response = await fetch("/api/query-store", {
         method: "POST",
         headers: {
@@ -228,10 +227,12 @@ export default function QueryStore({
           "X-Chat-Memory": llmSettings.chatMemory.toString(),
           "X-Max-Messages": llmSettings.maxMessages.toString(),
           "X-Toxicity-Detection": llmSettings.toxicityDetection.toString(),
+          "X-Pre-Decoration": llmSettings.preDecoration, // Add preDecoration to headers
+          "X-Post-Decoration": llmSettings.postDecoration, // Add postDecoration to headers
         },
         body: JSON.stringify({
           storeName: selectedStore,
-          prompt: fullPrompt,
+          prompt: prompt, // Just send the user's input as the prompt
           tools: llmSettings.tools,
         }),
       });
@@ -248,7 +249,10 @@ export default function QueryStore({
         outputTokens: data.tokenUsage.outputCount,
       };
 
-      llmSettings.tokenUsageData.push(newUsageData);
+      // Update the state properly with new token usage data
+      updateLLMSettings({
+        tokenUsageData: [...llmSettings.tokenUsageData, newUsageData],
+      });
 
       setMessages((prev) => [
         ...prev,
