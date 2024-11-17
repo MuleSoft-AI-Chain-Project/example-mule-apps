@@ -1,7 +1,7 @@
 // Modal.tsx
 import React from "react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
-import { ModalProps } from "../../types/types";
+import { ModalProps } from "../../../types/types";
 
 const Modal: React.FC<ModalProps> = React.memo(
   ({ title, children, onClose }) => {

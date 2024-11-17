@@ -76,6 +76,14 @@ export default function Home() {
     setIsCollapsed(false);
   }, []);
 
+  useEffect(() => {
+    setLLMSettings((prev) => ({
+      ...prev,
+      tools: [],
+      isRetrieveModalOpen: false,
+    }));
+  }, []);
+
   return (
     <div className="flex min-h-screen relative bg-[#0B0E17]">
       {/* Collapsible Left Panel */}

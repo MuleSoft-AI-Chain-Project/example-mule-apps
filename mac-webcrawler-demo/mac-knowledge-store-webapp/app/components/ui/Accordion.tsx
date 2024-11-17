@@ -1,7 +1,7 @@
 // Accordion.tsx
 import React, { useState } from "react";
 import { ChevronUpIcon, ChevronDownIcon } from "@heroicons/react/24/outline";
-import { AccordionProps } from "../../types/types";
+import { AccordionProps } from "../../../types/types";
 
 const Accordion: React.FC<AccordionProps> = React.memo(
   ({

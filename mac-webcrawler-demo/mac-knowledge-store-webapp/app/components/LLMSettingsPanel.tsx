@@ -1,7 +1,4 @@
-// LLMSettingsPanel.tsx
-"use client";
-
-import React, { useState, useMemo, Suspense, lazy } from "react";
+import React, { useState, useMemo, Suspense } from "react";
 import {
   Cog6ToothIcon,
   AdjustmentsHorizontalIcon,
@@ -11,40 +8,23 @@ import {
   WrenchScrewdriverIcon,
   ArrowDownTrayIcon,
   PlusCircleIcon,
+  ClipboardIcon,
 } from "@heroicons/react/24/outline";
 import Accordion from "./ui/Accordion";
 import Modal from "./ui/Modal";
+import { SettingsPanelProps, LLMType, ProviderModels } from "../../types/types";
 import {
-  LLMSettings,
-  SettingsPanelProps,
-  LLMType,
-  ProviderModels,
-} from "../types/types";
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
 
-const LineChart = lazy(() =>
-  import("recharts").then((module) => ({ default: module.LineChart }))
-);
-const Line = lazy(() =>
-  import("recharts").then((module) => ({ default: module.Line }))
-);
-const XAxis = lazy(() =>
-  import("recharts").then((module) => ({ default: module.XAxis }))
-);
-const YAxis = lazy(() =>
-  import("recharts").then((module) => ({ default: module.YAxis }))
-);
-const CartesianGrid = lazy(() =>
-  import("recharts").then((module) => ({ default: module.CartesianGrid }))
-);
-const Tooltip = lazy(() =>
-  import("recharts").then((module) => ({ default: module.Tooltip }))
-);
-const Legend = lazy(() =>
-  import("recharts").then((module) => ({ default: module.Legend }))
-);
-const ResponsiveContainer = lazy(() =>
-  import("recharts").then((module) => ({ default: module.ResponsiveContainer }))
-);
+const LoadingSpinner = () => <div className="loader">Loading...</div>;
 
 const LLMSettingsPanel: React.FC<SettingsPanelProps> = ({
   isCollapsed,
@@ -70,7 +50,8 @@ const LLMSettingsPanel: React.FC<SettingsPanelProps> = ({
     toxicityDetection,
   } = settings;
 
-  const [loading, setLoading] = useState(false);
+  const [isRetrievingTools, setIsRetrievingTools] = useState(false);
+  const [isAddingTool, setIsAddingTool] = useState(false);
 
   const providerModels: ProviderModels = {
     [LLMType.OPENAI]: [
@@ -82,82 +63,97 @@ const LLMSettingsPanel: React.FC<SettingsPanelProps> = ({
     [LLMType.MISTRAL]: ["mistral-small", "mistral-large-latest"],
   };
 
-  const filteredModels = useMemo(
-    () => (llmType ? providerModels[llmType] : []),
-    [llmType]
-  );
+  const filteredModels = useMemo(() => {
+    return llmType ? providerModels[llmType] : [];
+  }, [llmType]);
 
-  const estimateTokens = (text: string) => Math.ceil(text.length / 4);
+  const estimateTokens = (text: string): number => Math.ceil(text.length / 4);
 
   const totalPromptTokens =
     estimateTokens(preDecoration) + estimateTokens(postDecoration);
 
+  // Reusable function for updating settings
+  const updateSettings = (updatedValues: Partial<typeof settings>) => {
+    onSettingsChange({
+      ...settings,
+      ...updatedValues,
+    });
+  };
+
+  // Tool-related handlers
   const handleRetrieveTools = async () => {
-    setLoading(true);
+    setIsRetrievingTools(true);
+    updateSettings({ tools: [] });
+
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      onSettingsChange({
-        ...settings,
-        isRetrieveModalOpen: true,
-        tools: [
-          { name: "Tool 1", description: "Description of Tool 1" },
-          { name: "Tool 2", description: "Description of Tool 2" },
-        ],
-      });
-    } catch (error) {
-      console.error(error);
-      alert("Failed to retrieve tools.");
+      const response = await fetch("/api/get-tools", { cache: "no-store" });
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to retrieve tools");
+      }
+
+      updateSettings({ isRetrieveModalOpen: true, tools: data });
+    } catch (error: unknown) {
+      handleFetchError(error, "Failed to retrieve tools");
     } finally {
-      setLoading(false);
+      setIsRetrievingTools(false);
     }
   };
 
   const handleAddTool = () => {
-    onSettingsChange({
-      ...settings,
-      isAddToolModalOpen: true,
-    });
+    updateSettings({ isAddToolModalOpen: true });
   };
 
   const handleCloseRetrieveModal = () => {
-    onSettingsChange({
-      ...settings,
-      isRetrieveModalOpen: false,
-      tools: [],
-    });
+    updateSettings({ isRetrieveModalOpen: false, tools: [] });
   };
 
   const handleCloseAddToolModal = () => {
-    onSettingsChange({
-      ...settings,
-      isAddToolModalOpen: false,
-      newToolJson: "",
-    });
+    updateSettings({ isAddToolModalOpen: false, newToolJson: "" });
   };
 
-  const handleSaveTool = () => {
+  const handleSaveTool = async () => {
+    setIsAddingTool(true);
     try {
-      const tool = JSON.parse(newToolJson);
-      if (tool.name && tool.description) {
-        onSettingsChange({
-          ...settings,
-          tools: [...tools, tool],
-          isAddToolModalOpen: false,
-          newToolJson: "",
-        });
-        alert("Tool added successfully.");
-      } else {
-        alert("Invalid tool JSON: Missing name or description.");
+      JSON.parse(newToolJson);
+
+      const response = await fetch("/api/add-tools", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: newToolJson,
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to add tool");
       }
-    } catch (error) {
-      alert("Invalid JSON format.");
+
+      const result = await response.json();
+      updateSettings({
+        tools: [...tools, result],
+        isAddToolModalOpen: false,
+        newToolJson: "",
+      });
+      alert("Tool added successfully.");
+    } catch (error: unknown) {
+      handleFetchError(error, "Failed to add tool. Please try again.");
+    } finally {
+      setIsAddingTool(false);
     }
   };
 
+  const handleFetchError = (error: unknown, defaultMessage: string) => {
+    const errorMessage =
+      error instanceof Error ? error.message : "An unknown error occurred";
+    console.error(defaultMessage, errorMessage);
+    alert(errorMessage);
+  };
+
   return (
-    <div className={`flex flex-col h-full overflow-hidden`}>
-      <div className={`overflow-y-auto space-y-2`}>
+    <div className="flex flex-col h-full overflow-hidden">
+      <div className="overflow-y-auto space-y-2">
         {/* LLM Configuration */}
         <Accordion
           title="LLM Configuration"
@@ -173,13 +169,12 @@ const LLMSettingsPanel: React.FC<SettingsPanelProps> = ({
               </label>
               <select
                 value={llmType}
-                onChange={(e) => {
-                  onSettingsChange({
-                    ...settings,
+                onChange={(e) =>
+                  updateSettings({
                     llmType: e.target.value as LLMType,
                     modelName: "",
-                  });
-                }}
+                  })
+                }
                 className="w-full bg-gray-800/50 text-gray-300 text-sm px-3 py-2 rounded-md border border-gray-700/50"
               >
                 <option value="" className="text-sm">
@@ -199,12 +194,7 @@ const LLMSettingsPanel: React.FC<SettingsPanelProps> = ({
               </label>
               <select
                 value={modelName}
-                onChange={(e) =>
-                  onSettingsChange({
-                    ...settings,
-                    modelName: e.target.value,
-                  })
-                }
+                onChange={(e) => updateSettings({ modelName: e.target.value })}
                 disabled={!llmType}
                 className={`w-full bg-gray-800/50 text-gray-300 text-sm px-3 py-2 rounded-md border border-gray-700/50 ${
                   !llmType ? "opacity-50 cursor-not-allowed" : ""
@@ -240,8 +230,7 @@ const LLMSettingsPanel: React.FC<SettingsPanelProps> = ({
                 type="number"
                 value={maxToken}
                 onChange={(e) =>
-                  onSettingsChange({
-                    ...settings,
+                  updateSettings({
                     maxToken: Number(e.target.value),
                   })
                 }
@@ -263,8 +252,7 @@ const LLMSettingsPanel: React.FC<SettingsPanelProps> = ({
                 type="number"
                 value={inputLimit}
                 onChange={(e) =>
-                  onSettingsChange({
-                    ...settings,
+                  updateSettings({
                     inputLimit: Number(e.target.value),
                   })
                 }
@@ -289,8 +277,7 @@ const LLMSettingsPanel: React.FC<SettingsPanelProps> = ({
                 step="0.05"
                 value={temperature}
                 onChange={(e) =>
-                  onSettingsChange({
-                    ...settings,
+                  updateSettings({
                     temperature: Number(e.target.value),
                   })
                 }
@@ -320,8 +307,7 @@ const LLMSettingsPanel: React.FC<SettingsPanelProps> = ({
                 type="checkbox"
                 checked={chatMemory}
                 onChange={(e) =>
-                  onSettingsChange({
-                    ...settings,
+                  updateSettings({
                     chatMemory: e.target.checked,
                   })
                 }
@@ -339,8 +325,7 @@ const LLMSettingsPanel: React.FC<SettingsPanelProps> = ({
                   type="number"
                   value={maxMessages}
                   onChange={(e) =>
-                    onSettingsChange({
-                      ...settings,
+                    updateSettings({
                       maxMessages: Number(e.target.value),
                     })
                   }
@@ -379,10 +364,7 @@ const LLMSettingsPanel: React.FC<SettingsPanelProps> = ({
                 aria-label="Pre-Prompt"
                 value={preDecoration}
                 onChange={(e) =>
-                  onSettingsChange({
-                    ...settings,
-                    preDecoration: e.target.value,
-                  })
+                  updateSettings({ preDecoration: e.target.value })
                 }
                 placeholder="Text to add before the prompt..."
                 rows={3}
@@ -412,10 +394,7 @@ const LLMSettingsPanel: React.FC<SettingsPanelProps> = ({
                 aria-label="Post-Prompt"
                 value={postDecoration}
                 onChange={(e) =>
-                  onSettingsChange({
-                    ...settings,
-                    postDecoration: e.target.value,
-                  })
+                  updateSettings({ postDecoration: e.target.value })
                 }
                 placeholder="Text to add after the prompt..."
                 rows={3}
@@ -465,16 +444,16 @@ const LLMSettingsPanel: React.FC<SettingsPanelProps> = ({
           <div className="flex gap-2 w-full">
             <button
               onClick={handleRetrieveTools}
-              disabled={loading}
+              disabled={isRetrievingTools}
               className="flex-1 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 
                 rounded-md text-white text-xs flex items-center justify-center gap-1"
             >
-              {loading ? (
-                "Loading..."
+              {isRetrievingTools ? (
+                <LoadingSpinner />
               ) : (
                 <>
                   <ArrowDownTrayIcon className="h-4 w-4" />
-                  Retrieve Tools
+                  Get Tools
                 </>
               )}
             </button>
@@ -530,23 +509,36 @@ const LLMSettingsPanel: React.FC<SettingsPanelProps> = ({
 
       {/* Retrieve Tools Modal */}
       {isRetrieveModalOpen && (
-        <Modal onClose={handleCloseRetrieveModal} title="Retrieve Tools">
+        <Modal onClose={handleCloseRetrieveModal} title="Retrieved Tools">
           <div className="space-y-4">
-            {tools.length > 0 ? (
-              <ul className="space-y-2">
-                {tools.map((tool, index) => (
-                  <li
-                    key={index}
-                    className="p-3 bg-gray-800/50 rounded-md border border-gray-700/50"
-                  >
-                    <h3 className="text-lg text-white">{tool.name}</h3>
-                    <p className="text-sm text-gray-300">{tool.description}</p>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-gray-300">No tools available.</p>
-            )}
+            <pre className="p-4 bg-gray-800/50 rounded-md border border-gray-700/50 overflow-auto text-sm text-gray-300 whitespace-pre-wrap">
+              <code className="language-json">
+                {JSON.stringify(tools, null, 2)}
+              </code>
+            </pre>
+            <div className="flex justify-end space-x-2 mt-4">
+              <button
+                onClick={async () => {
+                  try {
+                    await navigator.clipboard.writeText(
+                      JSON.stringify(tools, null, 2)
+                    );
+                    alert("Copied to clipboard!");
+                  } catch (err) {
+                    alert("Failed to copy to clipboard.");
+                  }
+                }}
+                className="px-3 py-1.5 bg-gray-600 hover:bg-gray-700 rounded-md text-white text-sm flex items-center gap-1"
+              >
+                <ClipboardIcon className="h-4 w-4" /> Copy
+              </button>
+              <button
+                onClick={handleCloseRetrieveModal}
+                className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 rounded-md text-white text-sm"
+              >
+                Close
+              </button>
+            </div>
           </div>
         </Modal>
       )}
@@ -560,12 +552,7 @@ const LLMSettingsPanel: React.FC<SettingsPanelProps> = ({
             </label>
             <textarea
               value={newToolJson}
-              onChange={(e) =>
-                onSettingsChange({
-                  ...settings,
-                  newToolJson: e.target.value,
-                })
-              }
+              onChange={(e) => updateSettings({ newToolJson: e.target.value })}
               placeholder="Paste your tool JSON here..."
               rows={10}
               className="w-full px-3 py-2 bg-gray-800 text-gray-300 placeholder-gray-500 text-sm
@@ -582,10 +569,11 @@ const LLMSettingsPanel: React.FC<SettingsPanelProps> = ({
               </button>
               <button
                 onClick={handleSaveTool}
+                disabled={isAddingTool}
                 className="px-4 py-2 bg-blue-600 hover:bg-blue-700 
                   rounded-md text-white text-sm"
               >
-                Save
+                {isAddingTool ? <LoadingSpinner /> : "Save"}
               </button>
             </div>
           </div>

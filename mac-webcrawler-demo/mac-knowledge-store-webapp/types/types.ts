@@ -39,7 +39,7 @@ export interface SettingsPanelProps {
   isCollapsed: boolean;
   onExpand: () => void;
   settings: LLMSettings;
-  onSettingsChange: (settings: LLMSettings) => void;
+  onSettingsChange: ((settings: LLMSettings) => void) | ((prevSettings: LLMSettings) => LLMSettings);
 }
 
 export interface AccordionProps {
