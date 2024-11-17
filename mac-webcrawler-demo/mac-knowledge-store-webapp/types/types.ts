@@ -3,7 +3,7 @@ import React from "react";
 
 export enum LLMType {
   OPENAI = "OPENAI",
-  MISTRAL = "MISTRAL",
+  MISTRAL_AI = "MISTRAL_AI",
 }
 
 export interface Tool {
@@ -18,7 +18,7 @@ export interface TokenUsageData {
 }
 
 export interface LLMSettings {
-  llmType: LLMType | "";
+  llmType: LLMType;
   modelName: string;
   temperature: number;
   inputLimit: number;

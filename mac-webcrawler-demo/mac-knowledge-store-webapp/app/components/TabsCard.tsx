@@ -19,7 +19,10 @@ export default function TabsCard({
   const [activeTab, setActiveTab] = useState<"crawl" | "upload">("crawl");
 
   return (
-    <div className={`bg-[#151929] rounded-2xl flex flex-col ${className}`}>
+    <div
+      className={`bg-[#151929] rounded-2xl flex flex-col ${className}`}
+      data-form-type="other"
+    >
       <div className="px-6 pt-6 pb-3">
         <h2 className="text-xl text-white font-medium flex items-center gap-3">
           <GlobeAltIcon className="h-5 w-5 text-gray-400" />

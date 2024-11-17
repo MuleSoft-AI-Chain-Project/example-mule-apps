@@ -4,17 +4,23 @@ import { writeFile } from 'fs/promises';
 import { join } from 'path';
 import os from 'os';
 
+// Using environment variables for the backend endpoint
+const BACKEND_DOC_ENDPOINT = process.env.BACKEND_DOC_ENDPOINT || 'http://localhost:8081/doc';
+
 export async function POST(request: Request) {
   console.log('Received document upload request');
 
   try {
+    // Parse incoming request data
     const { storeName, fileName, fileContent, fileType } = await request.json();
-    console.log(
-      `Received request: storeName=${storeName}, fileName=${fileName}, fileType=${fileType}, fileContent length=${fileContent.length}`
-    );
+    console.log(`Received upload request for store: ${storeName}, fileName: ${fileName}, fileType: ${fileType}`);
 
-    // Decode base64 content
-    const fileBuffer = Buffer.from(fileContent.split(',')[1], 'base64');
+    // Decode base64 content (assuming the content is in "data:;base64," format)
+    const base64Data = fileContent.split(',')[1];
+    if (!base64Data) {
+      throw new Error('Invalid file content: Missing base64 encoded data');
+    }
+    const fileBuffer = Buffer.from(base64Data, 'base64');
 
     // Create a temporary file
     const tempDir = os.tmpdir();
@@ -22,33 +28,55 @@ export async function POST(request: Request) {
     await writeFile(filePath, fileBuffer);
     console.log(`Temporary file created at: ${filePath}`);
 
-    const response = await fetch('http://localhost:8081/doc', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ storeName, filePath, fileType }),
-    });
+    // Set up a timeout of 30 seconds
+    const controller = new AbortController();
+    const timeout = setTimeout(() => {
+      controller.abort();
+    }, 30000); // 30 seconds
 
-    console.log(`Backend response status: ${response.status}`);
+    // Send the file details to the backend service
+    try {
+      const response = await fetch(BACKEND_DOC_ENDPOINT, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ storeName, filePath, fileType }),
+        signal: controller.signal,
+      });
 
-    const contentType = response.headers.get('content-type');
-    console.log(`Response content type: ${contentType}`);
+      // Clear the timeout once the response is received
+      clearTimeout(timeout);
 
-    if (contentType && contentType.indexOf('application/json') !== -1) {
-      const data = await response.json();
-      console.log('Received JSON response:', data);
-      return NextResponse.json(data);
-    } else {
-      const text = await response.text();
-      console.log('Received non-JSON response:', text);
-      return NextResponse.json(
-        { error: 'Unexpected response', details: text },
-        { status: 500 }
-      );
+      // Handle backend response
+      console.log(`Backend response status: ${response.status}`);
+      const contentType = response.headers.get('content-type') || '';
+
+      if (contentType.includes('application/json')) {
+        const data = await response.json();
+        console.log('Received JSON response from backend:', data);
+        return NextResponse.json(data);
+      } else {
+        const text = await response.text();
+        console.log('Received non-JSON response from backend:', text);
+        return NextResponse.json(
+          { error: 'Unexpected response from backend', details: text },
+          { status: 500 }
+        );
+      }
+    } catch (error: any) {
+      if (error.name === 'AbortError') {
+        console.error('Error: The request to the backend timed out.');
+        return NextResponse.json(
+          { error: 'Backend request timed out', details: 'The request took longer than 30 seconds to complete.' },
+          { status: 504 }
+        );
+      } else {
+        throw error; // Re-throw other errors to be handled in the catch block below
+      }
     }
   } catch (error) {
-    console.error('Error in upload-document route:', error);
+    console.error('Error handling upload-document request:', error);
     return NextResponse.json(
       { error: 'Internal Server Error', details: error.message },
       { status: 500 }

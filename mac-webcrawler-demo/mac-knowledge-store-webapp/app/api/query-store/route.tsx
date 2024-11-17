@@ -69,7 +69,7 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error("[QueryStore API] Error in query-store route:", error);
     return NextResponse.json(
-      { error: "Internal Server Error", details: error.message },
+      { error: "Internal Server Error", details: (error as Error).message },
       { status: 500 }
     );
   }

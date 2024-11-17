@@ -134,15 +134,20 @@ export default function UploadDocument({
   return (
     <div
       className={`flex flex-col h-full bg-[#151929] p-6 rounded-3xl border border-gray-800/40 shadow-lg ${className}`}
+      data-form-type="other"
     >
-      <form onSubmit={handleSubmit} className="flex flex-col space-y-6">
+      <form
+        onSubmit={handleSubmit}
+        className="flex flex-col space-y-6"
+        data-form-type="other"
+      >
         {/* Store Selection */}
         <div className="flex items-center space-x-4">
           <label
             htmlFor="store-select"
             className="text-sm font-medium text-white flex-none"
           >
-            Select Knowledge Store
+            Knowledge Store
           </label>
           <select
             id="store-select"
@@ -153,6 +158,7 @@ export default function UploadDocument({
             }}
             className="flex-grow px-4 py-2 bg-[#1C1F2E] text-gray-100 text-sm border border-gray-700/40 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
             required
+            data-form-type="other"
           >
             <option value="">Select a store</option>
             {storeNames.map((name) => (
@@ -178,6 +184,7 @@ export default function UploadDocument({
           className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition ${
             isDragging ? "border-blue-500 bg-[#1C1F2E]" : "border-gray-700/40"
           } ${isDragging ? "shadow-lg" : ""}`}
+          data-form-type="other"
         >
           {file ? (
             <p className="text-sm text-gray-300">Selected File: {file.name}</p>
@@ -192,6 +199,7 @@ export default function UploadDocument({
             onChange={handleFileInput}
             className="hidden"
             accept=".txt,.pdf"
+            data-form-type="other"
           />
         </div>
         {inputErrors.file && (

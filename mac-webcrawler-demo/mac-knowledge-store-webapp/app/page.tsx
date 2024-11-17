@@ -7,34 +7,13 @@ import TabsCard from "./components/TabsCard";
 import LLMSettingsPanel from "./components/LLMSettingsPanel";
 import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/20/solid";
 import Image from "next/image";
-
-interface LLMSettings {
-  llmType: "OPENAI" | "MISTRAL" | "";
-  modelName: string;
-  temperature: number;
-  inputLimit: number;
-  maxToken: number;
-  chatMemory: boolean;
-  maxMessages: number;
-  tokenUsageData: {
-    session: string;
-    inputTokens: number;
-    outputTokens: number;
-  }[];
-  preDecoration: string;
-  postDecoration: string;
-  isRetrieveModalOpen: boolean;
-  isAddToolModalOpen: boolean;
-  tools: { name: string; description: string }[];
-  newToolJson: string;
-  toxicityDetection: boolean;
-}
+import { LLMSettings, LLMType } from "../types/types";
 
 export default function Home() {
   const [storeNames, setStoreNames] = useState<string[]>([]);
   const [isCollapsed, setIsCollapsed] = useState<boolean>(false);
   const [llmSettings, setLLMSettings] = useState<LLMSettings>({
-    llmType: "OPENAI",
+    llmType: LLMType.OPENAI,
     modelName: "gpt-4",
     temperature: 0.7,
     inputLimit: 100,
@@ -155,7 +134,10 @@ export default function Home() {
         <div className="h-full">
           <div className="grid grid-cols-12 gap-6 h-full">
             {/* Left Column - Store Management */}
-            <div className="col-span-4 flex flex-col gap-6 h-full overflow-hidden">
+            <div
+              className="col-span-4 flex flex-col gap-6 h-full overflow-hidden"
+              data-form-type="other"
+            >
               {/* Wrap CreateStore in a div with hover effect */}
               <div className="flex-none hover:border hover:border-blue-500 rounded-md transition duration-200">
                 <CreateStore onStoreCreated={addStoreName} />
@@ -173,7 +155,10 @@ export default function Home() {
 
             {/* Right Column - Query Interface */}
             {/* Wrap QueryStore in a div with hover effect */}
-            <div className="col-span-8 h-full overflow-hidden hover:border hover:border-blue-500 rounded-md transition duration-200">
+            <div
+              className="col-span-8 h-full overflow-hidden hover:border hover:border-blue-500 rounded-md transition duration-200"
+              data-form-type="other"
+            >
               <QueryStore
                 className="h-full"
                 storeNames={storeNames}

@@ -82,7 +82,11 @@ export default function CreateStore({
         <PlusCircleIcon className="h-5 w-5 text-gray-400" />
         Create RAG Store
       </h2>
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form
+        onSubmit={handleSubmit}
+        className="space-y-6"
+        data-form-type="other"
+      >
         <input
           id="createStoreName"
           type="text"

@@ -10,7 +10,7 @@ import {
 } from "@heroicons/react/24/outline";
 
 interface LLMSettings {
-  llmType: "OPENAI" | "MISTRAL" | "";
+  llmType: "OPENAI" | "MISTRAL_AI";
   modelName: string;
   temperature: number;
   inputLimit: number;
@@ -32,25 +32,32 @@ interface LLMSettings {
 }
 
 interface QueryResult {
-  getLatest: boolean;
-  question: string;
-  sources: {
-    absoluteDirectoryPath: string;
-    fileName: string;
-    textSegment: string;
-  }[];
-  response: string;
-  tokenUsage: {
-    outputCount: number;
-    totalCount: number;
-    inputCount: number;
+  payload: {
+    sources: {
+      absoluteDirectoryPath: string;
+      fileName: string;
+      textSegment: string;
+    }[];
+    response: string;
   };
-  storeName: string;
+  attributes: {
+    additionalAttributes: {
+      getLatest: string;
+      question: string;
+      storeName: string;
+    };
+  };
+  toxicity?: {
+    response: {
+      results: any[];
+    };
+  };
 }
 
 interface Message {
   type: "user" | "agent";
   content: string | QueryResult;
+  partialResponse?: string; // For simulating streaming effect
 }
 
 interface QueryStoreProps {
@@ -77,9 +84,9 @@ const markdownComponents: Components = {
   ),
 };
 
-const AccordionItem: React.FC<{ source: QueryResult["sources"][number] }> = ({
-  source,
-}) => {
+const AccordionItem: React.FC<{
+  source: QueryResult["payload"]["sources"][number];
+}> = ({ source }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -117,47 +124,33 @@ const RenderMessage: React.FC<RenderMessageProps> = ({ message }) => {
       <div
         className={`${bubbleClass} p-4 rounded-3xl border border-gray-700/50 shadow-lg`}
       >
-        <div className="text-white">
+        <div className="text-white text-sm">
           {typeof message.content === "string" ? (
             message.content
           ) : (
             <>
               <ReactMarkdown
-                className="prose prose-invert max-w-none"
+                className="prose prose-invert max-w-none prose-sm"
                 remarkPlugins={[remarkGfm]}
                 components={markdownComponents}
               >
-                {message.content.response}
+                {message.partialResponse ||
+                  message.content.payload.response ||
+                  ""}
               </ReactMarkdown>
-              {message.content.sources &&
-                message.content.sources.length > 0 && (
+              {message.content.payload.sources &&
+                message.content.payload.sources.length > 0 && (
                   <div className="mt-4">
                     <h3 className="text-white text-base font-semibold mb-2">
                       Sources:
                     </h3>
                     <div className="border border-gray-700/50 rounded-lg overflow-hidden">
-                      {message.content.sources.map((source, index) => (
+                      {message.content.payload.sources.map((source, index) => (
                         <AccordionItem key={index} source={source} />
                       ))}
                     </div>
                   </div>
                 )}
-              {message.content.tokenUsage && (
-                <div className="mt-3 pt-3 border-t border-gray-700/50 text-sm text-gray-300">
-                  <p>
-                    <span className="font-medium">Input Tokens:</span>{" "}
-                    {message.content.tokenUsage.inputCount}
-                  </p>
-                  <p>
-                    <span className="font-medium">Output Tokens:</span>{" "}
-                    {message.content.tokenUsage.outputCount}
-                  </p>
-                  <p>
-                    <span className="font-medium">Total Tokens:</span>{" "}
-                    {message.content.tokenUsage.totalCount}
-                  </p>
-                </div>
-              )}
             </>
           )}
         </div>
@@ -206,6 +199,39 @@ export default function QueryStore({
     return isValid;
   };
 
+  const simulateStreamingResponse = (
+    response: string,
+    messageIndex: number,
+    originalMessage: QueryResult
+  ) => {
+    let currentText = "";
+    response.split("").forEach((char, idx) => {
+      setTimeout(() => {
+        currentText += char;
+        setMessages((prev) => {
+          const newMessages = [...prev];
+          const messageToUpdate = newMessages[messageIndex];
+          if (typeof messageToUpdate.content !== "string") {
+            messageToUpdate.partialResponse = currentText;
+          }
+          return newMessages;
+        });
+
+        // After the last character, ensure we set the complete message with sources
+        if (idx === response.length - 1) {
+          setMessages((prev) => {
+            const newMessages = [...prev];
+            newMessages[messageIndex] = {
+              ...newMessages[messageIndex],
+              content: originalMessage,
+            };
+            return newMessages;
+          });
+        }
+      }, idx * 10); // Typing speed (10ms per character) - 5x faster
+    });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) return;
@@ -213,8 +239,29 @@ export default function QueryStore({
     setIsQuerying(true);
     setMessages((prev) => [...prev, { type: "user", content: prompt }]);
 
+    // Add a placeholder message for the agent response
+    const agentIndex = messages.length + 1;
+    setMessages((prev) => [
+      ...prev,
+      {
+        type: "agent",
+        content: {
+          payload: {
+            response: "",
+            sources: [],
+          },
+          attributes: {
+            additionalAttributes: {
+              getLatest: "",
+              question: "",
+              storeName: "",
+            },
+          },
+        },
+      },
+    ]);
+
     try {
-      // No concatenation; use the user's input directly as the prompt
       const response = await fetch("/api/query-store", {
         method: "POST",
         headers: {
@@ -227,12 +274,12 @@ export default function QueryStore({
           "X-Chat-Memory": llmSettings.chatMemory.toString(),
           "X-Max-Messages": llmSettings.maxMessages.toString(),
           "X-Toxicity-Detection": llmSettings.toxicityDetection.toString(),
-          "X-Pre-Decoration": llmSettings.preDecoration, // Add preDecoration to headers
-          "X-Post-Decoration": llmSettings.postDecoration, // Add postDecoration to headers
+          "X-Pre-Decoration": llmSettings.preDecoration,
+          "X-Post-Decoration": llmSettings.postDecoration,
         },
         body: JSON.stringify({
           storeName: selectedStore,
-          prompt: prompt, // Just send the user's input as the prompt
+          prompt: prompt,
           tools: llmSettings.tools,
         }),
       });
@@ -243,24 +290,8 @@ export default function QueryStore({
 
       const data: QueryResult = await response.json();
 
-      const newUsageData = {
-        session: new Date().toISOString(),
-        inputTokens: data.tokenUsage.inputCount,
-        outputTokens: data.tokenUsage.outputCount,
-      };
-
-      // Update the state properly with new token usage data
-      updateLLMSettings({
-        tokenUsageData: [...llmSettings.tokenUsageData, newUsageData],
-      });
-
-      setMessages((prev) => [
-        ...prev,
-        {
-          type: "agent",
-          content: data,
-        },
-      ]);
+      // Start simulating a streaming response
+      simulateStreamingResponse(data.payload.response, agentIndex, data);
     } catch (error: any) {
       setMessages((prev) => [
         ...prev,
@@ -276,6 +307,7 @@ export default function QueryStore({
     <div
       className={`bg-[#151929] rounded-3xl border border-gray-800/40 shadow-lg 
         flex flex-col h-full ${className}`}
+      data-form-type="other"
     >
       <div className="flex-none p-6 pb-2">
         <h2 className="text-xl text-white font-medium flex items-center gap-3">
@@ -284,22 +316,30 @@ export default function QueryStore({
         </h2>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-6 py-4">
+      <div className="flex-1 overflow-y-auto px-6 py-4 relative">
         <div className="flex flex-col gap-4">
           {messages.map((message, index) => (
             <RenderMessage key={index} message={message} />
           ))}
           <div ref={chatEndRef} />
+          {isQuerying && (
+            <div className="text-gray-500 text-sm mt-2 animate-pulse">
+              Agent is typing<span className="dot-flashing">...</span>
+            </div>
+          )}
         </div>
       </div>
 
-      <div className="flex-none p-6 pt-2 border-t border-gray-800/40">
+      <div
+        className="flex-none p-6 pt-2 border-t border-gray-800/40"
+        data-form-type="other"
+      >
         <div className="flex items-center mb-4">
           <label
             htmlFor="store-select"
             className="text-white text-sm mr-3 flex-none"
           >
-            Select Knowledge Store
+            Knowledge Store
           </label>
           <select
             id="store-select"
@@ -311,6 +351,7 @@ export default function QueryStore({
             className="inline-flex px-4 py-2 bg-[#1C1F2E] text-gray-100 text-sm border border-gray-700/40 
               rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
             required
+            data-form-type="other"
           >
             <option value="" className="text-sm">
               Select a store
@@ -331,6 +372,7 @@ export default function QueryStore({
         <form
           onSubmit={handleSubmit}
           className="flex items-center space-x-4 bg-[#1C1F2E] rounded-full px-4 py-3 border border-gray-700/40"
+          data-form-type="other"
         >
           <button
             type="button"
@@ -349,6 +391,7 @@ export default function QueryStore({
             placeholder="Send a message..."
             className="flex-grow px-3 py-1.5 bg-transparent text-gray-100 placeholder-gray-500 text-sm focus:outline-none"
             required
+            data-form-type="other"
           />
           {inputErrors.prompt && (
             <p className="text-sm text-red-400 mt-1">{inputErrors.prompt}</p>

@@ -108,8 +108,12 @@ export default function CrawlWebsite({
   };
 
   return (
-    <div className={className}>
-      <form onSubmit={handleSubmit} className="space-y-6">
+    <div className={className} data-form-type="other">
+      <form
+        onSubmit={handleSubmit}
+        className="space-y-6"
+        data-form-type="other"
+      >
         {/* Website URL Input */}
         <div>
           <label
@@ -134,6 +138,7 @@ export default function CrawlWebsite({
               border border-gray-700/40 rounded-lg focus:outline-none focus:ring-1 
               focus:ring-blue-500 focus:border-blue-500"
             required
+            data-form-type="other"
           />
           {inputErrors.websiteUrl && (
             <p className="text-sm text-red-400 mt-1">

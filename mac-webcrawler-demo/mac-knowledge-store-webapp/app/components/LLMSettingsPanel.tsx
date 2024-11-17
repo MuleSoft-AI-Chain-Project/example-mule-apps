@@ -60,7 +60,7 @@ const LLMSettingsPanel: React.FC<SettingsPanelProps> = ({
       "gpt-4o-mini",
       "gpt-4o-turbo-preview",
     ],
-    [LLMType.MISTRAL]: ["mistral-small", "mistral-large-latest"],
+    [LLMType.MISTRAL_AI]: ["mistral-small", "mistral-large-latest"],
   };
 
   const filteredModels = useMemo(() => {
@@ -152,7 +152,10 @@ const LLMSettingsPanel: React.FC<SettingsPanelProps> = ({
   };
 
   return (
-    <div className="flex flex-col h-full overflow-hidden">
+    <div
+      className="flex flex-col h-full overflow-hidden"
+      data-form-type="other"
+    >
       <div className="overflow-y-auto space-y-2">
         {/* LLM Configuration */}
         <Accordion
@@ -161,7 +164,7 @@ const LLMSettingsPanel: React.FC<SettingsPanelProps> = ({
           isCollapsed={isCollapsed}
           onCollapsedClick={onExpand}
         >
-          <div className="space-y-4">
+          <div className="space-y-4" data-form-type="other">
             {/* LLM Provider Dropdown */}
             <div>
               <label className="block text-sm text-gray-400 mb-2">
@@ -176,6 +179,7 @@ const LLMSettingsPanel: React.FC<SettingsPanelProps> = ({
                   })
                 }
                 className="w-full bg-gray-800/50 text-gray-300 text-sm px-3 py-2 rounded-md border border-gray-700/50"
+                data-form-type="other"
               >
                 <option value="" className="text-sm">
                   Select provider
@@ -546,7 +550,7 @@ const LLMSettingsPanel: React.FC<SettingsPanelProps> = ({
       {/* Add Tool Modal */}
       {isAddToolModalOpen && (
         <Modal onClose={handleCloseAddToolModal} title="Add Tool">
-          <div className="space-y-4">
+          <div className="space-y-4" data-form-type="other">
             <label className="block text-sm text-gray-400 mb-2">
               Tool JSON
             </label>
@@ -558,6 +562,7 @@ const LLMSettingsPanel: React.FC<SettingsPanelProps> = ({
               className="w-full px-3 py-2 bg-gray-800 text-gray-300 placeholder-gray-500 text-sm
                 border border-gray-700 rounded-md resize-y focus:outline-none focus:ring-1
                 focus:ring-blue-500 focus:border-blue-500"
+              data-form-type="other"
             />
             <div className="flex justify-end space-x-2">
               <button
