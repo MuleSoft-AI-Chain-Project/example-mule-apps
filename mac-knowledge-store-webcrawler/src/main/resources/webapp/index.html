@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="../web/MuleChainLogo.png" type="image/png">
+    <title>Query Knowledge Base</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html, body {
+            height: 100%;
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+
+        /* Column styles */
+        .column {
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .col-1 {
+            width: 35%;
+        }
+
+        .col-2 {
+            width: 65%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        /* Container styles within the first column */
+        .box-1, .box-2, .box-3 {
+            border: 2px solid lightgrey;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 10px;
+        }
+
+        .box-1 {
+            height: 25%;
+        }
+
+        .box-2 {
+            height: 50%;
+        }
+
+        .box-3 {
+            height: 25%;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Right column container should stretch to match the left column heights */
+        .box-right {
+            flex-grow: 1;
+            border: 2px solid lightgrey;
+            border-radius: 15px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+        }
+
+        .box-title {
+            font-size: 22px;
+            font-weight: bold;
+            color: black;
+            margin-bottom: 15px;
+            display: inline-block;
+        }
+
+        /* Scrollable message list in Console */
+        .message-list {
+            overflow-y: auto;
+            flex-grow: 1;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-radius: 10px;
+            border: 1px solid #ccc;
+        }
+
+        .message-item {
+            margin-bottom: 2px;
+            padding: 4px;
+            border-radius: 5px;
+        }
+
+        .error-message {
+            color: red;
+        }
+
+        .warning-message {
+            color: orange;
+        }
+
+        .success-message {
+            color: black;
+        }
+
+        .info-message {
+            color: black;
+        }
+
+        .rounded-rectangle {
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        input[type="text"], input[type="number"], select, button {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+            margin-bottom: 10px;
+            width: 100%;
+        }
+
+        input[type="text"]:not(:placeholder-shown) {
+            background-color: #f9f9f9; /* Light grey background when text has been entered*/
+        }
+
+        .answer-box {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+            margin-bottom: 10px;
+            flex-grow: 1;
+            text-align: left;
+            display: block;
+            white-space: pre-wrap;
+        }
+
+        .response-text-rounded {
+            background-color: lightblue;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 16px;
+            line-height: 1.5;
+            color: black;
+            word-wrap: break-word;
+        }
+
+        .collapsible {
+            background-color: #f1f1f1;
+            color: #444;
+            cursor: pointer;
+            padding: 5px;
+            width: 100%;
+            border: none;
+            text-align: left;
+            outline: none;
+            font-size: 16px;
+            border-radius: 5px;
+            margin-top: 5px;
+        }
+
+        .collapsible:after {
+            content: '\002B';
+            font-size: 16px;
+            float: right;
+        }
+
+        .collapsible.active:after {
+            content: "\2212";
+        }
+
+        .content {
+            padding: 0 5px;
+            display: none;
+            overflow: hidden;
+            border: 1px solid lightgrey;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+
+        .content p {
+            padding: 5px 0;
+            margin: 0;
+        }
+
+        .small-dropdown {
+            width: auto;
+            min-width: 150px;
+        }
+
+        .small-button {
+            width: auto;
+            min-width: 60px;
+        }
+
+        .button-group {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .button-group button {
+            flex: 1;
+            margin-right: 5px;
+            cursor: pointer;
+        }
+
+        .button-group button:last-child {
+            margin-right: 0;
+        }
+
+        .bottom-form {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .query-input {
+            flex-grow: 1;
+            margin-right: 10px;
+            margin-left: 10px;
+        }
+
+        button {
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            background-color: #f9f9f9;;
+            color: black;
+            border: 2px solid darkgray;
+        }
+
+        button.active-button {
+            background-color: lightblue;
+            color: black;
+        }
+
+        button.active-button:hover {
+            background-color: darkblue;
+            border-color: darkblue;
+            color: white;
+        }
+
+
+        /* Spinner styles */
+        .spinner {
+            border: 12px solid #f3f3f3;
+            border-top: 12px solid darkblue;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .spinner-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="column col-1">
+            <div class="box-1">
+                <div class="box-title">Create Store</div>
+                <div class="form-group">
+                    <label for="storeName">Store Name</label>
+                    <input type="text" id="storeName" name="storeName" placeholder="Enter store name" oninput="checkStoreName()">
+                </div>
+                <button type="button" id="createStoreButton" class="inactive-button" onclick="createStore()" disabled>Create Store</button>
+            </div>
+
+            <div class="box-2">
+                <div class="button-group">
+                    <button id="crawlButton" onclick="activateCrawl()">Crawl Website</button>
+                    <button id="uploadDirectoryButton" onclick="activateUploadDirectory()">Upload Directory</button>
+                    <button id="uploadDocumentButton" onclick="activateUploadDocument()">Upload Document</button>
+                </div>
+                <div class="inner-box" id="dynamicContent">
+                </div>
+            </div>
+
+            <div class="box-3">
+                <div class="box-title">Console</div>
+                <div class="message-list" id="messageList"></div>
+            </div>
+        </div>
+
+        <div class="column col-2">
+            <div class="box-right">
+                <div class="box-title">Query Knowledge Base</div>
+
+                <!-- Main response area in its own div -->
+                <div id="responseTextContainer" class="answer-box"></div>
+
+                <div id="tokenUsageContainer" style="display: flex; gap: 10px; margin-top: 10px; margin-bottom: 20px; justify-content: center;">
+                    <div id="tokenUsage" class="rounded-rectangle" style="background-color: lightgrey; padding: 10px; border-radius: 15px; flex: 1; text-align: center;">
+                        Tokenusage
+                    </div>
+                    <div id="inputUsage" class="rounded-rectangle" style="background-color: lightgrey; padding: 10px; border-radius: 15px; flex: 1; text-align: center;">
+                        Input
+                    </div>
+                    <div id="outputUsage" class="rounded-rectangle" style="background-color: lightgrey; padding: 10px; border-radius: 15px; flex: 1; text-align: center;">
+                        Output
+                    </div>
+                    <div id="totalUsage" class="rounded-rectangle" style="background-color: lightgrey; padding: 10px; border-radius: 15px; flex: 1; text-align: center;">
+                        Total
+                    </div>
+                </div>                
+
+                <div class="bottom-form">
+                    <select id="storeSelectRight" class="small-dropdown">
+                        <option value="">Select a store</option>
+                    </select>
+                    <input type="text" id="queryInput" class="query-input" placeholder="Enter your query here" oninput="checkQueryForm()">
+                    <button id="sendButton" class="inactive-button small-button" onclick="sendQuery()" disabled>Send</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let storeList = [];
+
+        function checkStoreName() {
+            const storeNameInput = document.getElementById('storeName').value;
+            const createStoreButton = document.getElementById('createStoreButton');
+            if (storeNameInput.length >= 3) {
+                createStoreButton.disabled = false;
+                createStoreButton.classList.add('active-button');
+            } else {
+                createStoreButton.disabled = true;
+                createStoreButton.classList.remove('active-button');
+            }
+        }
+
+        function createStore() {
+            const storeName = document.getElementById('storeName').value;
+            if (storeList.includes(storeName)) {
+                addMessageToConsole('Store already exists: ' + storeName, 'warning-message');
+            } else {
+                fetch('http://localhost:8081/store', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ storeName }),
+                })
+                    .then((response) => response.json())
+                    .then(() => {
+                        storeList.push(storeName);
+                        storeList.sort(); // Sort alphabetically
+                        updateAllStoreDropdowns();
+                        addMessageToConsole('Store created successfully: ' + storeName, 'success-message');
+                        document.getElementById('storeName').value = '';
+                    })
+                    .catch((error) => {
+                        addMessageToConsole('Error creating store: ' + error.message, 'error-message');
+                    });
+            }
+        }
+
+        function addMessageToConsole(message, type) {
+            const messageList = document.getElementById('messageList');
+            const messageItem = document.createElement('div');
+            messageItem.className = `message-item ${type}`;
+            messageItem.innerText = message;
+            messageList.insertBefore(messageItem, messageList.firstChild);
+        }
+
+        function sendQuery() {
+            const selectedStore = document.getElementById('storeSelectRight').value;
+            const prompt = document.getElementById('queryInput').value;
+
+            if (selectedStore && prompt) {
+                addMessageToConsole(`Querying knowledge base: ${selectedStore}`, 'info-message');
+                showSpinnerInAnswerBox();
+
+                fetch('http://localhost:8081/query', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        storeName: selectedStore,
+                        prompt: prompt,
+                    }),
+                })
+                    .then((response) => response.json())
+                    .then((data) => {
+                        hideSpinnerInAnswerBox();
+                        formatAndDisplayResponse(data);
+                        addMessageToConsole(`Done querying knowledge base: ${selectedStore}`, 'info-message');
+                    })
+                    .catch((error) => {
+                        hideSpinnerInAnswerBox();
+                        document.getElementById('responseTextContainer').innerText = 'Error: ' + error.message;
+                    });
+            }
+        }
+
+        function showSpinnerInAnswerBox() {
+            const answerBox = document.getElementById('responseTextContainer');
+            answerBox.innerHTML = `
+                <div style="display: flex; justify-content: center; align-items: center; height: 100%;">
+                    <div class="spinner"></div>
+                </div>
+            `;
+        }
+
+        function hideSpinnerInAnswerBox() {
+            const answerBox = document.getElementById('responseTextContainer');
+            answerBox.innerHTML = '';
+        }
+
+        function formatAndDisplayResponse(data) {
+            let inputUsageValue = 0;
+            let outputUsageValue = 0;
+            let totalUsageValue = 0;
+
+            const responseTextContainer = document.getElementById('responseTextContainer');
+            responseTextContainer.innerHTML = '';
+
+            const responseText = document.createElement('div');
+            responseText.textContent = data.response;
+            responseText.className = 'response-text-rounded'; // Apply the rounded rectangle style
+            responseText.style.marginBottom = '20px'; // Add space below the response text
+            responseTextContainer.appendChild(responseText);
+
+            // Add collapsible content directly below the main response
+            data.sources.forEach((source, index) => {
+//                const textSegment = JSON.parse(source.textSegment);
+
+                const collapsible = document.createElement('button');
+                collapsible.className = 'collapsible';
+//                collapsible.innerText = `Source ${index + 1}: ${textSegment.title}`;
+                collapsible.innerText = `Source ${index + 1}: ${source.fileName}`;
+                
+                const content = document.createElement('div');
+                content.className = 'content';
+                content.innerHTML = `
+                    <p><strong>File:</strong> ${source.fileName}</p>
+                    <p><strong>Content:</strong> ${source.textSegment}</p>
+                `;
+                
+                responseTextContainer.appendChild(collapsible); // Append to the main response container
+                responseTextContainer.appendChild(content);
+
+                collapsible.addEventListener('click', function () {
+                    this.classList.toggle('active');
+                    const content = this.nextElementSibling;
+                    if (content.style.display === 'block') {
+                        content.style.display = 'none';
+                    } else {
+                        content.style.display = 'block';
+                    }
+                });
+            });
+            
+            const inputUsage = document.getElementById('inputUsage');
+            const outputUsage = document.getElementById('outputUsage');
+            const totalUsage = document.getElementById('totalUsage');
+
+            inputUsageValue = data.tokenUsage.inputCount || 0;
+            outputUsageValue = data.tokenUsage.outputCount || 0;
+            totalUsageValue = data.tokenUsage.totalCount || 0;
+
+            // Update text and colors
+            inputUsage.innerText = `Input${inputUsageValue > 0 ? `: ${inputUsageValue}` : ''}`;
+            inputUsage.style.backgroundColor = inputUsageValue > 0 ? 'lightblue' : 'lightgrey';
+
+            outputUsage.innerText = `Output${outputUsageValue > 0 ? `: ${outputUsageValue}` : ''}`;
+            outputUsage.style.backgroundColor = outputUsageValue > 0 ? 'lightblue' : 'lightgrey';
+
+            totalUsage.innerText = `Total${totalUsageValue > 0 ? `: ${totalUsageValue}` : ''}`;
+            totalUsage.style.backgroundColor = totalUsageValue > 0 ? 'lightblue' : 'lightgrey';
+        }
+
+        function activateCrawl() {
+            setActiveButton('crawlButton');
+            document.getElementById('dynamicContent').innerHTML = `
+                <div class="box-title">Crawl Website</div>
+                <div class="form-group">
+                    <label for="websiteUrl">Website URL</label>
+                    <input type="text" id="websiteUrl" name="websiteUrl" placeholder="Enter website URL">
+                </div>
+                <div class="form-group">
+                    <label for="depth">Depth</label>
+                    <input type="number" id="depth" name="depth" min="0" value="0">
+                </div>
+                <div class="form-group">
+                    <label for="selectStore">Select Store</label>
+                    <select id="selectStore" name="selectStore">
+                        <option value="">Select a store</option>
+                        ${storeList.map((store) => `<option value="${store}">${store}</option>`).join('')}
+                    </select>
+                </div>
+                <button type="button" id="crawlWebsiteButton" class="inactive-button" onclick="crawlWebsite()" disabled>Crawl Website</button>
+                <div id="processSpinner" class="spinner-container" style="display: none;"><div class="spinner"></div></div>
+            `;
+
+            document.getElementById('websiteUrl').addEventListener('input', checkCrawlForm);
+            document.getElementById('depth').addEventListener('input', checkCrawlForm);
+            document.getElementById('selectStore').addEventListener('change', checkCrawlForm);
+        }
+
+        function checkCrawlForm() {
+            const websiteUrl = document.getElementById('websiteUrl').value;
+            const depth = document.getElementById('depth').value;
+            const selectedStore = document.getElementById('selectStore').value;
+            const crawlWebsiteButton = document.getElementById('crawlWebsiteButton');
+
+            if (websiteUrl && depth && selectedStore) {
+                crawlWebsiteButton.disabled = false;
+                crawlWebsiteButton.classList.add('active-button');
+            } else {
+                crawlWebsiteButton.disabled = true;
+                crawlWebsiteButton.classList.remove('active-button');
+            }
+        }
+
+        function crawlWebsite() {
+            const websiteUrl = document.getElementById('websiteUrl').value;
+            const depth = document.getElementById('depth').value;
+            const selectedStore = document.getElementById('selectStore').value;
+
+            if (websiteUrl && depth && selectedStore) {
+                addMessageToConsole(`Crawling: ${websiteUrl}`, 'info-message');
+                showProcessSpinner();
+
+                fetch('http://localhost:8081/crawl', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        websiteUrl,
+                        depth,
+                        storeName: selectedStore,
+                    }),
+                })
+                    .then(() => {
+                        hideProcessSpinner();
+                        addMessageToConsole(`Crawling done for: ${websiteUrl}`, 'info-message');
+                    })
+                    .catch((error) => {
+                        hideProcessSpinner();
+                        addMessageToConsole('Error during crawling: ' + error.message, 'error-message');
+                    });
+            }
+        }
+
+        function showProcessSpinner() {
+            const processSpinner = document.getElementById('processSpinner');
+            processSpinner.style.display = 'flex';
+        }
+
+        function hideProcessSpinner() {
+            const processSpinner = document.getElementById('processSpinner');
+            processSpinner.style.display = 'none';
+        }
+
+        function activateUploadDirectory() {
+            setActiveButton('uploadDirectoryButton');
+            document.getElementById('dynamicContent').innerHTML = `
+                <div class="box-title">Upload Directory</div>
+                <div class="form-group">
+                    <label for="selectStore">Select Store</label>
+                    <select id="selectStore" name="selectStore">
+                        <option value="">Select a store</option>
+                        ${storeList.map((store) => `<option value="${store}">${store}</option>`).join('')}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="directory">Directory</label>
+                    <input type="text" id="directory" name="directory" placeholder="Enter directory here">
+                </div>
+                <button type="button" class="inactive-button" id="uploadDirectoryActionButton" onclick="uploadDirectory()" disabled>Upload Directory</button>
+                <div id="processSpinner" class="spinner-container" style="display: none;"><div class="spinner"></div></div>
+            `;
+
+            document.getElementById('directory').addEventListener('input', checkUploadDirectoryForm);
+            document.getElementById('selectStore').addEventListener('change', checkUploadDirectoryForm);
+
+            function checkUploadDirectoryForm() {
+                const directoryInput = document.getElementById('directory').value;
+                const selectedStore = document.getElementById('selectStore').value;
+                const uploadDirectoryButton = document.getElementById('uploadDirectoryActionButton');
+
+                if (selectedStore && directoryInput.length > 5) {
+                    uploadDirectoryButton.disabled = false;
+                    uploadDirectoryButton.classList.add('active-button');
+                } else {
+                    uploadDirectoryButton.disabled = true;
+                    uploadDirectoryButton.classList.remove('active-button');
+                }
+            }
+        }
+
+        function uploadDirectory() {
+            const directoryPath = document.getElementById('directory').value;
+            const selectedStore = document.getElementById('selectStore').value;
+
+            if (directoryPath && selectedStore) {
+                addMessageToConsole(`Adding directory: ${directoryPath}`, 'info-message');
+                showProcessSpinner();
+
+                fetch('http://localhost:8081/directory', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        storeName: selectedStore,
+                        directoryPath: directoryPath,
+                        maxSegmentSizeInChars: 1500,
+                        maxOverlapSizeInChars: 500
+                    }),
+                })
+                    .then(() => {
+                        hideProcessSpinner();
+                        addMessageToConsole(`Directory added: ${directoryPath}`, 'info-message');
+                    })
+                    .catch((error) => {
+                        hideProcessSpinner();
+                        addMessageToConsole('Error adding directory: ' + error.message, 'error-message');
+                    });
+            }
+        }
+
+
+        function activateUploadDocument() {
+            setActiveButton('uploadDocumentButton');
+            document.getElementById('dynamicContent').innerHTML = `
+                <div class="box-title">Upload Document</div>
+                <div class="form-group">
+                    <label for="selectStore">Select Store</label>
+                    <select id="selectStore" name="selectStore">
+                        <option value="">Select a store</option>
+                        ${storeList.map((store) => `<option value="${store}">${store}</option>`).join('')}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="filePath">File path</label>
+                    <input type="text" id="filePath" name="filePath" placeholder="Enter complete file path here">
+                </div>
+                <p id="fileNameDisplay" style="display:none;"></p> <!-- File name display -->
+                <button type="button" class="inactive-button" id="uploadDocumentActionButton" onclick="uploadDocument()" disabled>Upload Document</button>
+                <div id="processSpinner" class="spinner-container" style="display: none;"><div class="spinner"></div></div>
+            `;
+            document.getElementById('filePath').addEventListener('input', checkUploadDocForm);
+            document.getElementById('selectStore').addEventListener('change', checkUploadDocForm);
+
+            function checkUploadDocForm() {
+                const filePath = document.getElementById('filePath').value;
+                const selectedStore = document.getElementById('selectStore').value;
+                if (selectedStore && filePath) { // If store is selected and a filepath is provided
+                    uploadDocumentActionButton.disabled = false;
+                    uploadDocumentActionButton.classList.add('active-button');
+                } else {
+                    uploadDocumentActionButton.disabled = true;
+                    uploadDocumentActionButton.classList.remove('active-button');
+                }
+            }
+        }
+
+
+        function uploadDocument() {
+            const filePath = document.getElementById('filePath').value;
+            const selectedStore = document.getElementById('selectStore').value;
+
+            if (filePath && selectedStore) {
+                addMessageToConsole(`Adding document: ${filePath}`, 'info-message');
+                showProcessSpinner();
+
+                fetch('http://localhost:8081/doc', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        storeName: selectedStore,
+                        filePath: filePath,
+                        maxSegmentSizeInChars: 1500,
+                        maxOverlapSizeInChars: 500
+                    }),
+                })
+                    .then(() => {
+                        hideProcessSpinner();
+                        addMessageToConsole(`Document added: ${filePath}`, 'info-message');
+                    })
+                    .catch((error) => {
+                        hideProcessSpinner();
+                        addMessageToConsole('Error adding document: ' + error.message, 'error-message');
+                    });
+            }
+        }
+
+        function setActiveButton(activeButtonId) {
+            const buttons = ['crawlButton', 'uploadDirectoryButton', 'uploadDocumentButton'];
+            buttons.forEach((button) => {
+                const btn = document.getElementById(button);
+                if (button === activeButtonId) {
+                    btn.classList.add('active-button');
+                } else {
+                    btn.classList.remove('active-button');
+                }
+            });
+        }
+
+        function updateAllStoreDropdowns() {
+            const dropdowns = document.querySelectorAll('select[name="selectStore"], #storeSelectRight');
+            dropdowns.forEach((dropdown) => {
+                dropdown.innerHTML = `<option value="">Select a store</option>`;
+                storeList.sort(); // Sort stores alphabetically
+                storeList.forEach((store) => {
+                    const option = document.createElement('option');
+                    option.value = store;
+                    option.textContent = store;
+                    dropdown.appendChild(option);
+                });
+            });
+        }
+
+        function checkQueryForm() {
+            const storeSelect = document.getElementById('storeSelectRight').value;
+            const queryInput = document.getElementById('queryInput').value;
+            const sendButton = document.getElementById('sendButton');
+
+            if (storeSelect !== '' && queryInput.length > 8) {
+                sendButton.disabled = false;
+                sendButton.classList.add('active-button');
+            } else {
+                sendButton.disabled = true;
+                sendButton.classList.remove('active-button');
+            }
+        }
+
+        window.onload = function () {
+            fetch('http://localhost:8081/getstores')
+                .then((response) => response.json())
+                .then((data) => {
+                    storeList = data;
+                    storeList.sort(); // Sort alphabetically
+                    updateAllStoreDropdowns();
+                    activateCrawl();
+                })
+                .catch((error) => {
+                    document.getElementById('responseTextContainer').innerText = 'Error fetching stores: ' + error.message;
+                });
+        };
+    </script>
+</body>
+</html>
