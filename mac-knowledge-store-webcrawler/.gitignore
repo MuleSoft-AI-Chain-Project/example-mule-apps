@@ -23,8 +23,8 @@ tmp/**/*
 local.properties
 .settings/
 .loadpath
-#.project
-#.classpath
+.project
+.classpath
 
 # External tool builders
 .externalToolBuilders/
