@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Generation Demo</title>
+    <link rel="icon" type="image/png" href="images/mac-project.png">
+
+    <style>
+        :root {
+            --primary-color: #21555D;
+            --secondary-color: #2196F3;
+            --background-color: #f0f4f8;
+            --text-color: #333;
+            --card-background: #ffffff;
+        }
+
+        body, html {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .card {
+            background-color: var(--card-background);
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+            gap: 20px; /* This adds space between the cards */
+        }
+
+        .left-card, .right-card {
+            flex: 1; /* This makes both cards take up equal space */
+            width: 50%; /* This ensures both cards are 50% of the container width */
+            max-width: 50%; /* This prevents the cards from growing beyond 50% */
+            padding: 15px
+        }
+
+
+        h2 {
+            color: var(--primary-color);
+            font-size: 20px;
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
+
+        .media-container {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        #video, #photo {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .controls-container {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .input-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        #instructions, #style-select {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .button-container {
+            display: flex;
+            gap: 10px;
+        }
+
+        .button {
+            flex: 1;
+            padding: 10px;
+            font-size: 14px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        #capture {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        #upload {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+
+        .button:hover {
+            opacity: 0.9;
+        }
+
+        #rest-api-output {
+            background-color: #f9f9f9;
+            border-radius: 10px;
+            padding: 15px;
+            height: calc(100% - 50px);
+            overflow-y: auto;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .token-usage-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            font-size: 12px;
+        }
+
+        .token-usage-table th, .token-usage-table td {
+            border: 1px solid #ddd;
+            padding: 5px;
+            text-align: left;
+        }
+
+        .token-usage-table th {
+            background-color: #f2f2f2;
+        }
+
+        .title-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .title-logo {
+            width: 40px;
+            height: 40px;
+        }
+        
+        .button:disabled {
+            background-color: #cccccc;
+            color: #666666;
+            cursor: not-allowed;
+        }
+
+        #instructions:disabled {
+            background-color: #f0f0f0;
+            color: #888888;
+        }
+        .image-card {
+            background-color: #f9f9f9;
+            border-radius: 10px;
+            padding: 15px;
+            height: calc(100% - 80px);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        #result-image {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        #loading-message {
+            font-size: 16px;
+            color: #666;
+        }
+
+        #download-button {
+            margin-top: 15px;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 10px 20px;
+        }
+
+        #download-button:hover {
+            opacity: 0.9;
+        }
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+                height: auto;
+                overflow-y: auto;
+            }
+            .left-card, .right-card {
+                margin-right: 0;
+                margin-bottom: 20px;
+            }
+            .media-container {
+                height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card left-card">
+            <!-- Add logo to the title -->
+            <div class="title-container">
+                <img src="images/logo.png" alt="Logo" class="title-logo">
+                <h2>MuleSoft AI Chain Capturer</h2>
+            </div>
+            <div class="media-container">
+                <video id="video" autoplay></video>
+                <img id="photo" alt="Captured Image" style="display:none;" />
+            </div>
+            <div class="controls-container">
+                <div class="input-container">
+                    <select id="style-select" class="style-select">
+                        <option value="marvel-heroes">Select a style...</option>
+                        <option value="realistic">Realistic</option>
+                        <option value="cartoon">Cartoon</option>
+                        <option value="sketch">Sketch</option>
+                        <option value="marvel-heroes">Marvel Style</option>
+                        <option value="simpson-style">Simpson</option>
+                        <option value="watercolor">Watercolor</option>
+                        <option value="pop-art">Pop Art</option>
+                        <option value="gray-scale">Gray Scale</option>
+                    </select>
+                </div>
+                <div class="button-container">
+                    <button id="capture" class="button">Capture</button>
+                    <button id="upload" class="button">Generate</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="card right-card">
+            <div class="title-container">
+                <img src="images/logo.png" alt="Logo" class="title-logo">
+                <h2>MuleSoft AI Chain Generation</h2>
+            </div>
+            <div class="image-card">
+                <img id="result-image" alt="Analysis Result" style="display: none;">
+                <p id="loading-message">Results will appear here after analysis.</p>
+                <button id="download-button" class="button" style="display: none;">Download Image</button>
+            </div>
+        </div>
+    </div>
+
+    <canvas id="canvas" style="display:none;"></canvas>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
