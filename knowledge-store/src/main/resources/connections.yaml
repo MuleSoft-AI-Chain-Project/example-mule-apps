@@ -1,7 +1,0 @@
-sftp:
-  embeddingWorkingDirectory: "/upload/embedding/"
-  knowledgeIngestionDirectory: "/upload/new/"
-  host: "TO_BE_REPLACED"
-  port: "TO_BE_REPLACED"
-  username: "TO_BE_REPLACED"
-  password: "TO_BE_REPLACED"
