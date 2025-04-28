@@ -13,11 +13,11 @@ http://www.mulesoft.org/schema/mule/ms-aichain http://www.mulesoft.org/schema/mu
 	</servicenow:config>
 	<os:object-store name="Object_store" doc:name="Object store" doc:id="e29bf0bf-61da-4719-9e06-231b4280f9e1" />
 	<configuration-properties doc:name="Configuration properties" doc:id="4bacfb03-c970-4dcd-9deb-657e25a356d8" file="connections.yaml" />
-	<ms-aichain:config name="MuleSoft_AI_Chain_Config" llmType="OPENAI" configType="Configuration Json" doc:name="MuleSoft AI Chain Config" doc:id="b258912c-5a94-4909-97c1-34f410f3b7f7" filePath='#[mule.home ++ "/apps/" ++ app.name ++ "/envVars.json"]' modelName="gpt-4"/>
+	<ms-aichain:config name="MuleSoft_AI_Chain_Config" llmType="AZURE_OPENAI" configType="Configuration Json" doc:name="MuleSoft AI Chain Config" doc:id="b258912c-5a94-4909-97c1-34f410f3b7f7" filePath='#[mule.home ++ "/apps/" ++ app.name ++ "/envVars.json"]' modelName="gpt-4"/>
 	<flow name="ServiceNow-AI-Summary-Sentiments" doc:id="50d07f4f-220e-40e7-9878-4354a8e088a3" >
 		<servicenow:new-or-updated-record-listener tableName="incident" doc:name="On New / Updated Record" doc:id="cd574cec-11a1-4b8b-8d61-72e2625d9645" config-ref="ServiceNow_Config" displaySystemRefs="ALL">
 			<scheduling-strategy >
-				<fixed-frequency />
+				<fixed-frequency frequency="10000"/>
 			</scheduling-strategy>
 		</servicenow:new-or-updated-record-listener>
 		<ee:transform doc:name="Transform to JSON" doc:id="56c32a5d-4d52-4155-945b-28c8ab2d468c" >
@@ -74,7 +74,8 @@ ns ns0 http://www.service-now.com/incident
 {
 	ns0#update: {
 		sys_id: vars.key,
-		u_ai_summary: payload
+		u_ai_summary: payload,
+		description: payload
 	}
 }
 ]]></ee:set-payload>
