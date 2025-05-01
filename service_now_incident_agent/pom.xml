@@ -44,12 +44,6 @@
 			<artifactId>jsoup</artifactId>
 			<version>1.16.1</version>
 		</dependency>
-<!-- 		<dependency>
-			<groupId>com.mule.mulechain</groupId>
-			<artifactId>mulechain-ai-connector</artifactId>
-			<version>0.2.29-SNAPSHOT</version>
-			<classifier>mule-plugin</classifier>
-		</dependency> -->
 		<dependency>
 			<groupId>org.mule.connectors</groupId>
 			<artifactId>mule-objectstore-connector</artifactId>

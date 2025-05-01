@@ -49,7 +49,6 @@ output application/json
 	title: vars.payload.short_description,
 	description: vars.payload.description,
 	comments: vars.payload.dv_comments_and_work_notes
-
 } ]]></ee:set-payload>
 					</ee:message>
 				</ee:transform>
