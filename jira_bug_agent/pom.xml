@@ -20,7 +20,6 @@
 				<version>3.2.0</version>
 			</plugin>
 			<!--  JSOUP DEPENDENCY -->
-			
 			<plugin>
 				<groupId>org.mule.tools.maven</groupId>
 				<artifactId>mule-maven-plugin</artifactId>
@@ -51,14 +50,13 @@
 			<artifactId>jsoup</artifactId>
 			<version>1.16.1</version>
 		</dependency>
-		
 		<dependency>
-			<groupId>com.mule.mulechain</groupId>
-			<artifactId>mulechain-ai-connector</artifactId>
-			<version>0.2.29-SNAPSHOT</version>
+			<groupId>com.mulesoft.connectors</groupId>
+			<artifactId>mule4-aichain-connector</artifactId>
+			<version>1.0.0</version>
 			<classifier>mule-plugin</classifier>
 		</dependency>
- 		<dependency>
+		<dependency>
 			<groupId>org.mule.modules</groupId>
 			<artifactId>mule-apikit-module</artifactId>
 			<version>1.10.3</version>
