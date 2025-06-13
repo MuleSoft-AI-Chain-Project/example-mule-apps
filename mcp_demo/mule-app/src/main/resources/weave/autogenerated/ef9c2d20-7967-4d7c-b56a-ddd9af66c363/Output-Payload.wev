@@ -1,0 +1,36 @@
+%dw 2.0
+
+type auto_ef9c2d20_7967_4d7c_b56a_ddd9af66c363_Output_Payload = {|
+  "0": org_mule_runtime_api_message_Message {"typeId": "org.mule.runtime.api.message.Message"}, 
+  "1": org_mule_runtime_api_message_Message_8 {"typeId": "org.mule.runtime.api.message.Message"}
+|}
+type org_mule_runtime_api_message_Message_8 = {| payload: Any |} {"typeId": "org.mule.runtime.api.message.Message"}
+
+
+type org_mule_runtime_api_message_Message = {|
+  payload: {
+    response?: String, 
+    _?: Any
+  }, 
+  attributes: com_mulesoft_connectors_internal_api_metadata_LLMResponseAttributes {"typeAlias": "LLMResponseAttributes",
+  "typeId": "com.mulesoft.connectors.internal.api.metadata.LLMResponseAttributes"}
+|} {"typeId": "org.mule.runtime.api.message.Message"}
+type com_mulesoft_connectors_internal_api_metadata_LLMResponseAttributes = {|
+  additionalAttributes?: { _?: String }, 
+  tokenUsage?: com_mulesoft_connectors_internal_api_metadata_TokenUsage {"typeAlias": "TokenUsage",
+  "typeId": "com.mulesoft.connectors.internal.api.metadata.TokenUsage"}
+|} {"typeAlias": "LLMResponseAttributes",
+"typeId": "com.mulesoft.connectors.internal.api.metadata.LLMResponseAttributes"}
+type com_mulesoft_connectors_internal_api_metadata_TokenUsage = {|
+  inputCount?: Number, 
+  outputCount?: Number, 
+  totalCount?: Number
+|} {"typeAlias": "TokenUsage",
+"typeId": "com.mulesoft.connectors.internal.api.metadata.TokenUsage"}
+
+
+
+
+
+
+
