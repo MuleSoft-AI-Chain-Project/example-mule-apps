@@ -1,0 +1,7 @@
+%dw 2.0
+
+type auto_76d7a961_764e_43d6_ab34_95ca7968d3bb_Output_Variables_planningPayload = {
+  response?: String, 
+  _?: Any
+}
+
