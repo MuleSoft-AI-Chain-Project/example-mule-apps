@@ -1,0 +1,596 @@
+<!-- Modal for viewing full agent response JSON -->
+<!-- (removed) -->
+<div class="chat-container">
+    <div class="chat-messages" id="chatMessages">
+        <div class="message agent-message">
+            Hello! I'm your Host Agent. How can I help you today?
+        </div>
+    </div>
+    <div class="input-group">
+        <input type="text" class="form-control" id="promptInput" placeholder="Type your message here..." aria-label="Your message">
+        <button class="btn btn-primary" id="sendButton">
+            <i class="fas fa-paper-plane"></i>
+        </button>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Add at the top of the script (or before window.attachConversationChat):
+    let typingIntervalId = null;
+    let websocket = null;
+    let currentReasoningUpdates = [];
+    let responseReasoningMap = new Map(); // Store reasoning updates for each response
+    
+    // Utility to load the shared session modal and script, and ensure no duplicates
+    function ensureSessionModalLoaded(callback) {
+        console.log('ensureSessionModalLoaded called');
+        const chatContainer = document.querySelector('.chat-container');
+        const modal = document.getElementById('interactionModal');
+        // Check if modal exists and is inside the correct container
+        if (modal && typeof window.renderInteractionModal === 'function') {
+            console.log('Modal already exists and function is available, calling callback');
+            callback();
+            return;
+        }
+        // Remove any existing modal and function to avoid stale state or wrong container
+        if (modal) { modal.remove(); console.log('Removed old modal'); }
+        if (window.renderInteractionModal) { delete window.renderInteractionModal; console.log('Deleted old renderInteractionModal'); }
+        fetch('/ui/interaction-modal.html')
+            .then(resp => resp.text())
+            .then(html => {
+                console.log('Fetched interaction-modal.html');
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = html;
+                // Append modal to chat container (or body as fallback)
+                const modalEl = tempDiv.querySelector('#interactionModal');
+                if (modalEl) {
+                    // Always append to document.body for proper Bootstrap modal styling
+                    document.body.appendChild(modalEl);
+                    console.log('Appended modal to document.body');
+                    setupModalFocusManagement(modalEl);
+                } else {
+                    console.warn('No modalEl found in fetched HTML');
+                }
+                // Execute the script if needed
+                const scriptTag = tempDiv.querySelector('script');
+                if (scriptTag) {
+                    const newScript = document.createElement('script');
+                    newScript.textContent = scriptTag.textContent;
+                    document.body.appendChild(newScript);
+                    document.body.removeChild(newScript);
+                    console.log('Executed modal script');
+                } else {
+                    console.warn('No script tag found in fetched HTML');
+                }
+                setTimeout(function() {
+                    console.log('Calling callback after modal/script load');
+                    callback();
+                }, 50);
+            })
+            .catch(err => {
+                console.error('Failed to load interaction-modal.html:', err);
+                alert('Could not load session modal.');
+            });
+    }
+    
+    function setupModalFocusManagement(modal) {
+        if (!modal) return;
+        // If the close button is not yet in the DOM, wait for it
+        let closeBtn = modal.querySelector('.btn-close');
+        if (!closeBtn) {
+            // Use MutationObserver to wait for the close button
+            const observer = new MutationObserver(() => {
+                closeBtn = modal.querySelector('.btn-close');
+                if (closeBtn) {
+                    closeBtn.addEventListener('click', function() {
+                        let focusTarget = document.querySelector('.sidebar .nav-link.active') || document.body;
+                        if (focusTarget) {
+                            focusTarget.focus();
+                            console.log('[Conversation] Focused safe element on close button click (observer)');
+                        }
+                    });
+                    observer.disconnect();
+                    console.log('[Conversation] Attached close button focus handler via MutationObserver');
+                }
+            });
+            observer.observe(modal, { childList: true, subtree: true });
+        } else {
+            closeBtn.addEventListener('click', function() {
+                let focusTarget = document.querySelector('.sidebar .nav-link.active') || document.body;
+                if (focusTarget) {
+                    focusTarget.focus();
+                    console.log('[Conversation] Focused safe element on close button click');
+                }
+            });
+            console.log('[Conversation] Attached close button focus handler immediately');
+        }
+        // Also move focus on hide.bs.modal (for other close methods)
+        modal.addEventListener('hide.bs.modal', function() {
+            let focusTarget = document.querySelector('.sidebar .nav-link.active') || document.body;
+            if (focusTarget) {
+                focusTarget.focus();
+                console.log('[Conversation] Focused safe element on modal hide');
+            }
+        });
+    }
+    
+    // Session ID logic for conversation
+    function generateUUID() {
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+            const r = Math.random() * 16 | 0;
+            const v = c == 'x' ? r : (r & 0x3 | 0x8);
+            return v.toString(16);
+        });
+    }
+    
+    // WebSocket connection management
+    function createWebSocketConnection(sessionId, messageHandler) {
+        // Close existing connection if any
+        if (websocket) {
+            websocket.close();
+            websocket = null;
+        }
+        
+        // Get user session ID from cookie
+        function getCookie(name) {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return parts.pop().split(';').shift();
+            return null;
+        }
+        
+        const userSessionId = getCookie('userSessionId');
+        const reasoningEngine = getCookie('reasoningEngine') || 'inference';
+        const useTrustLayer = reasoningEngine === 'einstein';
+        
+        // Create WebSocket URL with query parameters
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const wsUrl = new URL('/ws/prompt', window.location.origin.replace(/^https?:/, protocol));
+        wsUrl.searchParams.set('userSessionId', userSessionId || '');
+        wsUrl.searchParams.set('sessionId', sessionId);
+        wsUrl.searchParams.set('useTrustLayer', useTrustLayer.toString());
+        
+        console.log('Creating WebSocket connection to:', wsUrl.toString());
+        websocket = new WebSocket(wsUrl);
+        
+        websocket.onopen = function(event) {
+            console.log('WebSocket connection established');
+        };
+        
+        websocket.onmessage = messageHandler;
+        
+        websocket.onerror = function(error) {
+            console.error('WebSocket error:', error);
+            if (messageHandler) {
+                messageHandler({ data: JSON.stringify({ error: 'Connection error' }) });
+            }
+        };
+        
+        websocket.onclose = function(event) {
+            console.log('WebSocket connection closed:', event.code, event.reason);
+        };
+        
+        return websocket;
+    }
+    
+    function updateTypingMessageWithReasoning() {
+        const typingMsg = document.getElementById('typingMessage');
+        if (typingMsg) {
+            const reasoningText = currentReasoningUpdates.map(update => {
+                const timestamp = update.timestamp ? `[${update.timestamp}] ` : '';
+                return timestamp + update.content;
+            }).join('\n\n');
+            typingMsg.innerHTML = `<div class="reasoning-updates">${marked.parse(reasoningText)}</div>`;
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+    }
+    
+    // Attach chat logic for dynamic loading
+    window.attachConversationChat = function() {
+        // Always generate a new sessionId for each new conversation
+        let a2aSessionId = generateUUID();
+        const newConversationBtn = document.getElementById('newConversationBtn');
+        if (newConversationBtn) {
+            newConversationBtn.onclick = function() {
+                // Close existing WebSocket connection
+                if (websocket) {
+                    websocket.close();
+                    websocket = null;
+                }
+                
+                a2aSessionId = generateUUID();
+                currentReasoningUpdates = []; // Reset reasoning updates
+                responseReasoningMap.clear(); // Clear stored reasoning for previous responses
+                
+                // Optionally clear chat UI for a fresh start
+                const chatMessages = document.getElementById('chatMessages');
+                if (chatMessages) chatMessages.innerHTML = '<div class="message agent-message">Hello! I\'m your Host Agent. How can I help you today?</div>';
+                const promptInput = document.getElementById('promptInput');
+                if (promptInput) promptInput.value = '';
+                console.log('[Conversation] New sessionId generated:', a2aSessionId);
+            };
+        }
+        
+        const chatMessages = document.getElementById('chatMessages');
+        const promptInput = document.getElementById('promptInput');
+        const sendButton = document.getElementById('sendButton');
+        
+        // Remove any old modal on tab switch in
+        if (document.getElementById('interactionModal')) {
+            document.getElementById('interactionModal').remove();
+        }
+        
+        function addMessage(message, isUser = false, agentInfo = null, replaceTyping = false, responseId = null) {
+            if (replaceTyping) {
+                const typingMsg = document.getElementById('typingMessage');
+                if (typingMsg) {
+                    if (typingIntervalId) {
+                        clearInterval(typingIntervalId);
+                        typingIntervalId = null;
+                    }
+                    typingMsg.removeAttribute('id');
+                    typingMsg.className = 'message agent-message';
+                    typingMsg.innerHTML = marked.parse(message);
+                    
+                    // Add reasoning expand/collapse functionality for the last response
+                    if (responseId && responseReasoningMap.has(responseId)) {
+                        const reasoningUpdates = responseReasoningMap.get(responseId);
+                        if (reasoningUpdates.length > 0) {
+                            const reasoningContainer = document.createElement('div');
+                            reasoningContainer.className = 'reasoning-container';
+                            
+                            const reasoningToggle = document.createElement('button');
+                            reasoningToggle.className = 'btn btn-sm btn-outline-secondary reasoning-toggle';
+                            reasoningToggle.textContent = 'Show Chain of Thoughts';
+                            reasoningToggle.onclick = function() {
+                                const reasoningContent = reasoningContainer.querySelector('.reasoning-content');
+                                if (reasoningContent.style.display === 'none' || !reasoningContent.style.display) {
+                                    reasoningContent.style.display = 'block';
+                                    reasoningToggle.textContent = 'Hide Chain of Thoughts';
+                                } else {
+                                    reasoningContent.style.display = 'none';
+                                    reasoningToggle.textContent = 'Show Chain of Thoughts';
+                                }
+                            };
+                            
+                            const reasoningContent = document.createElement('div');
+                            reasoningContent.className = 'reasoning-content';
+                            reasoningContent.style.display = 'none';
+                            const reasoningText = reasoningUpdates.map(update => {
+                                const timestamp = update.timestamp ? `[${update.timestamp}] ` : '';
+                                return timestamp + update.content;
+                            }).join('\n\n');
+                            reasoningContent.innerHTML = `<div class="reasoning-updates">${marked.parse(reasoningText)}</div>`;
+                            
+                            reasoningContainer.appendChild(reasoningToggle);
+                            reasoningContainer.appendChild(reasoningContent);
+                            typingMsg.appendChild(reasoningContainer);
+                        }
+                    }
+                    
+                    // Pills logic (same as before)
+                    if (agentInfo) {
+                        const pillsContainer = document.createElement('div');
+                        pillsContainer.className = 'pills-container';
+                        let agentNames = [];
+                        if (Array.isArray(agentInfo.reasoning)) {
+                            agentInfo.reasoning.forEach(r => {
+                                if (Array.isArray(r.calledAgents)) {
+                                    r.calledAgents.forEach(a => {
+                                        if (a.agentName && !agentNames.includes(a.agentName)) {
+                                            agentNames.push(a.agentName);
+                                        }
+                                    });
+                                }
+                            });
+                        }
+                        if (agentNames.length === 0) {
+                            const noAgentPill = document.createElement('span');
+                            noAgentPill.className = 'agent-pill';
+                            noAgentPill.textContent = 'No Remote Agent Used';
+                            pillsContainer.appendChild(noAgentPill);
+                        } else {
+                            if (typeof agentInfo.replanCount !== 'undefined' && agentInfo.replanCount !== null) {
+                                const replanPill = document.createElement('span');
+                                replanPill.className = 'agent-pill green';
+                                replanPill.textContent = `Replan Count: ${agentInfo.replanCount}`;
+                                replanPill.style.cursor = 'pointer';
+                                replanPill.title = 'Click to view session details';
+                                replanPill.addEventListener('click', function(e) {
+                                    console.log('Green replan pill clicked, will load modal');
+                                    ensureSessionModalLoaded(function() {
+                                        console.log('ensureSessionModalLoaded callback, about to show modal');
+                                        if (typeof window.renderInteractionModal === 'function') {
+                                            window.renderInteractionModal(agentInfo);
+                                            let interactionModal = document.getElementById('interactionModal');
+                                            if (window.bootstrap && interactionModal) {
+                                                let interactionModalInstance = window.bootstrap.Modal.getOrCreateInstance(interactionModal);
+                                                interactionModalInstance.show();
+                                                console.log('Bootstrap modal shown');
+                                            } else if (interactionModal) {
+                                                interactionModal.classList.add('show');
+                                                interactionModal.style.display = 'block';
+                                                console.log('Fallback modal shown');
+                                            } else {
+                                                console.error('interactionModal not found in DOM after loading');
+                                            }
+                                        } else {
+                                            console.error('renderInteractionModal function is not available after loading modal.');
+                                            alert('Could not show session details.');
+                                        }
+                                    });
+                                });
+                                pillsContainer.appendChild(replanPill);
+                            }
+                            agentNames.forEach(name => {
+                                const agentPill = document.createElement('span');
+                                agentPill.className = 'agent-pill blue';
+                                agentPill.textContent = name;
+                                pillsContainer.appendChild(agentPill);
+                            });
+                        }
+                        typingMsg.appendChild(pillsContainer);
+                    }
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                    return;
+                }
+            }
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user-message' : 'agent-message'}`;
+            if (isUser) {
+                messageDiv.textContent = message;
+            } else {
+                messageDiv.innerHTML = marked.parse(message);
+                
+                // Add reasoning button for all agent responses if reasoning exists
+                if (responseId && responseReasoningMap.has(responseId)) {
+                    const reasoningUpdates = responseReasoningMap.get(responseId);
+                    if (reasoningUpdates.length > 0) {
+                        const reasoningContainer = document.createElement('div');
+                        reasoningContainer.className = 'reasoning-container';
+                        
+                        const reasoningToggle = document.createElement('button');
+                        reasoningToggle.className = 'btn btn-sm btn-outline-secondary reasoning-toggle';
+                        reasoningToggle.textContent = 'Show Chain of Thoughts';
+                        reasoningToggle.onclick = function() {
+                            const reasoningContent = reasoningContainer.querySelector('.reasoning-content');
+                            if (reasoningContent.style.display === 'none' || !reasoningContent.style.display) {
+                                reasoningContent.style.display = 'block';
+                                reasoningToggle.textContent = 'Hide Chain of Thoughts';
+                            } else {
+                                reasoningContent.style.display = 'none';
+                                reasoningToggle.textContent = 'Show Chain of Thoughts';
+                            }
+                        };
+                        
+                        const reasoningContent = document.createElement('div');
+                        reasoningContent.className = 'reasoning-content';
+                        reasoningContent.style.display = 'none';
+                        reasoningContent.innerHTML = `<div class="reasoning-updates">${marked.parse(reasoningUpdates.map(update => {
+                            const timestamp = update.timestamp ? `[${update.timestamp}] ` : '';
+                            return timestamp + update.content;
+                        }).join('\n\n'))}</div>`;
+                        
+                        reasoningContainer.appendChild(reasoningToggle);
+                        reasoningContainer.appendChild(reasoningContent);
+                        messageDiv.appendChild(reasoningContainer);
+                    }
+                }
+                
+                if (agentInfo) {
+                    const pillsContainer = document.createElement('div');
+                    pillsContainer.className = 'pills-container';
+                    let agentNames = [];
+                    if (Array.isArray(agentInfo.reasoning)) {
+                        agentInfo.reasoning.forEach(r => {
+                            if (Array.isArray(r.calledAgents)) {
+                                r.calledAgents.forEach(a => {
+                                    if (a.agentName && !agentNames.includes(a.agentName)) {
+                                        agentNames.push(a.agentName);
+                                    }
+                                });
+                            }
+                        });
+                    }
+                    if (agentNames.length === 0) {
+                        const noAgentPill = document.createElement('span');
+                        noAgentPill.className = 'agent-pill';
+                        noAgentPill.textContent = 'No Remote Agent Used';
+                        pillsContainer.appendChild(noAgentPill);
+                    } else {
+                        if (typeof agentInfo.replanCount !== 'undefined' && agentInfo.replanCount !== null) {
+                            const replanPill = document.createElement('span');
+                            replanPill.className = 'agent-pill green';
+                            replanPill.textContent = `Replan Count: ${agentInfo.replanCount}`;
+                            replanPill.style.cursor = 'pointer';
+                            replanPill.title = 'Click to view session details';
+                            replanPill.addEventListener('click', function(e) {
+                                console.log('Green replan pill clicked, will load modal');
+                                ensureSessionModalLoaded(function() {
+                                    console.log('ensureSessionModalLoaded callback, about to show modal');
+                                    if (typeof window.renderInteractionModal === 'function') {
+                                        window.renderInteractionModal(agentInfo);
+                                        let interactionModal = document.getElementById('interactionModal');
+                                        if (window.bootstrap && interactionModal) {
+                                            let interactionModalInstance = window.bootstrap.Modal.getOrCreateInstance(interactionModal);
+                                            interactionModalInstance.show();
+                                            console.log('Bootstrap modal shown');
+                                        } else if (interactionModal) {
+                                            interactionModal.classList.add('show');
+                                            interactionModal.style.display = 'block';
+                                            console.log('Fallback modal shown');
+                                        } else {
+                                            console.error('interactionModal not found in DOM after loading');
+                                        }
+                                    } else {
+                                        console.error('renderInteractionModal function is not available after loading modal.');
+                                        alert('Could not show session details.');
+                                    }
+                                });
+                            });
+                            pillsContainer.appendChild(replanPill);
+                        }
+                        agentNames.forEach(name => {
+                            const agentPill = document.createElement('span');
+                            agentPill.className = 'agent-pill blue';
+                            agentPill.textContent = name;
+                            pillsContainer.appendChild(agentPill);
+                        });
+                    }
+                    messageDiv.appendChild(pillsContainer);
+                }
+            }
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        
+        function addTypingMessage() {
+            // Remove any existing typing message and clear interval
+            const oldTyping = document.getElementById('typingMessage');
+            if (oldTyping) oldTyping.remove();
+            if (typingIntervalId) {
+                clearInterval(typingIntervalId);
+                typingIntervalId = null;
+            }
+            
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'message agent-message';
+            typingDiv.id = 'typingMessage';
+            typingDiv.innerHTML = '<div class="reasoning-updates">Agent is thinking...</div>';
+            chatMessages.appendChild(typingDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        
+        function sendPromptMessage(prompt) {
+            const message = JSON.stringify({ prompt: prompt });
+            console.log('Sending WebSocket message:', message);
+            websocket.send(message);
+        }
+        
+        async function sendPrompt() {
+            const prompt = promptInput.value.trim();
+            if (!prompt) return;
+            
+            addMessage(prompt, true);
+            promptInput.value = '';
+            addTypingMessage();
+            
+            // Reset reasoning updates for new prompt
+            currentReasoningUpdates = [];
+            
+            // Create WebSocket connection if not exists
+            if (!websocket || websocket.readyState !== WebSocket.OPEN) {
+                createWebSocketConnection(a2aSessionId, function(event) {
+                    if (event.data) {
+                        try {
+                            const data = JSON.parse(event.data);
+                            console.log('WebSocket message received:', data);
+                            
+                            if (data.type === 'update') {
+                                // Handle reasoning update
+                                const updateObj = {
+                                    content: data.content,
+                                    timestamp: data.timestamp || new Date().toISOString()
+                                };
+                                currentReasoningUpdates.push(updateObj);
+                                updateTypingMessageWithReasoning();
+                                // Ensure scrolling to bottom for each reasoning update
+                                const chatMessages = document.getElementById('chatMessages');
+                                if (chatMessages) {
+                                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                                }
+                            } else if (data.response) {
+                                // Handle final response (when type is not present or not 'update')
+                                // Store reasoning updates for this response
+                                const responseId = generateUUID();
+                                responseReasoningMap.set(responseId, [...currentReasoningUpdates]);
+                                addMessage(data.response, false, data, true, responseId);
+                                
+                                // Store session in localStorage with timestamp and interactionId
+                                const sessionHistory = JSON.parse(localStorage.getItem('agent_sessions') || '[]');
+                                sessionHistory.push({
+                                    interactionId: generateUUID(),
+                                    timestamp: new Date().toISOString(),
+                                    data: data
+                                });
+                                localStorage.setItem('agent_sessions', JSON.stringify(sessionHistory));
+                                
+                                currentReasoningUpdates = []; // Reset for next conversation
+                            }
+                        } catch (error) {
+                            console.error('Error parsing WebSocket message:', error);
+                        }
+                    }
+                });
+                
+                // Wait for connection to be established
+                if (websocket.readyState === WebSocket.CONNECTING) {
+                    websocket.onopen = function() {
+                        console.log('WebSocket opened, sending message');
+                        sendPromptMessage(prompt);
+                    };
+                } else if (websocket.readyState === WebSocket.OPEN) {
+                    console.log('WebSocket already open, sending message');
+                    sendPromptMessage(prompt);
+                } else {
+                    console.error('WebSocket is not in a valid state:', websocket.readyState);
+                    addMessage('Sorry, there was an error with the connection.', false, null, true);
+                }
+            } else {
+                console.log('WebSocket already connected, sending message');
+                sendPromptMessage(prompt);
+            }
+        }
+        
+        sendButton.addEventListener('click', sendPrompt);
+        promptInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendPrompt();
+            }
+        });
+    }
+    
+    // Remove modal from DOM when leaving the Conversation tab
+    window.removeConversationSessionModal = function() {
+        const modal = document.getElementById('interactionModal');
+        if (modal) {
+            // Set inert before hiding/removing
+            modal.setAttribute('inert', '');
+            console.log('[Conversation] Set inert attribute on modal before hiding');
+            // Move focus to a safe element outside the modal
+            let focusTarget = document.querySelector('.sidebar .nav-link.active') || document.body;
+            if (focusTarget) {
+                focusTarget.focus();
+                console.log('[Conversation] Focused safe element before hiding modal');
+            }
+            setTimeout(function() {
+                if (window.bootstrap) {
+                    let modalInstance = window.bootstrap.Modal.getOrCreateInstance(modal);
+                    modal.addEventListener('hidden.bs.modal', function handler() {
+                        modal.removeEventListener('hidden.bs.modal', handler);
+                        modal.remove();
+                        console.log('[Conversation] Removed interactionModal from DOM after hidden');
+                        if (window.renderInteractionModal) {
+                            delete window.renderInteractionModal;
+                            console.log('[Conversation] Deleted window.renderInteractionModal');
+                        }
+                    });
+                    modalInstance.hide();
+                    console.log('[Conversation] Called Bootstrap modalInstance.hide()');
+                } else {
+                    modal.remove();
+                    console.log('[Conversation] Removed interactionModal from DOM (no bootstrap)');
+                    if (window.renderInteractionModal) {
+                        delete window.renderInteractionModal;
+                        console.log('[Conversation] Deleted window.renderInteractionModal');
+                    }
+                }
+            }, 30); // 30ms delay to allow focus to move
+        } else if (window.renderInteractionModal) {
+            delete window.renderInteractionModal;
+            console.log('[Conversation] Deleted window.renderInteractionModal (no modal)');
+        }
+    }
+</script> 

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:a2a="http://www.mulesoft.org/schema/mule/a2a"
+	xmlns:ms-agentforce="http://www.mulesoft.org/schema/mule/ms-agentforce" xmlns:os="http://www.mulesoft.org/schema/mule/os"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+http://www.mulesoft.org/schema/mule/ms-agentforce http://www.mulesoft.org/schema/mule/ms-agentforce/current/mule-ms-agentforce.xsd
+http://www.mulesoft.org/schema/mule/a2a http://www.mulesoft.org/schema/mule/a2a/current/mule-a2a.xsd">
+
+	<http:listener-config name="A2A_Agent_HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="3f71b76d-1183-47af-89a4-fcc5028b26b1" >
+		<http:listener-connection host="0.0.0.0" port="8081" readTimeout="30000000">
+		</http:listener-connection>
+		<http:listener-interceptors >
+			<http:cors-interceptor >
+				<http:origins >
+					<http:public-resource />
+				</http:origins>
+			</http:cors-interceptor>
+		</http:listener-interceptors>
+   	</http:listener-config>
+	<a2a:server-config name="Agentforce_Agent_A2A_Server" doc:name="A2A Server" doc:id="4cdfa0c3-37ea-4123-8ff2-3585521c8bd2" >
+		<a2a:connection listenerConfig="A2A_Agent_HTTP_Listener_config" agentPath="/agentforce-agent" />
+		<a2a:card name="${agent.name}" url="${agent.host}/agentforce-agent" version="1.0.0" >
+			<a2a:description ><![CDATA[${agent.description}]]></a2a:description>
+			<a2a:skills >
+				<a2a:agent-skill id="${agent.skill.1.id}" name="${agent.skill.1.name}" >
+					<a2a:description ><![CDATA[${agent.skill.1.description}]]></a2a:description>
+					<a2a:tags >
+						<a2a:tag value="reservation" />
+					</a2a:tags>
+				</a2a:agent-skill>
+			</a2a:skills>
+		</a2a:card>
+	</a2a:server-config>
+	<ms-agentforce:config name="Agentforce_Configuration" doc:name="Agentforce Configuration" doc:id="222bda12-075f-45b7-81ce-459f092b5853" >
+		<ms-agentforce:oauth-client-credentials-connection >
+			<ms-agentforce:oauth-client-credentials clientId="${salesforce.clientId}" clientSecret="${salesforce.clientSecret}" tokenUrl="${salesforce.tokenUrl}" />
+		</ms-agentforce:oauth-client-credentials-connection>
+	</ms-agentforce:config>
+	<os:object-store name="Object_store" doc:name="Object store" doc:id="55f823d0-6eae-4fdc-9963-f5291b337362" />
+	<configuration-properties doc:name="Configuration properties" doc:id="c22a398a-4706-4e93-a1b9-11a396f8d2e5" file="config.properties" />
+	
+</mule>

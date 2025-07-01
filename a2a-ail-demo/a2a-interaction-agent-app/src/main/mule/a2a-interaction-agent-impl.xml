@@ -1,0 +1,607 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:websocket="http://www.mulesoft.org/schema/mule/websocket" xmlns:ms-einstein-ai="http://www.mulesoft.org/schema/mule/ms-einstein-ai"
+	xmlns:mac-inference="http://www.mulesoft.org/schema/mule/mac-inference"
+	xmlns:mcp="http://www.mulesoft.org/schema/mule/mcp" xmlns:os="http://www.mulesoft.org/schema/mule/os" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:a2a="http://www.mulesoft.org/schema/mule/a2a" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/a2a http://www.mulesoft.org/schema/mule/a2a/current/mule-a2a.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+http://www.mulesoft.org/schema/mule/mcp http://www.mulesoft.org/schema/mule/mcp/current/mule-mcp.xsd
+http://www.mulesoft.org/schema/mule/mac-inference http://www.mulesoft.org/schema/mule/mac-inference/current/mule-mac-inference.xsd
+http://www.mulesoft.org/schema/mule/ms-einstein-ai http://www.mulesoft.org/schema/mule/ms-einstein-ai/current/mule-ms-einstein-ai.xsd
+http://www.mulesoft.org/schema/mule/websocket http://www.mulesoft.org/schema/mule/websocket/current/mule-websocket.xsd">
+	<sub-flow name="answer-prompt-flow" doc:id="4dfc37d6-652e-430c-8ce8-ff8942eec870" >
+		<logger level="INFO" doc:name="❓Log user prompt ❓" doc:id="94db756a-591c-4e6f-9506-4877875eb0c3" message='#[%dw 2.0
+output text
+---
+"\n\n" ++
+"❓❓❓❓❓️️ --------------------------  User Prompt -------------------------- ❓❓❓❓❓️\n\n" ++
+(payload.prompt default "") ++ "\n" ++
+"\n❓❓❓❓❓️️ ------------------------------------------------------------------ ❓❓❓❓❓️" ++
+"\n\n"]' />
+		<flow-ref doc:name="set-and-initialise-vars" doc:id="7a8bd844-f364-4586-8489-1b20c0d42fe3" name="set-and-initialise-vars" />
+		<choice doc:name="🧠 Choose if trust layer should be used for planning and reasoning 🧠" doc:id="a51cd7c6-607c-4645-bd0a-9d689068bff9">
+			<when expression="#[vars.useTrustLayer == true]">
+				<logger level="INFO" doc:name="🧱 Use trust layer through einstein connector 🧱" doc:id="9e3bbc5a-195e-41ca-a49a-9c620cc3b013" message='#[%dw 2.0
+output text
+---
+"\n\n" ++
+"🧱🧱🧱🧱🧱🧱️️ --------------------------  Einstein Trust Layer ----------------------- 🧱🧱🧱🧱🧱🧱\n" ++
+"\nHost/Interaction agent will be powered by Einstein to leverage trust layer\n" ++ 
+"\n🧱🧱🧱🧱🧱🧱️️ ---------------------------------------------------------------------- 🧱🧱🧱🧱🧱🧱️" ++
+"\n\n"]' />
+				<flow-ref doc:name="process-user-query-with-einstein" doc:id="b3e186ac-4cc9-49ac-bc43-bd82d98bbb52" name="process-user-query-with-einstein" />
+			</when>
+			<otherwise>
+				<logger level="INFO" doc:name="🔌 Use inference connector 🔌" doc:id="093e5c10-f453-4ea0-8778-aec157e401ef" message='#[%dw 2.0
+output text
+---
+"\n\n" ++
+"🔌🔌🔌🔌🔌🔌️️ --------------------------  Inference Connector ----------------------- 🔌🔌🔌🔌🔌🔌\n" ++
+"\nHost/Interaction agent will be powered by Inference Connector\n" ++ 
+"\n🔌🔌🔌🔌🔌🔌️️ ---------------------------------------------------------------------- 🔌🔌🔌🔌🔌🔌️" ++
+"\n\n"]' />
+				<flow-ref doc:name="Use inference connector fro planning" doc:id="c5c6e9fc-0673-4bed-8e38-c70688478132" name="process-user-query-with-inference" />
+			</otherwise>
+		</choice>
+		<ee:transform doc:name="Prepare response" doc:id="bd1a1aca-327d-423c-8ed8-a3d35abecead">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+(payload default {}) ++ 
+{ sessionId: vars.sessionId} ++
+{ reasoningEngine: if (vars.useTrustLayer default false) "einstein" else "inference" } ++
+{ agents: if (vars.agentUsed default false) "used" else "not used" } ++ 
+{ replanCount: (vars.replanCount default 0)} ++
+{ reasoning: vars.chainsOfThoughts }]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="❗️Response ❗️" doc:id="554dec17-9dc3-4824-8057-28a380722f99" message='#[%dw 2.0
+output text
+---
+"\n\n" ++
+"❗️❗️❗️❗️❗️️ --------------------------  Response -------------------------- ❗️❗️❗️❗️❗️\n\n" ++
+(payload.response default "") ++ "\n" ++
+"\n❗️❗️❗️❗️❗️️ -------------------------------------------------------------- ❗️❗️❗️❗️❗️" ++
+"\n\n"]' />
+	</sub-flow>
+	<sub-flow name="set-and-initialise-vars" doc:id="48abd551-7eb5-4b2e-8e63-ba9b7697f603">
+		<set-variable value="#[%dw 2.0&#10;output application/json&#10;---&#10;if (attributes.queryParams.&quot;sessionId&quot; == '' or attributes.queryParams.&quot;sessionId&quot; == null) uuid() else attributes.queryParams.&quot;sessionId&quot;]" doc:name="Set sessionId with sessionID header" doc:id="d6d0e0bc-e3a2-4c68-9ec7-092beff280c2" variableName="sessionId"/>
+		<set-variable value="#[(payload as Object).prompt as String]" doc:name="Set userPrompt with payload.prompt" doc:id="c0dec21e-3afe-41c6-ad9e-3774fad668ee" variableName="userPrompt" />
+		<set-variable value='#[""]' doc:name="Intialise taskHistory" doc:id="fd632a81-a1c5-4d3c-9f1e-6e741863a309" variableName="taskHistory" />
+		<set-variable value="#[[]]" doc:name="Initialise chainsOfThoughts" doc:id="c6f42a73-fe14-4722-8ec7-05b34a2d2127" variableName="chainsOfThoughts" />
+		<set-variable value='#[{"agents":  []}]' doc:name="Intialise selectedAgents" doc:id="eef193c9-c66e-4238-96bf-eb11785baf1c" variableName="selectedAgents" />
+		<set-variable value="#[false]" doc:name="Set agentUsed to false" doc:id="21e2aaae-1956-426b-a00c-4a538cb7ad8d" variableName="agentUsed"/>
+		<set-variable value="0" doc:name="Initialise replanCount to 0" doc:id="f6a15461-02da-493c-8731-500a153fcfbe" variableName="replanCount"/>
+		<set-variable value="#[if (attributes.queryParams.&quot;useTrustLayer&quot; == '' or attributes.queryParams.&quot;useTrustLayer&quot; == null) false else attributes.queryParams.&quot;useTrustLayer&quot; as Boolean]" doc:name="Set useTrustLayer with useTrustLayer header" doc:id="0791022a-9648-4cf7-8c87-beaf8708c732" variableName="useTrustLayer"/>
+		<flow-ref doc:name="get-a2a-agents-cards" doc:id="1d812b6f-3d27-4c70-a43f-41de336b0366" name="get-a2a-agents-cards" />
+	</sub-flow>
+	<sub-flow name="process-user-query-with-inference" doc:id="789e2ae7-630e-48ad-9bdb-47dea98d86dd">
+		<scatter-gather doc:name="Scatter-Gather" doc:id="90a5b527-4fd4-4798-9818-6d1e3aa7bcd2" >
+			<route >
+				<mac-inference:agent-define-prompt-template doc:name="Evaluate if agent calls are required." doc:id="136ebd3b-8c96-4cfc-83f5-466481f8fe35" config-ref="MuleSoft_Inference_Text_generation_config">
+			<mac-inference:template><![CDATA[You are a orchestration agent. You anser user queries and if needed you can hand off tasks to specialized agents.]]></mac-inference:template>
+			<mac-inference:instructions><![CDATA[Objective:
+Determine if additional agent calls are required to fulfill the user query or if the query can be answered directly without specialized agents.
+
+Task:
+- Analyze the user query, available agents, agents already called, and tasks executed via agent calls.
+- Decide whether further agent calls are needed or if the query can be answered directly.
+- Respond using the specified JSON schema.
+
+- JSON Schema:
+    {
+      "response": String,
+      "needAgents": Boolean
+    }
+
+Rules for Agent Call Decision:
+(1) Direct Response Criteria:
+- If the query is generic (e.g., greetings or simple questions), answer directly without agents.
+- If all required tasks have been successfully executed by agents, answer based on those results.
+(2) Agent Call Criteria:
+- If the query requires one or more available agents that have not been called, indicate an agent call is needed.
+(3) Error Handling:
+- If an error during a task execution prevents fulfilling the request, mention a generic issue (e.g., "Sorry, there was a problem completing the task") in the response.
+(4) Avoid technical details about the error.
+- Do not mention errors for ongoing tasks that do not prevent fulfilling the request.
+(5) Response Guidelines:
+- If answering directly, provide a straightforward response without phrases like "I'm here to help!"
+- Base the response on successfully executed agent tasks, if applicable.
+
+(6) Output Logic:
+(a) Case 1: Agent Call Required
+- If one or more available agents need to be called:
+    {
+      "response": "",
+      "needAgents": true
+    }
+
+(b) Case 2: No Agent Call Required
+- If no agents are available or no further agents are needed:
+- Set "response" to the answer for the user, based on successfully executed agent tasks or direct knowledge.
+- Set "needAgents" to false.
+- If an error prevents fulfilling the request, include a generic error message in "response".
+  {
+    "response": "response to send back to the user",
+    "needAgents": false
+  }]]></mac-inference:instructions>
+			<mac-inference:data><![CDATA[#["Users query: " ++ (vars.userPrompt as String) ++ 
+", Available agents: " ++ write(vars.agents.tools, "application/json") ++ 
+", Already called agents: " ++ write(vars.selectedAgents.tools, "application/json") ++ 
+", Task executed through called agents: " ++ (vars.taskHistory as String)]]]></mac-inference:data>
+		</mac-inference:agent-define-prompt-template>
+				<set-variable value="#[%dw 2.0
+output application/json
+var raw = payload.response as String
+var cleaned = raw replace '```json' with '' replace '```' with ''
+---
+(read(trim(cleaned), 'application/json'))]" doc:name="Set queryAssessment" doc:id="ff1d9871-00d2-4a10-a49e-9967a7130889" variableName="queryAssessment" />
+				<logger level="INFO" doc:name="🔎 Query Assessment 🔎" doc:id="43ac1507-5691-41e1-82c3-c2c019061834" message='#[%dw 2.0
+output text
+---
+"\n\n" ++
+"🔎🔎🔎🔎🔎️️ --------------------------  Query Assessment ----------------------- 🔎🔎🔎🔎🔎️\n" ++
+"Agents : \n" ++ 
+write(vars.queryAssessment, "application/json") ++ 
+"\n 🔎🔎🔎🔎🔎️️ ---------------------------------------------------------------------- 🔎🔎🔎🔎🔎️" ++
+"\n\n"]' />
+			</route>
+			<route >
+				<mac-inference:tools-native-template doc:name="[Tools] Native Template (Reasoning only)" doc:id="7ea552c0-7068-46da-ac20-31d3eb95a6e6" config-ref="MuleSoft_Inference_Text_generation_config">
+					<mac-inference:template><![CDATA[You are an orchestration agent reasoning on agents to be called.]]></mac-inference:template>
+					<mac-inference:instructions><![CDATA[Your Goals:
+- Analyze the user query and the list of available tools provided in the data. 
+- Each tool represent an agent providing multiple skills.
+
+Your Tasks:
+- Assess the users query and complete task by task,
+- Identify which tools (agents) are required to fulfill the user's request,
+- Consider the agentTaskRequest and agentTaskResponse in the section 'Already Called Agents (results)',
+- Not every tool is possible to be called at once,
+- Make use of 'Available specialised agents' to complete the tasks.
+- If there is a question in the agentTaskResponse within the section 'Already Called Agents (results)', don't call any tools,
+
+Your Guardrails
+- Don't call a tool with the same prompt, if it is already in 'agentTaskRequest' of the section 'Already Called Agents (results)',
+- Don't change the context of prompt,
+- Don't add '.' at the end of the prompts,
+- Don't make the same call with the same prompt again to an agent,]]></mac-inference:instructions>
+					<mac-inference:data><![CDATA[#["Users query: " ++ (vars.userPrompt as String) ++ 
+", Tasks executed by called agents: " ++ (vars.taskHistory as String) ++ 
+", Available specialised agents: " ++ write(vars.agents.tools, "application/json") ++
+", Already Called Agents (results): " ++ write(vars.calledAgents, "application/json")]]]></mac-inference:data>
+					<mac-inference:tools><![CDATA[#[vars.agents.tools]]]></mac-inference:tools>
+				</mac-inference:tools-native-template>
+				<set-variable value="#[payload]" doc:name="Set selectedAgents" doc:id="a1fd1796-9242-49e0-81ee-9962b03da5fa" variableName="selectedAgents" />
+				<logger level="INFO" doc:name="🛠️ Agents reasoning 🛠️" doc:id="6dc6b7b5-11b4-4126-a370-97fd64429775" message='#[%dw 2.0
+output text
+---
+"\n\n" ++
+"🛠️🛠️🛠️🛠️🛠️️ --------------------------  Agent Reasoning -------------------------- 🛠️🛠️🛠️🛠️🛠️\n" ++
+"Agents : \n" ++ 
+write(vars.selectedAgents, "application/json") ++ 
+"\n 🛠️🛠️🛠️🛠️🛠️️ ---------------------------------------------------------------------- 🛠️🛠️🛠️🛠️🛠️" ++
+"\n\n"]' />
+			</route>
+		</scatter-gather>
+		<choice doc:name="Choice" doc:id="eb628d95-c0e3-4f70-a3ba-950063c932df" >
+			<when expression="#[(sizeOf(vars.selectedAgents.tools default []) &gt; 0) and vars.queryAssessment.needAgents]">
+				<set-variable value="#[true]" doc:name="Set agentUsed" doc:id="cd0689ea-0cc7-4d79-a6ea-e393aa29e8cb" variableName="agentUsed" />
+				<set-variable value="#[[]]" doc:name="Empty calledAgents" doc:id="9238dbf7-12bf-4f79-9d61-e4001f798e36" variableName="calledAgents" />
+				<parallel-foreach doc:name="Parallel For Each" doc:id="d1855f3b-dc20-4aa7-87b9-6afbcda3fc74" collection="#[vars.selectedAgents.tools]">
+							<set-variable value="#[payload]" doc:name="Set selectedAgent" doc:id="e610d0ac-e77e-48b1-abdc-a78546f13094" variableName="selectedAgent"/>
+					<flow-ref doc:name="send-task" doc:id="1bc962f6-168b-4a5e-9c32-cfa9c3657d65" name="send-task-refactored"/>
+						</parallel-foreach>
+				<set-variable value="#[%dw 2.0
+output application/json
+---
+(vars.calledAgents default []) ++ payload.payload]" doc:name="Add to calledAgents" doc:id="742fdbf9-baf9-4681-b46e-88fc6126c8d5" variableName="calledAgents" />
+				<set-variable value='#[%dw 2.0 
+output text/plain 
+
+var taskResponses = (payload.payload..agentTaskResponse map (item) -&gt; write(item, "application/json")) joinBy "\n\n"
+
+--- 
+(vars.taskHistory default "") ++ taskResponses  ++ "/n/n"]' doc:name="Add to taskHistory" doc:id="5386209a-4a57-47f8-be1c-401c620ec03d" variableName="taskHistory" />
+				<set-variable value="#[%dw 2.0
+output application/json
+---
+(vars.chainsOfThoughts default []) ++ [{
+    &quot;cotId&quot;: now() as String {format: &quot;yyyy-MM-dd'T'HH:mm:ss.SSSZ&quot;},
+    &quot;calledAgents&quot;: vars.calledAgents default []
+}]]" doc:name="Set COT" doc:id="23210025-2588-48ee-a27c-be59b2f5979a" variableName="chainsOfThoughts" />
+				<flow-ref doc:name="replan-process-user-query" doc:id="d7252563-ba93-47c1-a749-150c2e8957d2" name="replan-process-user-query-with-inference"/>
+			</when>
+			<otherwise>
+				<set-variable value="#[%dw 2.0
+output application/json
+---
+(vars.chainsOfThoughts default []) ++ [{
+    &quot;cotId&quot;: now() as String {format: &quot;yyyy-MM-dd'T'HH:mm:ss.SSSZ&quot;},
+    &quot;calledAgents&quot;: []
+}]]" doc:name="Set COT" doc:id="c5e15a0c-529b-4206-8624-13c8988087e2" variableName="chainsOfThoughts" />
+				<set-payload value='#[%dw 2.0
+output application/json
+---
+if (vars.queryAssessment.response != null and !isEmpty(vars.queryAssessment.response)) 
+  { response: vars.queryAssessment.response } 
+else 
+  { response: vars.selectedAgents.response default "" }]' doc:name="Set Response as Payload" doc:id="160d8eaf-16fb-4cc1-b244-97ff8c0aa315" />
+			</otherwise>
+		</choice>
+	</sub-flow>
+	<sub-flow name="replan-process-user-query-with-inference" doc:id="f9aede31-f660-444b-ac10-8c67e0c42c99" >
+		<choice doc:name="Choice" doc:id="84b3c79f-008e-4dfd-8e49-3ce200790d2c">
+			<when expression="#[(vars.replanCount default 0) &lt; 10]">
+				<set-variable value="#[(vars.replanCount default 0) + 1]" doc:name="replanCount" doc:id="469f008e-1220-48b0-b321-69dde7fd9e56" variableName="replanCount" />
+				<flow-ref doc:name="process-user-query (replan)" doc:id="a483a0fb-b7a5-4e82-add3-3bea237eeb52" name="process-user-query-with-inference" />
+			</when>
+			<otherwise>
+				<mac-inference:agent-define-prompt-template doc:name="Answer query" doc:id="7a73336d-ddcd-4d76-bd83-46f6a4b6e0f1" config-ref="MuleSoft_Inference_Text_generation_config" >
+					<mac-inference:template ><![CDATA[You are a planner agent.]]></mac-inference:template>
+					<mac-inference:instructions ><![CDATA[You went through maximum number of iterations trying to call agents, please respond to answer the users question based on the agent calls done so far. 
+You have to consider the agent calls, and reply as if you have done the job and offer assistant in future. 
+Base your answer on the task executed with success and not on any ongoing one.
+Let the user know if you faced any error while executing a task, but mention a generic problem nothing to technical.
+Dont say things like 'I'm here to help with your question!' or 'I'm here to help!', answer straight ]]></mac-inference:instructions>
+					<mac-inference:data ><![CDATA[#["Users query: " ++ (vars.userPrompt as String) ++ 
+", Already called agents: " ++ write(vars.selectedAgents.tools, "application/json") ++ 
+", Task executed through called agents: " ++ (vars.taskHistory as String)]]]></mac-inference:data>
+				</mac-inference:agent-define-prompt-template>
+				<ee:transform doc:name="Transform Message" doc:id="0a781826-2147-498f-abb9-9392b45dc809" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+var raw = payload.response as String
+var cleaned = raw replace '```json' with '' replace '```' with ''
+---
+(read(trim(cleaned), 'application/json'))]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</otherwise>
+		</choice>
+	</sub-flow>
+	<sub-flow name="process-user-query-with-einstein" doc:id="26bd7026-d43e-43ea-8a7e-a1348ad6ede7" >
+		<scatter-gather doc:name="Scatter-Gather" doc:id="094f171e-163e-4836-bd75-b6a5d4a5287e" >
+			<route >
+				<ms-einstein-ai:agent-define-prompt-template doc:id="eb9d0407-0a88-4194-b1c9-5c61ea8545a9" config-ref="Einstein_AI" modelApiName="sfdc_ai__DefaultOpenAIGPT4OmniMini" doc:name="Evaluate if agent calls are required" >
+					<ms-einstein-ai:template ><![CDATA[You are a orchestration agent. You answer user queries and if needed you can hand off tasks to specialized agents.]]></ms-einstein-ai:template>
+					<ms-einstein-ai:instructions ><![CDATA[Objective:
+Determine if additional agent calls are required to fulfill the user query or if the query can be answered directly without specialized agents.
+
+Task:
+- Analyze the user query, available agents, agents already called, and tasks executed via agent calls.
+- Decide whether further agent calls are needed or if the query can be answered directly.
+- Always check if available agents are better suited to answer the query.
+- Respond using the specified JSON schema.
+- Observe 'Task executed through called agents' to not make same calls again.
+- If there is a question in the agentTaskResponse within the section 'Already Called Agents', don't call any tools,
+
+- JSON Schema:
+    {
+      "response": String,
+      "needAgents": Boolean
+    }
+
+Rules for Agent Call Decision:
+(1) Direct Response Criteria:
+- If the query is generic (e.g., greetings or simple questions), answer directly without agents.
+- If all required tasks have been successfully executed by agents, answer based on those results.
+(2) Agent Call Criteria:
+- If the query requires one or more available agents that have not been called, indicate an agent call is needed.
+(3) Error Handling:
+- If an error during a task execution prevents fulfilling the request, mention a generic issue (e.g., "Sorry, there was a problem completing the task") in the response.
+- If no agents are available but need to fulfill the request, reply with "No specialised agents available at this moment to process your query".
+(4) Avoid technical details about the error.
+- Do not mention errors for ongoing tasks that do not prevent fulfilling the request.
+(5) Response Guidelines:
+- If answering directly, provide a straightforward response without phrases like "I'm here to help!"
+- Base the response on successfully executed agent tasks, if applicable.
+
+(6) Output Logic:
+(a) Case 1: Agent Call Required
+- If one or more available agents need to be called:
+    {
+      "response": "",
+      "needAgents": true
+    }
+
+(b) Case 2: No Agent Call Required
+- If no agents are available or no further agents are needed:
+- Set "response" to the answer for the user, based on successfully executed agent tasks or direct knowledge.
+- Set "needAgents" to false.
+- If an error prevents fulfilling the request, include a generic error message in "response".
+  {
+    "response": "response to send back to the user",
+    "needAgents": false
+  }]]></ms-einstein-ai:instructions>
+					<ms-einstein-ai:dataset ><![CDATA[#["Users query: " ++ (vars.userPrompt as String) ++ 
+", Available agents: " ++ write(vars.agents.tools, "application/json") ++ 
+", Already called agents: " ++ write(vars.selectedAgents.tools, "application/json") ++ 
+", Task executed through called agents: " ++ (vars.taskHistory as String)]]]></ms-einstein-ai:dataset>
+				</ms-einstein-ai:agent-define-prompt-template>
+				<set-variable value="#[%dw 2.0
+output application/json
+var raw = payload.response as String
+var cleaned = raw replace '```json' with '' replace '```' with ''
+---
+(read(trim(cleaned), 'application/json'))]" doc:name="Set queryAssessment" doc:id="4210d8b6-346b-4e69-b933-85b087fc459c" variableName="queryAssessment" />
+				<logger level="INFO" doc:name="🔎 Query Assessment 🔎" doc:id="08400d10-7ed8-4ba6-80eb-a8da35cf8e27" message='#[%dw 2.0
+output text
+---
+"\n\n" ++
+"🔎🔎🔎🔎🔎️️ --------------------------  Query Assessment ----------------------- 🔎🔎🔎🔎🔎️\n" ++
+"Agents : \n" ++ 
+write(vars.queryAssessment, "application/json") ++ 
+"\n 🔎🔎🔎🔎🔎️️ ---------------------------------------------------------------------- 🔎🔎🔎🔎🔎️" ++
+"\n\n"]' />
+			</route>
+			<route >
+				<ms-einstein-ai:agent-define-prompt-template doc:id="18576ab8-acf8-4d03-8602-e7b5ec8b8ade" config-ref="Einstein_AI" modelApiName="sfdc_ai__DefaultOpenAIGPT4OmniMini" doc:name="Tool Template" >
+					<ms-einstein-ai:template ><![CDATA[You are an orchestration agent reasoning on agents to be called.
+
+Your Goals:
+- Analyze the user query and the list of available tools provided in the data. 
+- Each tool represent an agent providing multiple skills.
+
+Your Tasks:
+- Assess the users query and complete task by task,
+- Identify which tools (agents) are required to fulfill the user's request,
+- Consider the agentTaskRequest and agentTaskResponse in the section 'Already Called Agents (results)',
+- Not every tool is possible to be called at once,
+- Make use of 'Available specialised agents' to complete the tasks.
+- If there is a question in the agentTaskResponse within the section 'Already Called Agents (results)', don't call any tools,
+
+Your Guardrails
+- Don't call a tool with the same prompt, if it is already in 'agentTaskRequest' of the section 'Already Called Agents (results)',
+- Don't change the context of prompt,
+- Don't add '.' at the end of the prompts,
+- Don't make the same call with the same prompt again to an agent
+- Only select from 'Available specialised agents', don't make up tools.
+]]></ms-einstein-ai:template>
+					<ms-einstein-ai:instructions ><![CDATA[#["Users query: " ++ (vars.userPrompt as String) ++ 
+", Tasks executed by called agents: " ++ (vars.taskHistory as String) ++ 
+", Available specialised agents: " ++ write(vars.agents.tools, "application/json") ++
+", Already Called Agents (results): " ++ write(vars.calledAgents, "application/json")]]]></ms-einstein-ai:instructions>
+					<ms-einstein-ai:dataset ><![CDATA[#["If tools are needed, then reply only with a json the tools needed from here: " ++ write(vars.agents.tools, "application/json")
+++ ". respond only with a valid JSON object matching this schema: " ++ "{\"tools\":[{\"function\":{\"name\":\"<name-of-tool>\",\"arguments\":{\"prompt\":\"<user-prompt>\"}}}]}"
+++ ". Make sure to provide the name and arguments according to the json schema and don't change the format. Only select from 'Available specialised agents', don't make up tools. if the section 'Available specialised agents' is empty no tools are available. 
+"]]]></ms-einstein-ai:dataset>
+				</ms-einstein-ai:agent-define-prompt-template>
+				<set-variable value="#[%dw 2.0
+output application/json
+var raw = payload.response as String
+var cleaned = raw replace '```json' with '' replace '```' with ''
+---
+(read(trim(cleaned), 'application/json'))]" doc:name="Set selectedAgents" doc:id="4287c214-4b8c-4a01-85af-2ccc34d745a6" variableName="selectedAgents" />
+				<logger level="INFO" doc:name="🛠️ Agents reasoning 🛠️" doc:id="f4ce19ac-6983-4e20-92f1-72e5563ae465" message='#[%dw 2.0
+output text
+---
+"\n\n" ++
+"🛠️🛠️🛠️🛠️🛠️️ --------------------------  Agent Reasoning -------------------------- 🛠️🛠️🛠️🛠️🛠️\n" ++
+"Agents : \n" ++ 
+write(vars.selectedAgents, "application/json") ++ 
+"\n 🛠️🛠️🛠️🛠️🛠️️ ---------------------------------------------------------------------- 🛠️🛠️🛠️🛠️🛠️" ++
+"\n\n"]' />
+			</route>
+		</scatter-gather>
+		<choice doc:name="Choice" doc:id="b71a26e9-d5cf-4af1-b923-5bdb99c9df95" >
+			<when expression="#[(sizeOf(vars.selectedAgents.tools default []) &gt; 0) and vars.queryAssessment.needAgents]" >
+				<set-variable value="#[true]" doc:name="Set agentUsed" doc:id="7a405058-fcf7-4177-9580-1a1f2e8c2909" variableName="agentUsed" />
+				<set-variable value="#[[]]" doc:name="Empty calledAgents" doc:id="c7acba5f-fca9-400d-a9f8-eb4fc83979eb" variableName="calledAgents" />
+				<parallel-foreach doc:name="Parallel For Each" doc:id="45341d72-ab34-4c11-a49e-f7ed6d0dfc88" collection="#[vars.selectedAgents.tools]" >
+					<set-variable value="#[payload]" doc:name="Set selectedAgent" doc:id="28f1a267-4253-4f02-a8fd-a652f593cb58" variableName="selectedAgent" />
+					<flow-ref doc:name="send-task" doc:id="f79e08b8-68d5-43d4-8cbf-12ded0e3ce92" name="send-task-refactored" />
+				</parallel-foreach>
+				<set-variable value="#[%dw 2.0
+output application/json
+---
+(vars.calledAgents default []) ++ payload.payload]" doc:name="Add to calledAgents" doc:id="58c5fc14-185d-4074-b59d-74a4bddaf716" variableName="calledAgents" />
+				<set-variable value='#[%dw 2.0 
+output text/plain 
+
+var taskResponses = (payload.payload..agentTaskResponse map (item) -&gt; write(item, "application/json")) joinBy "\n\n"
+
+--- 
+(vars.taskHistory default "") ++ taskResponses  ++ "/n/n"]' doc:name="Add to taskHistory" doc:id="d7504c86-1850-41e3-bfe0-06bf33636b70" variableName="taskHistory" />
+				<set-variable value="#[%dw 2.0
+output application/json
+---
+(vars.chainsOfThoughts default []) ++ [{
+    &quot;cotId&quot;: now() as String {format: &quot;yyyy-MM-dd'T'HH:mm:ss.SSSZ&quot;},
+    &quot;calledAgents&quot;: vars.calledAgents default []
+}]]" doc:name="Set COT" doc:id="f0bc4586-aa83-4823-af35-c3fc6e9e946b" variableName="chainsOfThoughts" />
+				<flow-ref doc:name="replan-process-user-query" doc:id="a7a4ef37-e2b1-4a2e-8109-be4ef0158d20" name="replan-process-user-query-with-einstein" />
+			</when>
+			<otherwise >
+				<set-variable value="#[%dw 2.0
+output application/json
+---
+(vars.chainsOfThoughts default []) ++ [{
+    &quot;cotId&quot;: now() as String {format: &quot;yyyy-MM-dd'T'HH:mm:ss.SSSZ&quot;},
+    &quot;calledAgents&quot;: []
+}]]" doc:name="Set COT" doc:id="b8b61d9a-274f-42cf-9f5e-c25a822c3411" variableName="chainsOfThoughts" />
+				<set-payload value='#[%dw 2.0
+output application/json
+---
+if (vars.queryAssessment.response != null and !isEmpty(vars.queryAssessment.response)) 
+  { response: vars.queryAssessment.response } 
+else 
+  { response: vars.selectedAgents.response default "" }]' doc:name="Set Response as Payload" doc:id="83f0159c-579f-434c-a514-6caef15bc816" />
+			</otherwise>
+		</choice>
+	</sub-flow>
+	<sub-flow name="replan-process-user-query-with-einstein" doc:id="0d64f529-d29b-43d2-a6c6-dee4662b5bcd">
+		<choice doc:name="Choice" doc:id="6bb2aff1-c5a8-4096-8e83-6a289a4de1e1">
+			<when expression="#[(vars.replanCount default 0) &lt; 10]">
+				<set-variable value="#[(vars.replanCount default 0) + 1]" doc:name="replanCount" doc:id="fbcb9512-ae06-4420-9de5-48a037fb7377" variableName="replanCount" />
+				<flow-ref doc:name="process-user-query (replan)" doc:id="edf1d140-b36d-4856-bde5-fb9e741d17b2" name="process-user-query-with-einstein" />
+			</when>
+			<otherwise>
+				<ms-einstein-ai:agent-define-prompt-template doc:id="ad3c6e35-edb3-4e29-a4f5-40fbbfd3b824" config-ref="Einstein_AI" modelApiName="sfdc_ai__DefaultOpenAIGPT4OmniMini" doc:name="Formulate Answer">
+					<ms-einstein-ai:template><![CDATA[You are a planner agent.]]></ms-einstein-ai:template>
+					<ms-einstein-ai:instructions><![CDATA[You went through maximum number of iterations trying to call agents, please respond to answer the users question based on the agent calls done so far. 
+You have to consider the agent calls, and reply as if you have done the job and offer assistant in future. 
+Base your answer on the task executed with success and not on any ongoing one.
+If there are questions which requires user input, mention it in your answer. 
+Let the user know if you faced any error while executing a task, but mention a generic problem nothing to technical.
+Dont say things like 'I'm here to help with your question!' or 'I'm here to help!', answer straight ]]></ms-einstein-ai:instructions>
+					<ms-einstein-ai:dataset><![CDATA[#["Users query: " ++ (vars.userPrompt as String) ++ 
+", Already called agents: " ++ write(vars.selectedAgents.tools, "application/json") ++ 
+", Task executed through called agents: " ++ (vars.taskHistory as String)]]]></ms-einstein-ai:dataset>
+				</ms-einstein-ai:agent-define-prompt-template>
+				<ee:transform doc:name="Transform Message" doc:id="a6c1bf27-f03d-4db4-bcf7-444b26205ba3">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+var raw = payload.response as String
+var cleaned = raw replace '```json' with '' replace '```' with ''
+---
+(read(trim(cleaned), 'application/json'))]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</otherwise>
+		</choice>
+	</sub-flow>
+	<sub-flow name="send-task-refactored" doc:id="4be1e4ea-9f9d-4c85-b834-6b2ae7e343a8">
+		<set-variable value="#[%dw 2.0
+output text/plain
+---
+vars.selectedAgent.function.arguments.prompt]" doc:name="agentPrompt" doc:id="c4e079c8-8a08-4bd4-97e1-ebade15cf212" variableName="agentPrompt" />
+		<set-variable value="#[%dw 2.0
+output text/plain
+---
+vars.selectedAgent.function.name]" doc:name="agentToCall" doc:id="fac35a9b-eacf-41ce-ac18-1b758b119c1f" variableName="agentToCall" />
+		<set-variable value='#[%dw 2.0
+output text/plain
+---
+(
+    read(
+        ((vars.agents.tools filter (item) -&gt; 
+                item.function.name == vars.agentToCall))
+        [0].function.description default "", 
+        "application/json"
+    ) as Object
+).agentName as String]' doc:name="Set agentToCallDisplayName" doc:id="2efbb23d-6407-4b4d-8bdc-86fa9d37825f" variableName="agentToCallDisplayName" />
+		<try doc:name="Try send update over socket" doc:id="7b070b92-acfe-4759-95b5-e80633652bde" >
+			<set-variable value='#[output text
+---
+"Asking agent **" ++ 
+(vars.agentToCallDisplayName default "") ++ 
+"**: \"" ++ (vars.agentPrompt default "") ++ "\""]' doc:name="Set socketMessageContent" doc:id="aa4c24b9-07cc-487d-b862-eb9e2c7da8e2" variableName="socketMessageContent"/>
+			<flow-ref doc:name="send-update-over-socket-connection" doc:id="e68b0ceb-93bf-4269-bb39-0b9664b47d6e" name="send-update-over-socket-connection" target="socketSendMessageResponse" targetValue="#[null]"/>
+			<error-handler >
+				<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="61926938-f84d-4eb6-85fd-c5e02e718105" >
+					<logger level="WARN" doc:name="Log error sending update over socket" doc:id="21c4340f-4a7a-486e-89e7-4a065c7488f1" message="Error sending update over socket."/>
+				</on-error-continue>
+			</error-handler>
+		</try>
+		<os:retrieve doc:name="Retrieve url by agent name and set vars.agentUrl" doc:id="bdbe709c-28e5-4012-ab35-6c179cfda5c9" key='#[(vars.userSessionId default "") ++ "-agent-url-" ++ (vars.agentToCall as String)]' objectStore="Object_store" />
+		<set-variable value="#[%dw 2.0
+output text
+---
+payload]" doc:name="agentUrl" doc:id="52bda8cb-caed-4c7f-b06a-83f2743e0b13" variableName="agentUrl" />
+		<ee:transform doc:name="Transform Message" doc:id="0f914f47-f198-41b5-bc2d-15cb27670e24">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"id": uuid(),
+	"sessionId": vars.sessionId,
+	"message": {
+		"parts": [
+			{
+				"text": vars.agentPrompt as String
+			}
+		]
+	}
+}
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="📤 Agent send task request 📤" doc:id="3f482a69-6865-48d4-b7e2-1c4cc3826aa5" message='#[%dw 2.0
+output text
+---
+"\n\n" ++
+"📤📤📤📤📤️️ --------------------------  Task Request -------------------------- 📤📤📤📤📤️\n" ++
+"Agent " ++ (vars.agentToCall as String default "") ++ " (" ++ (vars.agentUrl  as String default "missing URL") ++ ")\n" ++
+"Send task request: \n" ++ 
+write(payload default {}, "application/json") ++ "\n" ++
+"\n📤📤📤📤📤️️ ----------------------------------------------------------------- 📤📤📤📤📤️" ++
+"\n\n"]' />
+		<set-variable value="#[payload]" doc:name="agentTaskRequest" doc:id="ba04a953-36c4-4498-a546-d9c1ec94ae8e" variableName="agentTaskRequest" />
+		<try doc:name="Try" doc:id="6cbc4b95-43c1-443d-a18e-3080b331b786">
+			<a2a:send-task doc:name="Send task to {agentToCall} Agent" doc:id="5eac269a-6344-427e-a624-703cb29dabc4" config-ref="A2A_Client" />
+			<try doc:name="Try send update over socket" doc:id="47de575d-ead3-4dd4-9f0e-73e81c1dbb82" >
+				<set-variable value='#[output text
+---
+"Collecting response from agent **" ++ 
+(vars.agentToCallDisplayName default "") ++ 
+"**: \"" ++ (payload.artifacts[0].parts[0].text as String default "") ++ "\""]' doc:name="Set socketMessageContent" doc:id="7dde1e8d-1eb5-4b5e-ad5c-98da4fef9fac" variableName="socketMessageContent" />
+				<flow-ref doc:name="send-update-over-socket-connection" doc:id="361b0c7f-1b66-473e-ba1f-8ecc6263a94c" name="send-update-over-socket-connection" target="socketSendMessageResponse" targetValue="#[null]" />
+				<error-handler >
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="c5fe8a15-173d-44ec-bbf3-499542a94ff3" >
+						<logger level="WARN" doc:name="Log error sending update over socket" doc:id="41a77909-8944-4319-9db5-9e425cdccb73" message="Error sending update over socket." />
+					</on-error-continue>
+				</error-handler>
+			</try>
+			<error-handler>
+				<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="c3d0e146-5718-40bc-ac7f-4101d0a3e863">
+					<set-payload value='#[%dw 2.0
+output application/json
+---
+{
+	status: "error",
+	errorMessage: error.errorMessage,
+	detailedDescription: error.detailedDescription
+}]' doc:name="Set Payload" doc:id="02568e47-7091-4b56-a79d-dca23055fcd8" />
+				</on-error-continue>
+			</error-handler>
+		</try>
+		<logger level="INFO" doc:name="📞 Agent send task response 📞" doc:id="8f6c9237-7532-4818-9c86-7a28cab98678" message='#[%dw 2.0
+output text
+---
+"\n\n" ++
+"📞📞📞📞📞️️ --------------------------  Task Response -------------------------- 📞📞📞📞📞️\n" ++
+"Agent " ++ vars.agentToCall ++ " send task response: \n" ++ 
+write(payload, "application/json") ++ "\n" ++
+"\n📞📞📞📞📞️️ -------------------------------------------------------------------- 📞📞📞📞📞️" ++
+"\n\n"]' />
+		<ee:transform doc:name="set agent task execution details" doc:id="4f853030-0619-4295-8e11-4e1c8b0b381f">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	agentName: vars.agentToCallDisplayName, 
+	agentAPIName: vars.agentToCall,
+	planNumber: (vars.replanCount default 0) + 1,
+	agentTaskRequest: vars.agentTaskRequest,
+	agentTaskResponse: payload
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+	<sub-flow name="send-update-over-socket-connection" doc:id="60503e18-94fa-491a-aa65-e6c419ab4740" >
+		<choice doc:name="Send update over socket connection if any" doc:id="0a56cea2-2eec-46d8-be94-593db11a7f0b" >
+			<when expression='#[vars.socketId != null and vars.socketId != ""]' >
+				<websocket:send doc:name="Send update..." doc:id="c7e36ad6-e48e-4ebb-874e-e9f4f2dbf748" config-ref="WebSockets_Config" socketId="#[vars.socketId]" >
+					<websocket:content ><![CDATA[#[output text
+var socketMessage =
+	{
+		"content": vars.socketMessageContent,
+		"sender": "agent",
+		"type": "update",
+		"timestamp": now() as String {format: "yyyy-MM-dd'T'HH:mm:ss.SSSXXX"}
+	}
+---
+write(socketMessage, "application/json")]]]></websocket:content>
+				</websocket:send>
+			</when>
+		</choice>
+	</sub-flow>
+</mule>

@@ -13,6 +13,13 @@ pom.xml.next
 release.properties
 dependency-reduced-pom.xml
 
+# Anypoint Studio
+.metadata/
+.mule/
+.sfdx/
+.tooling*/
+weave/
+
 # MuleSoft
 .mule/
 .mule/plugins/
