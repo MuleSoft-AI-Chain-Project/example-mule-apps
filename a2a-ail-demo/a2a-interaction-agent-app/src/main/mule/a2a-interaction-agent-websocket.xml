@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:os="http://www.mulesoft.org/schema/mule/os"
+	xmlns:websocket="http://www.mulesoft.org/schema/mule/websocket" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/websocket http://www.mulesoft.org/schema/mule/websocket/current/mule-websocket.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<flow name="on-new-inbound-connection-flow" doc:id="21732549-ed3d-4641-a6fb-08184fefc326" >
+		<websocket:on-inbound-connection doc:id="25e7e121-ba26-49ff-8acc-2dd23c95082d" config-ref="WebSockets_Config" path="/ws/prompt" doc:name="On New Inbound Connection" />
+		<set-variable value='#[attributes.queryParams.userSessionId default ""]' doc:name="Set userSessionId" doc:id="6bee03ee-42fe-4bd5-be00-2d834f5c567a" variableName="userSessionId" />
+		<os:contains doc:name="Contains" doc:id="89f8c5b9-57f8-4121-9106-c36f96424ac7" key='#[(vars.userSessionId default "") ++ "-webSocketConnectedId"]' objectStore="Object_store" target="webSocketConnected" />
+		<choice doc:name="Choice" doc:id="39c52798-1b12-44c4-9597-db0584243ab6" >
+			<when expression="#[vars.webSocketConnected]" >
+				<os:retrieve doc:name="Retrieve" doc:id="a3d10030-253c-4623-b402-6903c45e97c2" key='#[(vars.userSessionId default "") ++ "-webSocketConnectedId"]' objectStore="Object_store" target="webSocketConnectedId" />
+				<websocket:close-socket doc:id="a3dc5704-cf6a-4b0c-af89-8a398cbfd055" config-ref="WebSockets_Config" socketId="#[attributes.socketId]" reason="Sorry, spot taken" doc:name="Close socket" />
+			</when>
+			<otherwise >
+				<os:store doc:name="Store" doc:id="8035f977-a923-4a7f-a024-50f8631a352d" key='#[(vars.userSessionId default "") ++ "-webSocketConnectedId"]' objectStore="Object_store" >
+					<os:value ><![CDATA[#[attributes.socketId]]]></os:value>
+				</os:store>
+			</otherwise>
+		</choice>
+	</flow>
+	<flow name="on-socket-closed-flow" doc:id="27855b89-add9-4200-8f7d-6850d4f43169" >
+		<websocket:on-socket-closed doc:id="13b52ee2-404d-4cac-9c5a-c69b2af1c0fa" config-ref="WebSockets_Config" path="/ws/prompt" doc:name="On Socket Closed" />
+		<set-variable value='#[attributes.queryParams.userSessionId default ""]' doc:name="Set userSessionId" doc:id="139475ea-f758-4c8b-bf2e-2c39afa5d084" variableName="userSessionId" />
+		<os:retrieve doc:name="Retrieve" doc:id="e9a7d1d8-c219-446b-8ea8-aaea4de1c199" key='#[(vars.userSessionId default "") ++ "-webSocketConnectedId"]' objectStore="Object_store" target="webSocketConnectedId" />
+		<choice doc:name="Choice" doc:id="2d23dbff-0170-4253-9d54-4d9f890ec0a1" >
+			<when expression="#[attributes.socketId == vars.webSocketConnectedId]" >
+				<os:remove doc:name="Remove" doc:id="b6925b19-c25b-4ee0-91f7-32a4579b5fc0" key='#[(vars.userSessionId default "") ++ "-webSocketConnectedId"]' objectStore="Object_store" />
+			</when>
+		</choice>
+	</flow>
+	<flow name="close-websocket-flow" doc:id="e96adb4b-f00c-42ac-9df3-ec07548d7752" >
+		<os:contains doc:name="Contains" doc:id="be50dde1-472e-4769-9b1f-e0f124e8f1e7" key='#[(vars.userSessionId default "") ++ "-webSocketConnectedId"]' objectStore="Object_store" target="webSocketConnected" />
+		<choice doc:name="Choice" doc:id="8b659a8a-0381-45a9-8f94-8dea7ba30f74" >
+			<when expression="#[vars.webSocketConnected]" >
+				<os:retrieve doc:name="Retrieve" doc:id="b746657a-1f4c-4a54-8c43-da84f90fe4e9" key='#[(vars.userSessionId default "") ++ "-webSocketConnectedId"]' objectStore="Object_store" target="webSocketConnectedId" />
+				<websocket:close-socket doc:id="27d7830b-749b-43ee-b9f2-a214f10987f7" config-ref="WebSockets_Config" socketId="#[vars.webSocketConnectedId]" reason="Producer app wanted to close the websocket" doc:name="Close socket" />
+			</when>
+		</choice>
+	</flow>
+	<flow name="on-new-inbound-message-flow" doc:id="4e686910-b208-4121-93d4-2a49bd3126ee" >
+		<websocket:inbound-listener doc:id="cca12c55-8c07-4b91-b9ff-280daef2deb8" config-ref="WebSockets_Config" path="/ws/prompt" doc:name="On New Inbound Message" />
+		<set-variable value="#[attributes.socketId]" doc:name="Set socketId" doc:id="c39c4d57-82e0-4cdc-a3cc-5a7d544c7531" variableName="socketId" />
+		<logger level="INFO" doc:name="Log WebSocket message" doc:id="12639622-6008-42c8-a185-7ccdd5cb4bb5" message="#[output application/json&#10;		---&#10;		{&#10;			info: 'New message received from [' ++ attributes.socketId ++ ']',&#10;			payload : payload&#10;		}]" />
+		<ee:transform doc:name="Parse JSON" doc:id="2c959aa4-3208-410a-9300-74cb8e9bc5a1" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json	
+---
+read(payload, "application/json")]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<flow-ref doc:name="Flow Reference" doc:id="351b2236-5cf3-4f07-aa6a-6760ca3b525d" name="answer-prompt-flow"/>
+		<websocket:send doc:name="Send" doc:id="0aa23e17-ef05-4119-b978-2206cd9378de" config-ref="WebSockets_Config" socketId="#[vars.socketId]"/>
+	</flow>
+</mule>

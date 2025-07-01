@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:websocket="http://www.mulesoft.org/schema/mule/websocket" xmlns:ms-einstein-ai="http://www.mulesoft.org/schema/mule/ms-einstein-ai"
+	xmlns:mac-inference="http://www.mulesoft.org/schema/mule/mac-inference"
+	xmlns:mcp="http://www.mulesoft.org/schema/mule/mcp" xmlns:os="http://www.mulesoft.org/schema/mule/os" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:a2a="http://www.mulesoft.org/schema/mule/a2a" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/a2a http://www.mulesoft.org/schema/mule/a2a/current/mule-a2a.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+http://www.mulesoft.org/schema/mule/mcp http://www.mulesoft.org/schema/mule/mcp/current/mule-mcp.xsd
+http://www.mulesoft.org/schema/mule/mac-inference http://www.mulesoft.org/schema/mule/mac-inference/current/mule-mac-inference.xsd
+http://www.mulesoft.org/schema/mule/ms-einstein-ai http://www.mulesoft.org/schema/mule/ms-einstein-ai/current/mule-ms-einstein-ai.xsd
+http://www.mulesoft.org/schema/mule/websocket http://www.mulesoft.org/schema/mule/websocket/current/mule-websocket.xsd">
+	<!-- <a2a:client-config name="A2A_Client_ERP" doc:name="A2A Client" doc:id="6d5d3081-e17e-46f3-8326-b5aa6ed80086" >
+		<a2a:client-connection serverUrl="${agent.erp.url}" requestTimeout="${agent.erp.timeout}"/>
+	</a2a:client-config> -->
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="2dc4eaf0-2a75-451b-8204-55d099f2d5f5" >
+		<http:listener-connection host="0.0.0.0" port="${http.port}" />
+		<http:listener-interceptors >
+			<http:cors-interceptor >
+				<http:origins >
+					<http:public-resource />
+				</http:origins>
+			</http:cors-interceptor>
+		</http:listener-interceptors>
+	</http:listener-config>
+	<!-- <a2a:client-config name="A2A_Client_Agentforce" doc:name="A2A Client" doc:id="45aafae8-c140-406a-809f-a8ee0f1a0fc6" >
+		<a2a:client-connection serverUrl="${agent.agentforce.url}" requestTimeout="${agent.agentforce.timeout}"/>
+	</a2a:client-config>
+	<a2a:client-config name="A2A_Client_CRM" doc:name="A2A Client" doc:id="23a2ee35-273a-4c3c-a195-e0f5637ca104" >
+		<a2a:client-connection serverUrl="${agent.crm.url}" requestTimeout="${agent.crm.timeout}"/>
+	</a2a:client-config>
+	<a2a:client-config name="A2A_Client_Einstein" doc:name="A2A Client" doc:id="bd3cc05c-7e7a-46b2-a5ca-4ab66bae914f" >
+		<a2a:client-connection serverUrl="${agent.einstein.url}" requestTimeout="${agent.einstein.timeout}"/>
+	</a2a:client-config> -->
+	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="25405d11-7b16-4925-8be7-168fb677743c" />
+	<os:object-store name="Object_store" doc:name="Object store" doc:id="f8a7612a-47cb-4e1a-abf0-8acd61904c5b" persistent="false"/>
+	<mac-inference:text-generation-config name="MuleSoft_Inference_Text_generation_config" doc:name="MuleSoft Inference Text generation config" doc:id="92ed977e-07a1-4c84-9ce3-3fb23ace28c6" >
+		<mac-inference:llm-connection inferenceType="OPENAI" modelName="${openai.model}" apiKey="${openai.apikey}" maxTokens="${openai.maxToken}"/>
+	</mac-inference:text-generation-config>
+	<configuration-properties doc:name="Configuration properties" doc:id="6d86e7e5-a6b8-4e0a-b7b8-5a053649db54" file="config.properties" />
+	<a2a:client-config name="A2A_Client" doc:name="A2A Client" doc:id="8a9fffe5-1981-4bad-9dc2-2324810b36de" >
+		<a2a:client-connection serverUrl="#[vars.agentUrl]" requestTimeout="${agent.general.timeout}"/>
+	</a2a:client-config>
+	<ms-einstein-ai:config name="Einstein_AI" doc:name="Einstein AI Configuration" doc:id="a9b3d80c-cc8b-4151-aa75-0e26894f7f0a" >
+		<ms-einstein-ai:oauth-client-credentials-connection >
+			<ms-einstein-ai:oauth-client-credentials clientId="${salesforce.clientId}" clientSecret="${salesforce.clientSecret}" tokenUrl="${salesforce.tokenUrl}" />
+		</ms-einstein-ai:oauth-client-credentials-connection>
+	</ms-einstein-ai:config>
+	<websocket:config name="WebSockets_Config" doc:name="WebSockets Config" doc:id="d589e427-90c9-4973-820b-0298f357f7da" >
+		<websocket:connection >
+			<websocket:server-settings listenerConfig="HTTP_Listener_config" />
+			<websocket:client-settings />
+		</websocket:connection>
+	</websocket:config>
+</mule>
