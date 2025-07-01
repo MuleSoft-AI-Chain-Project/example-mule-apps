@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:a2a="http://www.mulesoft.org/schema/mule/a2a"
-	xmlns:mac-inference="http://www.mulesoft.org/schema/mule/mac-inference" xmlns:http="http://www.mulesoft.org/schema/mule/http"
-	xmlns="http://www.mulesoft.org/schema/mule/core"
-	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+<mule xmlns:mcp="http://www.mulesoft.org/schema/mule/mcp"
+	xmlns:a2a="http://www.mulesoft.org/schema/mule/a2a" xmlns:mac-inference="http://www.mulesoft.org/schema/mule/mac-inference"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/mac-inference http://www.mulesoft.org/schema/mule/mac-inference/current/mule-mac-inference.xsd
-http://www.mulesoft.org/schema/mule/a2a http://www.mulesoft.org/schema/mule/a2a/current/mule-a2a.xsd">
+http://www.mulesoft.org/schema/mule/a2a http://www.mulesoft.org/schema/mule/a2a/current/mule-a2a.xsd
+http://www.mulesoft.org/schema/mule/mcp http://www.mulesoft.org/schema/mule/mcp/current/mule-mcp.xsd">
 
 	<http:listener-config name="A2A_CRM_Agent_HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="bcdea437-7a94-4d5f-abf5-2175862130ed" >
 		<http:listener-connection host="0.0.0.0" port="${http.port}" readTimeout="30000000"/>
@@ -19,8 +20,8 @@ http://www.mulesoft.org/schema/mule/a2a http://www.mulesoft.org/schema/mule/a2a/
 		</http:listener-interceptors>
 	</http:listener-config>
 	
-	<mac-inference:text-generation-config name="GENERAL" doc:name="MuleSoft Inference Text generation config" doc:id="053811e6-106e-47b9-9f60-ab3da0355181" >
-		<mac-inference:openai-connection mcpSseServers="#[vars.mcpservers]" openAIModelName="${openai.model}" maxTokens="${openai.maxToken}" apiKey="${openai.apikey}"/>
+	<mac-inference:text-generation-config name="GENERAL" doc:name="MuleSoft Inference Text generation config" doc:id="053811e6-106e-47b9-9f60-ab3da0355181">
+		<mac-inference:llm-connection inferenceType="OPENAI" apiKey="${openai.apikey}" modelName="${openai.model}" maxTokens="${openai.maxToken}"/>
 	</mac-inference:text-generation-config>
 	<configuration-properties doc:name="Configuration properties" doc:id="badfa291-b7da-486d-b4c2-1e381b9e7b11" file="config.properties" />
 	<a2a:server-config name="CRM_Agent_A2A_Server" doc:name="A2A Server" doc:id="179ff933-a0b0-40d4-bc9b-36ee2d897de6" >
@@ -52,4 +53,7 @@ http://www.mulesoft.org/schema/mule/a2a http://www.mulesoft.org/schema/mule/a2a/
 			</a2a:skills>
 		</a2a:card>
 	</a2a:server-config>
+	<mcp:client-config name="MCP_Client" doc:name="MCP Client" doc:id="82db141b-63f2-4fc9-9147-0d529b179213" clientName="Mule MCP COnnector" clientVersion="1.0.0" >
+		<mcp:streamable-http-client-connection serverUrl="${mcpserver.crm.url}"/>
+	</mcp:client-config>
 </mule>
