@@ -1,0 +1,743 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
+	xmlns:mac-inference="http://www.mulesoft.org/schema/mule/mac-inference" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:tls="http://www.mulesoft.org/schema/mule/tls"
+	xmlns:mcp="http://www.mulesoft.org/schema/mule/mcp" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/mcp http://www.mulesoft.org/schema/mule/mcp/current/mule-mcp.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/mac-inference http://www.mulesoft.org/schema/mule/mac-inference/current/mule-mac-inference.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="20157671-8272-43f7-b9d4-c43bf2850e91" >
+		<http:listener-connection host="0.0.0.0" port="${http.port}" readTimeout="60000">
+		</http:listener-connection>
+		<http:listener-interceptors >
+			<http:cors-interceptor >
+				<http:origins >
+					<http:public-resource />
+				</http:origins>
+			</http:cors-interceptor>
+		</http:listener-interceptors>
+   	</http:listener-config>
+	<mcp:server-config name="MCP_Server_SSE" doc:name="MCP Server" doc:id="015cb09b-cafb-4a2d-a205-c51b137c854b" serverName="mcp-mule-server" serverVersion="1.0.0" >
+		<mcp:sse-server-connection listenerConfig="HTTP_Listener_config" />
+	</mcp:server-config>
+	<mcp:server-config name="MCP_Server_Streamable" doc:name="MCP Server" doc:id="0d8c5e5f-d59b-464d-90ae-865fe0038462" serverName="mule-mcp-server" serverVersion="1.0.0" >
+		<mcp:streamable-http-server-connection listenerConfig="HTTP_Listener_config" />
+	</mcp:server-config>
+	<configuration-properties doc:name="Configuration properties" doc:id="d5c154f8-3e3f-4296-bcf4-a5511a967d05" file="config.properties" />
+	<salesforce:sfdc-config name="Salesforce_Config" doc:name="Salesforce Config" doc:id="6e9d3e98-b6e8-491f-8ffa-5361d44d2310" >
+		<salesforce:basic-connection username="${salesforce.username}" password="${salesforce.password}"/>
+	</salesforce:sfdc-config>
+	<flow name="get-accounts-sse" doc:id="62a0bb5a-dbb8-4bd9-9d68-d80da61069f5" >
+		<mcp:tool-listener doc:name="SSE Get Accounts" doc:id="10f38323-0493-4e66-9d71-e3f71f10087e" config-ref="MCP_Server_SSE" name="get_accounts">
+			<mcp:description ><![CDATA[Enables retrieval of account information from a connected CRM system by specifying either a list of account unique identifiers (IDs) or a single name filter. 
+If a list of IDs is provided, the tool returns all matching accounts. If a name is provided, the tool retrieves all accounts whose names contain the given value, using a case-insensitive partial match (equivalent to a SQL `LIKE '%name%'` search). 
+Only one filter—either the list of IDs or the name—can be used per request.]]></mcp:description>
+			<mcp:parameters-schema ><![CDATA[{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "Ids": {
+      "type": "array",
+      "description": "List of unique account identifiers to retrieve.",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "Name": {
+      "type": "string",
+      "description": "The name of the account to retrieve, supports partial matching."
+    }
+  },
+  "required": [],
+  "additionalProperties": false
+}
+]]></mcp:parameters-schema>
+			<mcp:responses >
+				<mcp:text-tool-response-content text="#[payload.^raw]" priority="1" >
+					<mcp:audience >
+						<mcp:audience-item value="ASSISTANT" />
+					</mcp:audience>
+				</mcp:text-tool-response-content>
+			</mcp:responses>
+		</mcp:tool-listener>
+		<flow-ref doc:name="get-accounts-sub-flow" doc:id="0b81fcba-ec3d-47dc-860f-0f58062937bc" name="get-accounts-sub-flow"/>
+	</flow>
+	<flow name="get-accounts-streamable" doc:id="7eed88e7-8e29-4069-bf07-5fa0bbe11177" >
+		<mcp:tool-listener doc:name="Streamable Get Accounts" doc:id="58dcdc5b-0851-4659-8d4e-990b87f170e7" config-ref="MCP_Server_Streamable" name="get_accounts">
+			<mcp:description ><![CDATA[Enables retrieval of account information from a connected CRM system by specifying either a list of account unique identifiers (IDs) or a single name filter. 
+If a list of IDs is provided, the tool returns all matching accounts. If a name is provided, the tool retrieves all accounts whose names contain the given value, using a case-insensitive partial match (equivalent to a SQL `LIKE '%name%'` search). 
+Only one filter—either the list of IDs or the name—can be used per request.]]></mcp:description>
+			<mcp:parameters-schema ><![CDATA[{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "Ids": {
+      "type": "array",
+      "description": "List of unique account identifiers to retrieve.",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "Name": {
+      "type": "string",
+      "description": "The name of the account to retrieve, supports partial matching."
+    }
+  },
+  "required": [],
+  "additionalProperties": false
+}
+]]></mcp:parameters-schema>
+			<mcp:responses >
+				<mcp:text-tool-response-content text="#[payload.^raw]" priority="1" >
+					<mcp:audience >
+						<mcp:audience-item value="ASSISTANT" />
+					</mcp:audience>
+				</mcp:text-tool-response-content>
+			</mcp:responses>
+		</mcp:tool-listener>
+		<flow-ref doc:name="get-accounts-sub-flow" doc:id="98d87ce3-c1f3-4cf0-a92b-c290cb4d7100" name="get-accounts-sub-flow" />
+	</flow>
+	<sub-flow name="get-accounts-sub-flow" doc:id="a93ce870-6887-4667-b6d5-7d9ad1ed8c50" >
+		<choice doc:name="Choice" doc:id="acf4025f-f140-4c47-9908-a1f909e08d08">
+			<when expression="#[payload.Ids == null or isEmpty(payload.Ids)]">
+				<salesforce:query doc:name="Query Accounts by Name" doc:id="69394c84-17a7-4a87-a452-73d4a752e120" config-ref="Salesforce_Config">
+			<salesforce:salesforce-query><![CDATA[SELECT Id FROM Account WHERE Name LIKE ':accountName']]></salesforce:salesforce-query>
+					<salesforce:parameters><![CDATA[#[output application/java
+---
+{
+	"accountName" : '%' ++ (payload.Name default "") as String ++ '%'
+}]]]></salesforce:parameters>
+		</salesforce:query>
+				<set-variable value="#[%dw 2.0&#10;output json&#10;---&#10;payload..Id]" doc:name="AccountIds" doc:id="9a2f5f9b-351e-4cbb-a7f9-b7e4d21330e2" variableName="AccountIds" mimeType="application/json" />
+			</when>
+			<otherwise>
+				<set-variable value="#[%dw 2.0&#10;output json&#10;---&#10;payload.Ids default []]" doc:name="AccountIds" doc:id="1ca0561a-9bf7-42d4-865a-0c2c4d511b6a" variableName="AccountIds" mimeType="application/json" />
+			</otherwise>
+		</choice>
+		<choice doc:name="Choice" doc:id="8ad3774b-adbf-41dd-b8cf-7e0b2f702f05">
+			<when expression="#[vars.AccountIds != null and !isEmpty(vars.AccountIds)]">
+				<salesforce:retrieve doc:name="Retrieve Accounts" doc:id="0cfe909d-3090-4725-aa14-75460e0336c7" config-ref="Salesforce_Config" type="Account">
+			<salesforce:retrieve-request><![CDATA[#[%dw 2.0
+output application/java
+---
+{
+  ids: vars.accountIds, // e.g., "001xx000003DGbQAAW"
+  fields: [
+    "Id",
+    "Name",
+    "Type",
+    "Industry",
+    "BillingStreet",
+    "BillingCity",
+    "BillingState",
+    "BillingPostalCode",
+    "BillingCountry",
+    "ShippingStreet",
+    "ShippingCity",
+    "ShippingState",
+    "ShippingPostalCode",
+    "ShippingCountry",
+    "Phone",
+    "Fax",
+    "Website",
+    "AccountNumber",
+    "AnnualRevenue",
+    "NumberOfEmployees",
+    "Description"
+  ]
+}]]]></salesforce:retrieve-request>
+		</salesforce:retrieve>
+			</when>
+			<otherwise>
+				<set-payload value="#[%dw 2.0&#10;output json&#10;---&#10;{}]" doc:name="Set Payload" doc:id="37c2c65c-394f-4c21-a5d2-a41708401266" />
+			</otherwise>
+		</choice>
+		<ee:transform doc:name="toJson" doc:id="2ddf78fb-1030-4d14-9eb7-55b935969107">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+	<flow name="update-accounts-sse" doc:id="26adecf8-d510-46d3-a793-a55a65fbe71d" >
+		<mcp:tool-listener doc:name="SSE Update Accounts" doc:id="4888f546-69b3-42f2-9543-b371f1fb5842" config-ref="MCP_Server_SSE" name="update_accounts">
+			<mcp:description ><![CDATA[Enables updating account information in a connected CRM system by specifying a list of account unique identifiers (IDs).
+This tool allows users or automated systems to modify standard account fields for multiple accounts in a single operation, referencing each account directly through its ID for exact matching. 
+Name-based matching is not supported for updates; all records to be updated must be identified by their unique IDs.]]></mcp:description>
+			<mcp:parameters-schema ><![CDATA[{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "accounts": {
+      "type": "array",
+      "description": "Array of account objects to update.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "Id": {
+            "type": "string",
+            "description": "The unique identifier of the account to update."
+          },
+          "Name": {
+            "type": "string",
+            "description": "The name of the account."
+          },
+          "Type": {
+            "type": "string",
+            "description": "The type of the account (e.g., Customer, Partner, etc.)."
+          },
+          "Industry": {
+            "type": "string",
+            "description": "The industry associated with the account."
+          },
+          "BillingStreet": {
+            "type": "string",
+            "description": "The billing street address for the account."
+          },
+          "BillingCity": {
+            "type": "string",
+            "description": "The billing city for the account."
+          },
+          "BillingState": {
+            "type": "string",
+            "description": "The billing state or province for the account."
+          },
+          "BillingPostalCode": {
+            "type": "string",
+            "description": "The billing postal code for the account."
+          },
+          "BillingCountry": {
+            "type": "string",
+            "description": "The billing country for the account."
+          },
+          "ShippingStreet": {
+            "type": "string",
+            "description": "The shipping street address for the account."
+          },
+          "ShippingCity": {
+            "type": "string",
+            "description": "The shipping city for the account."
+          },
+          "ShippingState": {
+            "type": "string",
+            "description": "The shipping state or province for the account."
+          },
+          "ShippingPostalCode": {
+            "type": "string",
+            "description": "The shipping postal code for the account."
+          },
+          "ShippingCountry": {
+            "type": "string",
+            "description": "The shipping country for the account."
+          },
+          "Phone": {
+            "type": "string",
+            "description": "The primary phone number for the account."
+          },
+          "Fax": {
+            "type": "string",
+            "description": "The fax number for the account."
+          },
+          "Website": {
+            "type": "string",
+            "description": "The website URL for the account."
+          },
+          "AccountNumber": {
+            "type": "string",
+            "description": "The account number."
+          },
+          "AnnualRevenue": {
+            "type": "number",
+            "description": "The annual revenue for the account."
+          },
+          "NumberOfEmployees": {
+            "type": "integer",
+            "description": "The number of employees in the account."
+          },
+          "Description": {
+            "type": "string",
+            "description": "A description of the account."
+          }
+        },
+        "required": ["Id"],
+        "additionalProperties": false
+      },
+      "minItems": 1
+    }
+  },
+  "required": ["accounts"],
+  "additionalProperties": false
+}
+]]></mcp:parameters-schema>
+			<mcp:responses >
+				<mcp:text-tool-response-content text="#[payload.^raw]" priority="1" >
+					<mcp:audience >
+						<mcp:audience-item value="ASSISTANT" />
+					</mcp:audience>
+				</mcp:text-tool-response-content>
+			</mcp:responses>
+		</mcp:tool-listener>
+		<flow-ref doc:name="update-accounts-sub-flow" doc:id="5f110faf-d485-4245-b550-7b00e935b9b0" name="update-accounts-sub-flow"/>
+	</flow>
+	<flow name="update-accounts-streamable" doc:id="314b3b20-cf1a-4389-9779-e5a09de16947">
+		<mcp:tool-listener doc:name="Streamable Update Accounts" doc:id="df4dc5a9-a05f-4658-be8f-df41d2a23333" config-ref="MCP_Server_Streamable" name="update_accounts">
+			<mcp:description><![CDATA[Enables updating account information in a connected CRM system by specifying a list of account unique identifiers (IDs).
+This tool allows users or automated systems to modify standard account fields for multiple accounts in a single operation, referencing each account directly through its ID for exact matching. 
+Name-based matching is not supported for updates; all records to be updated must be identified by their unique IDs.]]></mcp:description>
+			<mcp:parameters-schema><![CDATA[{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "accounts": {
+      "type": "array",
+      "description": "Array of account objects to update.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "Id": {
+            "type": "string",
+            "description": "The unique identifier of the account to update."
+          },
+          "Name": {
+            "type": "string",
+            "description": "The name of the account."
+          },
+          "Type": {
+            "type": "string",
+            "description": "The type of the account (e.g., Customer, Partner, etc.)."
+          },
+          "Industry": {
+            "type": "string",
+            "description": "The industry associated with the account."
+          },
+          "BillingStreet": {
+            "type": "string",
+            "description": "The billing street address for the account."
+          },
+          "BillingCity": {
+            "type": "string",
+            "description": "The billing city for the account."
+          },
+          "BillingState": {
+            "type": "string",
+            "description": "The billing state or province for the account."
+          },
+          "BillingPostalCode": {
+            "type": "string",
+            "description": "The billing postal code for the account."
+          },
+          "BillingCountry": {
+            "type": "string",
+            "description": "The billing country for the account."
+          },
+          "ShippingStreet": {
+            "type": "string",
+            "description": "The shipping street address for the account."
+          },
+          "ShippingCity": {
+            "type": "string",
+            "description": "The shipping city for the account."
+          },
+          "ShippingState": {
+            "type": "string",
+            "description": "The shipping state or province for the account."
+          },
+          "ShippingPostalCode": {
+            "type": "string",
+            "description": "The shipping postal code for the account."
+          },
+          "ShippingCountry": {
+            "type": "string",
+            "description": "The shipping country for the account."
+          },
+          "Phone": {
+            "type": "string",
+            "description": "The primary phone number for the account."
+          },
+          "Fax": {
+            "type": "string",
+            "description": "The fax number for the account."
+          },
+          "Website": {
+            "type": "string",
+            "description": "The website URL for the account."
+          },
+          "AccountNumber": {
+            "type": "string",
+            "description": "The account number."
+          },
+          "AnnualRevenue": {
+            "type": "number",
+            "description": "The annual revenue for the account."
+          },
+          "NumberOfEmployees": {
+            "type": "integer",
+            "description": "The number of employees in the account."
+          },
+          "Description": {
+            "type": "string",
+            "description": "A description of the account."
+          }
+        },
+        "required": ["Id"],
+        "additionalProperties": false
+      },
+      "minItems": 1
+    }
+  },
+  "required": ["accounts"],
+  "additionalProperties": false
+}
+]]></mcp:parameters-schema>
+			<mcp:responses>
+				<mcp:text-tool-response-content text="#[payload.^raw]" priority="1">
+					<mcp:audience>
+						<mcp:audience-item value="ASSISTANT" />
+					</mcp:audience>
+				</mcp:text-tool-response-content>
+			</mcp:responses>
+		</mcp:tool-listener>
+		<flow-ref doc:name="update-accounts-sub-flow" doc:id="c3abbf3c-182c-42d1-85bf-7aa19bd22869" name="update-accounts-sub-flow" />
+	</flow>
+	<sub-flow name="update-accounts-sub-flow" doc:id="9f41b71f-a806-418c-9ae7-c50448ab17c0" >
+		<salesforce:update type="Account" doc:name="Update" doc:id="6457e9dc-a9f7-4aa9-932e-5b895c253cd5" config-ref="Salesforce_Config">
+			<salesforce:records><![CDATA[#[payload.accounts]]]></salesforce:records>
+		</salesforce:update>
+		<ee:transform doc:name="to JSON" doc:id="a124b48e-8b15-4efd-9b10-63b035c8bd52">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+	<flow name="create-accounts-sse" doc:id="57045597-2d94-4c27-ad96-9e787586afcb" >
+		<mcp:tool-listener doc:name="SSE Create Accounts" doc:id="9c51ffad-f11d-495a-927c-b4334a4a5183" config-ref="MCP_Server_SSE" name="create_Accounts">
+			<mcp:description ><![CDATA[Enables the creation of multiple new accounts in a connected CRM system at once by specifying standard account details such as name, type, industry, and addresses for each account.]]></mcp:description>
+			<mcp:parameters-schema ><![CDATA[{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "accounts": {
+      "type": "array",
+      "description": "Array of account objects to create.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "Name": {
+            "type": "string",
+            "description": "The name of the account."
+          },
+          "Type": {
+            "type": "string",
+            "description": "The type of the account (e.g., Customer, Partner, etc.)."
+          },
+          "Industry": {
+            "type": "string",
+            "description": "The industry associated with the account."
+          },
+          "BillingStreet": {
+            "type": "string",
+            "description": "The billing street address for the account."
+          },
+          "BillingCity": {
+            "type": "string",
+            "description": "The billing city for the account."
+          },
+          "BillingState": {
+            "type": "string",
+            "description": "The billing state or province for the account."
+          },
+          "BillingPostalCode": {
+            "type": "string",
+            "description": "The billing postal code for the account."
+          },
+          "BillingCountry": {
+            "type": "string",
+            "description": "The billing country for the account."
+          },
+          "ShippingStreet": {
+            "type": "string",
+            "description": "The shipping street address for the account."
+          },
+          "ShippingCity": {
+            "type": "string",
+            "description": "The shipping city for the account."
+          },
+          "ShippingState": {
+            "type": "string",
+            "description": "The shipping state or province for the account."
+          },
+          "ShippingPostalCode": {
+            "type": "string",
+            "description": "The shipping postal code for the account."
+          },
+          "ShippingCountry": {
+            "type": "string",
+            "description": "The shipping country for the account."
+          },
+          "Phone": {
+            "type": "string",
+            "description": "The primary phone number for the account."
+          },
+          "Fax": {
+            "type": "string",
+            "description": "The fax number for the account."
+          },
+          "Website": {
+            "type": "string",
+            "description": "The website URL for the account."
+          },
+          "AccountNumber": {
+            "type": "string",
+            "description": "The account number."
+          },
+          "AnnualRevenue": {
+            "type": "number",
+            "description": "The annual revenue for the account."
+          },
+          "NumberOfEmployees": {
+            "type": "integer",
+            "description": "The number of employees in the account."
+          },
+          "Description": {
+            "type": "string",
+            "description": "A description of the account."
+          }
+        },
+        "required": ["Name"],
+        "additionalProperties": false
+      },
+      "minItems": 1
+    }
+  },
+  "required": ["accounts"],
+  "additionalProperties": false
+}
+]]></mcp:parameters-schema>
+			<mcp:responses >
+				<mcp:text-tool-response-content text="#[payload.^raw]" priority="1" >
+					<mcp:audience >
+						<mcp:audience-item value="ASSISTANT" />
+					</mcp:audience>
+				</mcp:text-tool-response-content>
+			</mcp:responses>
+		</mcp:tool-listener>
+		<flow-ref doc:name="create-accounts-sub-flow" doc:id="82fccdb6-9c43-42af-b2ce-e3f74e9133a7" name="create-accounts-sub-flow"/>
+	</flow>
+	<flow name="create-accounts-streamable" doc:id="36a95d01-c4aa-475a-8ba6-ffba0775f83a">
+		<mcp:tool-listener doc:name="Streamable Create Accounts" doc:id="76035764-73b2-4e0f-883c-10940b390943" config-ref="MCP_Server_Streamable" name="create_Accounts">
+			<mcp:description><![CDATA[Enables the creation of multiple new accounts in a connected CRM system at once by specifying standard account details such as name, type, industry, and addresses for each account.]]></mcp:description>
+			<mcp:parameters-schema><![CDATA[{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "accounts": {
+      "type": "array",
+      "description": "Array of account objects to create.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "Name": {
+            "type": "string",
+            "description": "The name of the account."
+          },
+          "Type": {
+            "type": "string",
+            "description": "The type of the account (e.g., Customer, Partner, etc.)."
+          },
+          "Industry": {
+            "type": "string",
+            "description": "The industry associated with the account."
+          },
+          "BillingStreet": {
+            "type": "string",
+            "description": "The billing street address for the account."
+          },
+          "BillingCity": {
+            "type": "string",
+            "description": "The billing city for the account."
+          },
+          "BillingState": {
+            "type": "string",
+            "description": "The billing state or province for the account."
+          },
+          "BillingPostalCode": {
+            "type": "string",
+            "description": "The billing postal code for the account."
+          },
+          "BillingCountry": {
+            "type": "string",
+            "description": "The billing country for the account."
+          },
+          "ShippingStreet": {
+            "type": "string",
+            "description": "The shipping street address for the account."
+          },
+          "ShippingCity": {
+            "type": "string",
+            "description": "The shipping city for the account."
+          },
+          "ShippingState": {
+            "type": "string",
+            "description": "The shipping state or province for the account."
+          },
+          "ShippingPostalCode": {
+            "type": "string",
+            "description": "The shipping postal code for the account."
+          },
+          "ShippingCountry": {
+            "type": "string",
+            "description": "The shipping country for the account."
+          },
+          "Phone": {
+            "type": "string",
+            "description": "The primary phone number for the account."
+          },
+          "Fax": {
+            "type": "string",
+            "description": "The fax number for the account."
+          },
+          "Website": {
+            "type": "string",
+            "description": "The website URL for the account."
+          },
+          "AccountNumber": {
+            "type": "string",
+            "description": "The account number."
+          },
+          "AnnualRevenue": {
+            "type": "number",
+            "description": "The annual revenue for the account."
+          },
+          "NumberOfEmployees": {
+            "type": "integer",
+            "description": "The number of employees in the account."
+          },
+          "Description": {
+            "type": "string",
+            "description": "A description of the account."
+          }
+        },
+        "required": ["Name"],
+        "additionalProperties": false
+      },
+      "minItems": 1
+    }
+  },
+  "required": ["accounts"],
+  "additionalProperties": false
+}
+]]></mcp:parameters-schema>
+			<mcp:responses>
+				<mcp:text-tool-response-content text="#[payload.^raw]" priority="1">
+					<mcp:audience>
+						<mcp:audience-item value="ASSISTANT" />
+					</mcp:audience>
+				</mcp:text-tool-response-content>
+			</mcp:responses>
+		</mcp:tool-listener>
+		<flow-ref doc:name="create-accounts-sub-flow" doc:id="1c609d7e-faba-4d9b-aae6-c64e438613f7" name="create-accounts-sub-flow" />
+	</flow>
+	<sub-flow name="create-accounts-sub-flow" doc:id="778778ab-de4f-48f0-855b-cf97784bb565" >
+		<salesforce:create type="Account" doc:name="Create" doc:id="447a77ea-9668-43d5-bb7b-0d49123c3a46" config-ref="Salesforce_Config">
+			<salesforce:records><![CDATA[#[payload.accounts]]]></salesforce:records>
+		</salesforce:create>
+		<ee:transform doc:name="to JSON" doc:id="90b73ce4-70bd-4df8-8968-cada21da5d62">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+	<flow name="delete-accounts-sse" doc:id="7a4b47dd-5b6b-4b46-8601-20d125492b62" >
+		<mcp:tool-listener doc:name="SSE Delete Accounts" doc:id="18a51088-ab2a-45ae-adde-2ba63e546142" config-ref="MCP_Server_SSE" name="delete_accounts">
+			<mcp:description ><![CDATA[Enables the deletion of multiple accounts from a connected CRM system by specifying a list of unique account identifiers (IDs). 
+This tool allows users or automated systems to efficiently remove several account records in a single operation by referencing each account directly through its unique ID, ensuring precise and secure deletion of targeted records.]]></mcp:description>
+			<mcp:parameters-schema ><![CDATA[{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "Ids": {
+      "type": "array",
+      "description": "List of unique identifiers of the accounts to delete.",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    }
+  },
+  "required": ["Ids"],
+  "additionalProperties": false
+}
+]]></mcp:parameters-schema>
+			<mcp:responses >
+				<mcp:text-tool-response-content text="#[payload.^raw]" priority="1" >
+					<mcp:audience >
+						<mcp:audience-item value="ASSISTANT" />
+					</mcp:audience>
+				</mcp:text-tool-response-content>
+			</mcp:responses>
+		</mcp:tool-listener>
+		<flow-ref doc:name="delete-accounts-sub-flow" doc:id="6b61b9f0-aac1-40d5-a47b-f11f83a9721c" name="delete-accounts-sub-flow"/>
+	</flow>
+	<flow name="delete-accounts-streamable" doc:id="3703998b-52e8-4c55-906a-ddff16761033">
+		<mcp:tool-listener doc:name="Streamable Delete Accounts" doc:id="371665cc-75e6-4c11-b31d-0ee02237320a" config-ref="MCP_Server_Streamable" name="delete_accounts">
+			<mcp:description><![CDATA[Enables the deletion of multiple accounts from a connected CRM system by specifying a list of unique account identifiers (IDs). 
+This tool allows users or automated systems to efficiently remove several account records in a single operation by referencing each account directly through its unique ID, ensuring precise and secure deletion of targeted records.]]></mcp:description>
+			<mcp:parameters-schema><![CDATA[{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "Ids": {
+      "type": "array",
+      "description": "List of unique identifiers of the accounts to delete.",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    }
+  },
+  "required": ["Ids"],
+  "additionalProperties": false
+}
+]]></mcp:parameters-schema>
+			<mcp:responses>
+				<mcp:text-tool-response-content text="#[payload.^raw]" priority="1">
+					<mcp:audience>
+						<mcp:audience-item value="ASSISTANT" />
+					</mcp:audience>
+				</mcp:text-tool-response-content>
+			</mcp:responses>
+		</mcp:tool-listener>
+		<flow-ref doc:name="delete-accounts-sub-flow" doc:id="698cb32c-64b4-4e3c-bf64-642e152c9881" name="delete-accounts-sub-flow" />
+	</flow>
+	<sub-flow name="delete-accounts-sub-flow" doc:id="9b00dea0-4751-4d3a-bbdc-783e2f1bed95" >
+		<salesforce:delete doc:name="Delete" doc:id="8f9a59e7-5b69-4950-9a3b-b160befcb8dc" config-ref="Salesforce_Config">
+			<salesforce:ids><![CDATA[#[payload.Ids]]]></salesforce:ids>
+		</salesforce:delete>
+		<ee:transform doc:name="to JSON" doc:id="262811ec-6bbd-4c5c-80ee-9da7a22ba446">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+</mule>

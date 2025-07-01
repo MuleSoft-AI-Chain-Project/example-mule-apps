@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:os="http://www.mulesoft.org/schema/mule/os" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd">
+	<sub-flow name="get-a2a-agents-cards" doc:id="704df931-576e-4068-9b3a-dfbdcf50266e" >
+		<set-variable value="#[(attributes.queryParams.defaultAgents as Boolean) default false]" doc:name="Set defaultAgents" doc:id="8ed6f2cd-c743-47bb-aceb-ffc606c7c06c" variableName="defaultAgents" />
+		<set-variable value='#[attributes.queryParams.userSessionId default ""]' doc:name="Set userSessionId" doc:id="4b1721ff-321f-43c0-b11a-7c9faf61c44b" variableName="userSessionId"/>
+		<choice doc:name="Choice" doc:id="e061eba7-a625-4f2e-92a0-6054be03745b" >
+			<when expression='#[vars.defaultAgents == true or vars.userSessionId == ""]'>
+				<set-variable value="#[%dw 2.0
+output application/json
+---
+{
+	urls: [
+		p('agent.agentforce.url'),
+		p('agent.erp.url'),
+		p('agent.crm.url'),
+		p('agent.einstein.url')
+	]
+}]" doc:name="Set  defaults agentUrls" doc:id="fa49d939-0e44-48ad-9201-e0991fbc44a5" variableName="agentUrls" />
+			</when>
+			<otherwise >
+				<set-variable value="#[%dw 2.0
+output application/json
+---
+{
+	urls: []
+}]" doc:name="Set  empty agentUrls" doc:id="645b85a8-3b15-4dda-a4c3-1b0cdfd5d72e" variableName="agentUrls" />
+			</otherwise>
+		</choice>
+		<os:contains doc:name="Contains agents" doc:id="4fbd8850-9204-46ab-8fec-d33f1f5a2821" key='#[(vars.userSessionId default "") ++ "-agents"]' objectStore="Object_store" />
+		<choice doc:name="Choice" doc:id="733c63a4-6fd3-4e94-b89c-4c014bba99d9" >
+			<when expression='#[vars.defaultAgents == true or vars.userSessionId == ""]'>
+				<flow-ref doc:name="request-a2a-agents-cards" doc:id="ef4fab6c-2324-49e4-8ca5-6c9c995053bd" name="request-a2a-agents-cards" />
+				<set-variable value="#[payload]" doc:name="Set agents" doc:id="e431d503-425c-4962-b71c-0d682a837030" variableName="agents" />
+			</when>
+			<when expression="#[payload]">
+				<flow-ref doc:name="retrieve-a2a-agents-cards" doc:id="a8b700c2-2043-4678-85e2-772937ebc0f4" name="retrieve-a2a-agents-cards" />
+			</when>
+			<otherwise>
+				<set-variable value="#[%dw 2.0
+output application/json
+---
+{
+  tools: []
+}]" doc:name="Set NO agents" doc:id="7585f2d5-f738-4278-b5f2-8a14ca1a7d96" variableName="agents" />
+			</otherwise>
+		</choice>
+		<logger level="INFO" doc:name="👮 Available Agents  👮" doc:id="56a8cdc8-f9ce-4291-8d24-07a6415fbe20" message='#[%dw 2.0
+output text
+---
+"\n\n" ++
+"👮👮👮👮👮️️ --------------------------  Agents -------------------------- 👮👮👮👮👮️\n" ++
+"Agents : \n" ++ 
+write(vars.agents.tools, "application/json") ++ 
+"\n 👮👮👮👮👮️️ ---------------------------------------------------------- 👮👮👮👮👮" ++
+"\n\n"]' />
+	</sub-flow>
+	<sub-flow name="request-a2a-agents-cards" doc:id="2cf996e8-fc6c-4fd8-b6c6-dc4de1bc3e8f" >
+		<parallel-foreach doc:name="Parallel For Each" doc:id="87622453-de62-45ed-a5be-d3a856d07836" collection="#[vars.agentUrls.urls]" maxConcurrency="10" >
+			<set-variable value="#[payload]" doc:name="Set agentUrl" doc:id="d674523a-71b8-4c3f-8625-2af785f7e0cc" variableName="agentUrl"/>
+			<http:request method="GET" doc:name="Request" doc:id="5f2213ce-53dc-49b7-9758-2bbfab3c44c2" config-ref="HTTP_Request_configuration" url='#[(vars.agentUrl default "") as String ++ "/.well-known/agent.json"]' />
+			<set-variable value='#[%dw 2.0
+output text/plain
+var agentName = (payload as Object).name as String
+---
+lower(agentName replace /\s+/ with "")]' doc:name="Set functionName" doc:id="c8a0ea8a-a7c7-4bce-9e13-56dfc0faa47d" variableName="functionName"/>
+			<os:store doc:name="Store pair agent name/url" doc:id="6a7ef8ff-9541-40b3-8dec-c205e3ebef56" key='#[(vars.userSessionId default "") ++ "-agent-url-" ++ (vars.functionName as String)]' objectStore="Object_store">
+				<os:value ><![CDATA[#[vars.agentUrl]]]></os:value>
+			</os:store>
+			<set-payload value='#[%dw 2.0
+output json
+---
+(payload as Object)]' doc:name="Set Payload" doc:id="e2b1db2e-1d7d-422f-8e38-00d266afff57" />
+		</parallel-foreach>
+		<ee:transform doc:name="Transform all available tools into the right format" doc:id="57aa78ff-ab9a-4178-a10e-3920b21bc789" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  tools: payload map (item) -> {
+    "type": "function",
+    function: {
+      name: lower((item.payload.name) as String replace /\s+/ with ""),
+      description: write({
+      	"agentName": item.payload.name, 
+      	"agentDescription": item.payload.description, 
+      	"agentSkills": item.payload.skills
+      }, "application/json"),
+      parameters: {
+        "type": "object",
+        properties: {
+        	"prompt": {
+		      "type": "string"
+		    },
+	    },
+        required: ["prompt"]
+      }
+    }
+  }
+}]]></ee:set-payload>
+			</ee:message>
+			<ee:variables />
+		</ee:transform>
+	</sub-flow>
+	<sub-flow name="retrieve-a2a-agents-cards" doc:id="7a41f581-4351-49b5-b40e-c6863293e86a" >
+		<os:retrieve doc:name="Retrieve agents" doc:id="bf2f3e33-bd28-4e65-a8e2-0e56f91f9361" key='#[(vars.userSessionId default "") ++ "-agents"]' objectStore="Object_store" />
+		<set-variable value="#[payload]" doc:name="Set agents" doc:id="dee78290-06b8-4df7-a252-d7be822b75dd" variableName="agents" />
+	</sub-flow>
+	<flow name="get-a2a-agents-flow" doc:id="d519953d-3c91-47ae-8dcb-ffdd6c5bc444" >
+		<http:listener doc:name="Listener" doc:id="6a06b334-ae1f-4fef-8648-b8c603728a53" config-ref="HTTP_Listener_config" path="/agents" allowedMethods="GET"/>
+		<flow-ref doc:name="get-a2a-agents-cards" doc:id="5263eeb6-80af-40b1-b654-eb321296b559" name="get-a2a-agents-cards"/>
+		<foreach doc:name="For Each to add agent urls to the response" doc:id="c8d61501-252f-4385-8694-89f8878b4e98" collection="#[vars.agents.tools]">
+			<set-variable value="#[payload.function.name]" doc:name="Set currAgent" doc:id="79a82105-0c84-48d1-8757-b0aa4ea1944a" variableName="currAgent"/>
+			<os:retrieve doc:name="Retrieve url by agent name and set vars.agentUrl" doc:id="85b7f977-3942-4d38-99ec-428f4eb045f9" key='#[(vars.userSessionId default "") ++ "-agent-url-" ++ (vars.currAgent as String)]' objectStore="Object_store" />
+			<set-variable value="#[%dw 2.0&#10;output text&#10;---&#10;payload]" doc:name="agentUrl" doc:id="89565302-0f13-4d73-bf2b-a0a41278c2d5" variableName="agentUrl" />
+			<set-variable value="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;	tools: vars.agents.tools map ((item, index) -&gt; &#10;	    if (item.function.name == vars.currAgent)&#10;	        item ++ { agentUrl: vars.agentUrl }&#10;	    else&#10;	        item&#10;	)&#10;}]" doc:name="Set agents" doc:id="59ffc200-57dd-4409-9e29-a3e9fb75640e" variableName="agents"/>
+		</foreach>
+		<set-payload value="#[vars.agents]" doc:name="Set Payload to vars.agents" doc:id="c0fe7b72-b57c-4f3c-8948-41ffd779d0c4" />
+	</flow>
+	<flow name="post-a2a-agents-flow" doc:id="133bd89a-0da9-416e-b322-a13d07ebf62e" >
+		<http:listener doc:name="Listener" doc:id="de80c74c-3479-4cbd-95a1-f6963ab35e0b" config-ref="HTTP_Listener_config" path="/agents" allowedMethods="POST"/>
+		<set-variable value='#[attributes.queryParams.userSessionId default ""]' doc:name="Set userSessionId" doc:id="d7018a42-4a75-4fb7-856b-11818ef6bea3" variableName="userSessionId" />
+		<set-variable value="#[payload]" doc:name="Set agentUrls" doc:id="7f00ddec-fb7a-4ba5-86d1-302674a393ed" variableName="agentUrls"/>
+		<flow-ref doc:name="request-a2a-agents-cards" doc:id="f63f7fa0-edc4-4f54-9e5a-d799e89b80f2" name="request-a2a-agents-cards" />
+		<set-variable value="#[payload]" doc:name="Set newAgents" doc:id="8c17a574-1307-4532-8624-7630f3a3ffb5" variableName="newAgents" />
+		<os:contains doc:name="Contains agents" doc:id="74832c71-73cf-49b7-9377-9d0b78e685ae" key='#[(vars.userSessionId default "") ++ "-agents"]' objectStore="Object_store" />
+		<choice doc:name="Choice" doc:id="b5f0d1d2-c2bf-4f6e-b0e1-7d717619d8a6" >
+			<when expression="#[payload]" >
+				<flow-ref doc:name="retrieve-a2a-agents-cards" doc:id="f39f7869-ec3f-423b-a376-6a82ff4a2b75" name="retrieve-a2a-agents-cards" />
+			</when>
+		</choice>
+		<set-variable value="#[%dw 2.0&#10;output application/json&#10;&#10;var tools1 = (vars.agents.tools default []) as Array&#10;var tools2 = (vars.newAgents.tools default []) as Array&#10;var allTools = tools2 ++ tools1 // newAgents first so they take precedence&#10;&#10;---&#10;{&#10;  tools: distinctBy(&#10;    allTools,&#10;    (item, index) -&gt; item.function.name&#10;  )&#10;}]" doc:name="Set agents" doc:id="be085375-722d-4ddc-8d30-ef789ccb8876" variableName="agents" />
+		<logger level="INFO" doc:name="👮 Available Agents  👮" doc:id="64f7cbd8-7cc6-4b00-bbc4-bc698ce2874a" message='#[%dw 2.0
+output text
+---
+"\n\n" ++
+"👮👮👮👮👮️️ --------------------------  Agents -------------------------- 👮👮👮👮👮️\n" ++
+"Agents : \n" ++ 
+write(vars.agents.tools, "application/json") ++ 
+"\n 👮👮👮👮👮️️ ---------------------------------------------------------- 👮👮👮👮👮" ++
+"\n\n"]' />
+		<os:store doc:name="Store agents" doc:id="e33302ce-34de-4419-975c-7b40e32cb3ed" key='#[(vars.userSessionId default "") ++ "-agents"]' objectStore="Object_store" >
+			<os:value ><![CDATA[#[vars.agents]]]></os:value>
+		</os:store>
+		<set-payload value="#[vars.agents]" doc:name="Set Payload to vars.agents" doc:id="7f922973-7a57-4da5-8f78-ba95a071b2b3" />
+	</flow>
+	<flow name="delete-a2a-agents-flow" doc:id="d722f7aa-1156-4484-a540-aeb54e2d354d" >
+		<http:listener doc:name="Listener" doc:id="04ad5186-cbd8-4a5a-88e8-37de09cc776b" config-ref="HTTP_Listener_config" path="/agents" allowedMethods="DELETE"/>
+		<set-variable value='#[attributes.queryParams.userSessionId default ""]' doc:name="Set userSessionId" doc:id="eace1ced-1f2e-4378-bc6e-fad11b17e16d" variableName="userSessionId" />
+		<set-variable value='#[payload.agents default []]' doc:name="Set agentsToDelete" doc:id="cf425057-4f48-4161-9ced-d3f3bc32a3a8" variableName="agentsToDelete"/>
+		<os:contains doc:name="Contains agents" doc:id="08f32e19-f254-4e2e-bf85-ae8065490afe" key='#[(vars.userSessionId default "") ++ "-agents"]' objectStore="Object_store" />
+		<choice doc:name="Choice" doc:id="c8f8c363-20c0-4f22-a989-a69595c8cb0e" >
+			<when expression="#[payload]" >
+				<flow-ref doc:name="retrieve-a2a-agents-cards" doc:id="b526e094-4081-45a7-90d6-4b94882a00c2" name="retrieve-a2a-agents-cards" />
+			</when>
+		</choice>
+		<set-variable value='#[%dw 2.0
+output application/json
+
+var allTools = (vars.agents.tools default []) as Array
+---
+{
+  tools: distinctBy(
+    allTools filter (item) -&gt; not (vars.agentsToDelete contains item.function.name),
+    (item, index) -&gt; item.function.name
+  )
+}]' doc:name="Set agents" doc:id="3fa13565-f0e2-4991-bcdd-3b6441c9afcf" variableName="agents" />
+		<logger level="INFO" doc:name="👮 Available Agents  👮" doc:id="7a5fb39e-a44e-4524-85ee-557296652461" message='#[%dw 2.0
+output text
+---
+"\n\n" ++
+"👮👮👮👮👮️️ --------------------------  Agents -------------------------- 👮👮👮👮👮️\n" ++
+"Agents : \n" ++ 
+write(vars.agents.tools, "application/json") ++ 
+"\n 👮👮👮👮👮️️ ---------------------------------------------------------- 👮👮👮👮👮" ++
+"\n\n"]' />
+		<os:store doc:name="Store agents" doc:id="797e695b-8858-4e8b-96ea-1839b40755b4" key='#[(vars.userSessionId default "") ++ "-agents"]' objectStore="Object_store" >
+			<os:value ><![CDATA[#[vars.agents]]]></os:value>
+		</os:store>
+	</flow>
+</mule>

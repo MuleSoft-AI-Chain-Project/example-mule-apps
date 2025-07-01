@@ -91,10 +91,10 @@ Modify the trigger to change the start date and the jira project Id with your ji
 <img src="src/main/resources/JIRA source.png" width="100%" height="100%" />
 
 
-#### JRE System Library -> Java 8
-Before starting the Mule App, make sure the check that Java 8 is set in the **JRE System Library**. You can check this by the project context menu > **Build Path > Configure Build Path > Libraries (Tab)**. 
+#### JRE System Library -> Java 17
+Before starting the Mule App, make sure the check that Java 17 is set in the **JRE System Library**. You can check this by the project context menu > **Build Path > Configure Build Path > Libraries (Tab)**. 
 
-![App Screenshot](src/main/resources/java8.png)
+![App Screenshot](src/main/resources/java17.png)
 
 
 #### Start your app

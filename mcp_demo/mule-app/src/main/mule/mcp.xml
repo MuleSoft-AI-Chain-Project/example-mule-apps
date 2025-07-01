@@ -1,0 +1,514 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:mac-inference="http://www.mulesoft.org/schema/mule/mac-inference"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:tls="http://www.mulesoft.org/schema/mule/tls"
+	xmlns:mcp="http://www.mulesoft.org/schema/mule/mcp"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/mcp http://www.mulesoft.org/schema/mule/mcp/current/mule-mcp.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/mac-inference http://www.mulesoft.org/schema/mule/mac-inference/current/mule-mac-inference.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP_Listener_config" doc:id="fb1aabd5-fe03-45cf-bb6b-3a4e25c186dd" >
+		<http:listener-connection host="0.0.0.0" port="8082" protocol="HTTPS" readTimeout="30000000">
+			<tls:context >
+				<tls:trust-store path="keystore.jks" password="+Q2w3e4r5" insecure="true" />
+				<tls:key-store type="jks" path="keystore.jks" keyPassword="+Q2w3e4r5" password="+Q2w3e4r5" />
+			</tls:context>
+		</http:listener-connection>
+		<http:listener-interceptors >
+			<http:cors-interceptor >
+				<http:origins >
+					<http:public-resource />
+				</http:origins>
+			</http:cors-interceptor>
+		</http:listener-interceptors>
+   	</http:listener-config>
+	<mcp:server-config name="MCP_Server" doc:name="MCP Server" doc:id="e4f62352-26b1-4080-9080-6f6da011bd78" serverName="mcp-mule-server" serverVersion="1.0.0" >
+		<mcp:sse-server-connection listenerConfig="HTTP_Listener_config" />
+	</mcp:server-config>
+	<mcp:client-config name="MCP_Client" doc:name="MCP_Client" doc:id="abfb8147-30d7-4ea5-946d-8b3823cd1513" clientName="mule-mcp-client" clientVersion="1.0.0">
+		<mcp:sse-client-connection serverUrl="https://localhost:8082" requestTimeout="600">
+			<tls:context >
+				<tls:trust-store path="keystore.jks" password="+Q2w3e4r5" insecure="true" />
+				<tls:key-store type="jks" path="keystore.jks" keyPassword="+Q2w3e4r5" password="+Q2w3e4r5" />
+			</tls:context>
+		</mcp:sse-client-connection>
+	</mcp:client-config>
+	<mac-inference:text-generation-config name="OpenAIConf" doc:name="MuleSoft Inference Text generation config" doc:id="5e72da85-de4f-4c56-a025-0a2aba9fc531" >
+		<mac-inference:llm-connection inferenceType="OPENAI" apiKey="-" modelName="gpt-4o-mini" timeout="60000" maxTokens="2000"/>
+	</mac-inference:text-generation-config>
+	<http:listener-config name="webApp" doc:name="HTTP Listener config" doc:id="3e126527-bea0-480d-a2db-0cab1a262e53" >
+		<http:listener-connection host="0.0.0.0" port="8081" readTimeout="6000000" />
+		<http:listener-interceptors >
+			<http:cors-interceptor >
+				<http:origins >
+					<http:public-resource />
+				</http:origins>
+			</http:cors-interceptor>
+		</http:listener-interceptors>
+	</http:listener-config>
+	<flow name="ecc-get-inventory" doc:id="2748c2e7-a8f0-4781-9e1d-d2dadad002eb" >
+		<mcp:tool-listener doc:name="Tool Listener" doc:id="0b9ffde5-12dc-4928-a070-d54d0008c7c3" config-ref="MCP_Server" name="get_inventory">
+			<mcp:description ><![CDATA[This tool gets inventory from ERP. Check inventory details for material in SAP by providing the materialNo as input for paramValue. Please use the materialNo and not materialNumber. This action applies whenever users' intent is 'Stock overview', 'product availability', 'Inventory', 'available stock'. Use the headers to perform the request.]]></mcp:description>
+			<mcp:parameters-schema ><![CDATA[{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "materialNo": {
+      "type": "string",
+      "description": "The material number for querying inventory data"
+    }
+  },
+  "required": ["materialNo"],
+  "additionalProperties": false
+}]]></mcp:parameters-schema>
+			<mcp:responses >
+				<mcp:text-tool-response-content text="#[payload.^raw]" priority="1" >
+					<mcp:audience >
+						<mcp:audience-item value="ASSISTANT" />
+					</mcp:audience>
+				</mcp:text-tool-response-content>
+			</mcp:responses>
+		</mcp:tool-listener>
+		<ee:transform doc:name="Transform Message" doc:id="1736c148-807f-4bab-aea7-165e07ea5e58" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<http:request method="POST" doc:name="Request" doc:id="4662ef52-94bc-4c9f-8a0a-21ce946ccc83" url="https://sap-ecc-inventory-check-material-api-b2jb0y.1d6nel.usa-e1.cloudhub.io/mmbe"/>
+	</flow>
+	<flow name="get_accountsFlows" doc:id="abbf7cf5-c09f-4102-ba7a-9c40e082bd48" >
+		<mcp:tool-listener doc:name="Tool Listener" doc:id="4c469986-7acf-4dbe-a9e8-60236c9d45a4" config-ref="MCP_Server" name="get_accounts">
+			<mcp:description ><![CDATA[Get all accounts from a CRM. Get all accounts from a CRM. This action applies whenever users' intent is 'CRM accounts', 'customers', 'customer accounts', 'accounts'.]]></mcp:description>
+			<mcp:parameters-schema ><![CDATA[{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {}
+  },
+  "required": [],
+  "additionalProperties": false
+}]]></mcp:parameters-schema>
+			<mcp:responses >
+				<mcp:text-tool-response-content text="#[payload.^raw]" priority="1" >
+					<mcp:audience >
+						<mcp:audience-item value="ASSISTANT" />
+					</mcp:audience>
+				</mcp:text-tool-response-content>
+			</mcp:responses>
+		</mcp:tool-listener>
+		<ee:transform doc:name="Call Mock" doc:id="7ff09cf8-952b-4f6a-9f30-7d531eb4976f" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "accounts": [
+        {
+            "id": "13160828847539",
+            "type": "Client",
+            "name": "Bob Brown",
+            "Company": "TechCorp",
+            "Address": "Sample St 65",
+            "ZipCode": "11223",
+            "City": "DemoVille",
+            "Country": "Sample Country"
+        },
+        {
+            "id": "33941450977044",
+            "type": "Supplier",
+            "name": "Serge Wolf",
+            "Company": "FutureTech",
+            "Address": "Makeup street 100",
+            "ZipCode": "12345",
+            "City": "DemoVille",
+            "Country": "Makeup Country"
+        },
+        {
+            "id": "91859690725354",
+            "type": "Customer",
+            "name": "Mark Twain",
+            "Company": "InnovateX",
+            "Address": "Makeup street 8",
+            "ZipCode": "44556",
+            "City": "MakeupCity",
+            "Country": "Makeup Country"
+        },
+        {
+            "id": "23067230675785",
+            "type": "Customer",
+            "name": "Ella Fitzgerald",
+            "Company": "Infometis",
+            "Address": "Sample St 91",
+            "ZipCode": "44556",
+            "City": "Testopolis",
+            "Country": "Test Republic"
+        },
+        {
+            "id": "16231686501262",
+            "type": "Partner",
+            "name": "Ella Fitzgerald",
+            "Company": "BizGroup",
+            "Address": "Demo Drive 100",
+            "ZipCode": "11223",
+            "City": "Testopolis",
+            "Country": "Example Land"
+        },
+        {
+            "id": "12096913000320",
+            "type": "Partner",
+            "name": "Jane Smith",
+            "Company": "TechCorp",
+            "Address": "Demo Drive 71",
+            "ZipCode": "44556",
+            "City": "ExampleTown",
+            "Country": "Example Land"
+        },
+        {
+            "id": "16862128422369",
+            "type": "Partner",
+            "name": "Mark Twain",
+            "Company": "BizGroup",
+            "Address": "Makeup street 45",
+            "ZipCode": "11223",
+            "City": "DemoVille",
+            "Country": "Demo Nation"
+        },
+        {
+            "id": "23644807626725",
+            "type": "Client",
+            "name": "Alice Johnson",
+            "Company": "InnovateX",
+            "Address": "Demo Drive 33",
+            "ZipCode": "44556",
+            "City": "ExampleTown",
+            "Country": "Makeup Country"
+        },
+        {
+            "id": "12781119028879",
+            "type": "Supplier",
+            "name": "Alice Johnson",
+            "Company": "Global Solutions",
+            "Address": "Demo Drive 26",
+            "ZipCode": "8491",
+            "City": "DemoVille",
+            "Country": "Makeup Country"
+        },
+        {
+            "id": "31738089253207",
+            "type": "Partner",
+            "name": "Bob Brown",
+            "Company": "Global Solutions",
+            "Address": "Makeup street 98",
+            "ZipCode": "44556",
+            "City": "ExampleTown",
+            "Country": "Test Republic"
+        },
+        {
+            "id": "27889991895811",
+            "type": "Supplier",
+            "name": "John Doe",
+            "Company": "FutureTech",
+            "Address": "Demo Drive 54",
+            "ZipCode": "11223",
+            "City": "DemoVille",
+            "Country": "Example Land"
+        },
+        {
+            "id": "16457151781327",
+            "type": "Client",
+            "name": "Mark Twain",
+            "Company": "FutureTech",
+            "Address": "Sample St 36",
+            "ZipCode": "67890",
+            "City": "SampleCity",
+            "Country": "Example Land"
+        },
+        {
+            "id": "23345621880869",
+            "type": "Partner",
+            "name": "John Doe",
+            "Company": "Global Solutions",
+            "Address": "Example Avenue 96",
+            "ZipCode": "44556",
+            "City": "DemoVille",
+            "Country": "Demo Nation"
+        },
+        {
+            "id": "15004181689242",
+            "type": "Partner",
+            "name": "Alice Johnson",
+            "Company": "BizGroup",
+            "Address": "Demo Drive 94",
+            "ZipCode": "67890",
+            "City": "MakeupCity",
+            "Country": "Test Republic"
+        },
+        {
+            "id": "31840200166792",
+            "type": "Partner",
+            "name": "Serge Wolf",
+            "Company": "Global Solutions",
+            "Address": "Demo Drive 100",
+            "ZipCode": "11223",
+            "City": "SampleCity",
+            "Country": "Test Republic"
+        },
+        {
+            "id": "14359116122174",
+            "type": "Client",
+            "name": "John Doe",
+            "Company": "TechCorp",
+            "Address": "Demo Drive 53",
+            "ZipCode": "44556",
+            "City": "ExampleTown",
+            "Country": "Makeup Country"
+        },
+        {
+            "id": "13236190362447",
+            "type": "Partner",
+            "name": "Mark Twain",
+            "Company": "TechCorp",
+            "Address": "Makeup street 48",
+            "ZipCode": "8491",
+            "City": "ExampleTown",
+            "Country": "Makeup Country"
+        },
+        {
+            "id": "10125916191535",
+            "type": "Customer",
+            "name": "Ella Fitzgerald",
+            "Company": "TechCorp",
+            "Address": "Example Avenue 95",
+            "ZipCode": "8491",
+            "City": "MakeupCity",
+            "Country": "Test Republic"
+        },
+        {
+            "id": "29920738019631",
+            "type": "Supplier",
+            "name": "Jane Smith",
+            "Company": "TechCorp",
+            "Address": "Makeup street 25",
+            "ZipCode": "44556",
+            "City": "MakeupCity",
+            "Country": "Example Land"
+        },
+        {
+            "id": "30367684101109",
+            "type": "Supplier",
+            "name": "John Doe",
+            "Company": "Global Solutions",
+            "Address": "Makeup street 6",
+            "ZipCode": "8491",
+            "City": "DemoVille",
+            "Country": "Test Republic"
+        },
+        {
+            "id": "31997411952228",
+            "type": "Customer",
+            "name": "Alice Johnson",
+            "Company": "TechCorp",
+            "Address": "Makeup street 28",
+            "ZipCode": "67890",
+            "City": "DemoVille",
+            "Country": "Makeup Country"
+        },
+        {
+            "id": "17187629828114",
+            "type": "Supplier",
+            "name": "John Doe",
+            "Company": "Global Solutions",
+            "Address": "Demo Drive 78",
+            "ZipCode": "12345",
+            "City": "SampleCity",
+            "Country": "Demo Nation"
+        },
+        {
+            "id": "19726358005930",
+            "type": "Partner",
+            "name": "Jane Smith",
+            "Company": "Global Solutions",
+            "Address": "Sample St 41",
+            "ZipCode": "8491",
+            "City": "Testopolis",
+            "Country": "Demo Nation"
+        }
+    ]
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="submitOrderFlow" doc:id="4acbea75-ba7e-4578-8a75-86a13c7da856">
+		<mcp:tool-listener doc:name="Tool Listener" doc:id="96d0f26f-8e02-47ae-a74c-afd5b772f69c" config-ref="MCP_Server" name="submit_order">
+			<mcp:description ><![CDATA[This tool submits an order for a product in ERP. Submit a Sales Order in ERP for a material. This action applies whenever users' intent is 'Create Sales Order', 'Order Submission', 'submit an order', 'create an order'. Use the headers to perform the request. If TARGET_QTY is provided, good, otherwise set it to 1. ]]></mcp:description>
+			<mcp:parameters-schema><![CDATA[{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "MATERIAL": {
+      "type": "string"
+    },
+    "TARGET_QTY": {
+      "type": "string"
+    }
+  },
+  "required": ["MATERIAL"],
+  "additionalProperties": false
+}
+]]></mcp:parameters-schema>
+			<mcp:responses>
+				<mcp:text-tool-response-content text="#[payload.^raw]" priority="1">
+					<mcp:audience>
+						<mcp:audience-item value="ASSISTANT" />
+					</mcp:audience>
+				</mcp:text-tool-response-content>
+			</mcp:responses>
+		</mcp:tool-listener>
+		<ee:transform doc:name="Transform Message" doc:id="1a6c030f-6d05-4822-a750-9352fb25d299" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  "SALES_ORG": "3000",
+  "DISTR_CHAN": "10",
+  "DIVISION": "00",
+  "PURCH_NO": "MAC MCP Demo",
+  "MATERIAL": payload.MATERIAL default "MULETEST0",
+  "PLANT": "3000",
+  "TARGET_QTY": payload.TARGET_QTY default "1",
+  "CUSTOMER": "0000000007"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<http:request method="POST" doc:name="Request" doc:id="61dce2d2-f270-49b9-a94d-53da411d9f1b" url="https://sap-ecc-1p-orders-sys-api-b2jb0y.1d6nel.usa-e1.cloudhub.io/api/order" />
+	</flow>
+	<sub-flow name="replan-tool-exec" doc:id="ee68ab09-68de-4465-8c25-865a84a75dd9">
+		<mcp:call-tool toolName="#[output application/json&#10;---&#10;vars.planningPayload.tools[(vars.counter default 1) as Number - 1].function.name default null]" doc:name="Call tool" doc:id="5f516dbe-c1f7-446c-a8e2-4fde6e83da16" config-ref="MCP_Client">
+			<mcp:arguments><![CDATA[#[output application/json
+---
+vars.planningPayload.tools[(vars.counter default 1) as Number - 1].function.arguments default null]]]></mcp:arguments>
+		</mcp:call-tool>
+		<ee:transform doc:name="ToolResponse" doc:id="4372063b-e450-4afa-8b98-073118d14bd7">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<ee:transform doc:name="Format" doc:id="fbc8f06d-56f0-42bb-86e0-7390cb3b95a4">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output text/plain
+---
+write(payload, "application/json")]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+	<sub-flow name="set-and-initialise-vars" doc:id="ddd5bf4b-9235-4b7e-9386-e400e5cd8410">
+		<set-variable value="#[payload.prompt]" doc:name="Prompt" doc:id="26b1cd0c-3e34-4837-977a-793e3722bb61" variableName="userPrompt" />
+		<set-variable value='#["Tool results: "]' doc:name="set multiTools results" doc:id="2242b8da-a134-4b72-9ffd-93b87f69b91d" variableName="multiToolsResult" />
+		<set-variable value="#[[]]" doc:name="set toolsUsed" doc:id="fd4e589e-fbe2-4275-baee-34e135b771bf" variableName="toolsUsed" />
+		<set-variable value='#[{"tools":  []}]' doc:name="Set Tool Planning" doc:id="96b639fe-f99d-49b2-ae37-65df5d3ee7dd" variableName="planningPayload"/>
+		<mcp:list-tools doc:name="List tools" doc:id="833b4712-aed2-47e8-a025-043081579464" config-ref="MCP_Client" />
+		<ee:transform doc:name="Save all available tools into the right format" doc:id="d43c0f0d-cb63-437c-935b-e3d73d432e72" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="tools" ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  tools: payload map (item) -> {
+    "type": "function",
+    function: {
+      name: item.name,
+      description: item.description,
+      parameters: {
+        "type": "object",
+        properties: (read(item.inputSchema, "application/json").properties default {}),
+        required: (read(item.inputSchema, "application/json").required default [])
+      }
+    }
+  }
+}]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+	</sub-flow>
+	<sub-flow name="create-plan" doc:id="ef9c2d20-7967-4d7c-b56a-ddd9af66c363" >
+		<scatter-gather doc:name="Scatter-Gather" doc:id="4411dda8-14f0-4ad2-adbd-38d12f69f73f" >
+			<route >
+				<mac-inference:agent-define-prompt-template doc:name="Create Plan" doc:id="96651109-b214-4a94-bd3b-6d6ac17fb2e2" config-ref="OpenAIConf" >
+					<mac-inference:template ><![CDATA[You are a planner agent. You answer general question based on your knowledge. Things you know of without making up things.]]></mac-inference:template>
+					<mac-inference:instructions ><![CDATA[Your jobs is to identify tools needed. You assess the Users query and define steps for tool execution. execute each tool only once. if more than 1 tool need to be accessed, you need to respond with the following json: {"plan": yourPlan, "multiTools" : true, "final": false} if its only 1 tool, reply with {"plan": yourPlan, "multiTools" : false, "final": true}. if there is no open tasks after your plan, please set the "final" attribute to true.  if users wants to i.e. 'Check Inventory for a product', then this should be your step with sub steps as bullet points 'Step: Check Inventory for MULETEST0, - Open Inventory System,  - Go to Stock Overview, - Filter by MULETEST0, - Get Inventory details.  The tool itself will be handled later. ]]></mac-inference:instructions>
+					<mac-inference:data ><![CDATA[#["Users query: " ++ (vars.userPrompt as String) ++ 
+", Current Observation through called tools: " ++ (vars.multiToolsResult as String) ++ 
+", last tools used: " ++ (write(vars.toolsUsed default {}, "application/json") as String)]]]></mac-inference:data>
+				</mac-inference:agent-define-prompt-template>
+				<set-variable value='#[%dw 2.0&#10;output application/json&#10;var jsonString = payload.response as String&#10;---&#10;read(jsonString, "application/json")]' doc:name="Set multiTools" doc:id="0706208a-5c3c-490e-aed5-f29226042e44" variableName="multiTools" />
+			</route>
+			<route >
+				<mac-inference:tools-native-template doc:name="Use MCP Tools" doc:id="cfbc5b7f-311d-44e1-a4e6-04d84ba5e0cf" config-ref="OpenAIConf" target="planningPayload" >
+					<mac-inference:template ><![CDATA[You are a planner agent. You answer general question based on your knowledge. Things you know of without making up things.]]></mac-inference:template>
+					<mac-inference:instructions ><![CDATA[Answer the request with politeness. If current observation is empty, no tools were yet executed. Execute each tool only once, don't suggest tools which have been used already. Check users query, current obersation through called tools, and last tools used in the data section before suggesting any tools]]></mac-inference:instructions>
+					<mac-inference:data ><![CDATA[#["Users query: " ++ (vars.userPrompt as String) ++ 
+", Current Observation through called tools: " ++ (vars.multiToolsResult as String) ++ 
+", last tools used: " ++ (write(vars.toolsUsed default {}, "application/json") as String)]]]></mac-inference:data>
+					<mac-inference:tools ><![CDATA[#[vars.tools.tools]]]></mac-inference:tools>
+				</mac-inference:tools-native-template>
+			</route>
+		</scatter-gather>
+		<flow-ref doc:name="Assess and execute" doc:id="4b3e7994-d7fa-4461-aab1-08594f6f41ec" name="assess-and-execute"/>
+	</sub-flow>
+	<sub-flow name="assess-and-execute" doc:id="76d7a961-764e-43d6-ab34-95ca7968d3bb" >
+		<choice doc:name="Choice" doc:id="13e33c57-5e5b-409f-a824-8f9b8a370cfe" >
+			<when expression="#[(sizeOf(vars.planningPayload.tools default []) &gt; 0)]" >
+				<set-variable value='#[%dw 2.0 output application/json --- vars.toolsUsed ++ vars.planningPayload.tools]' doc:name="Set Variable" doc:id="c61b8fe9-8b71-456c-99bc-a7d6b78f33f6" variableName="toolsUsed"/>
+				<foreach doc:name="For Each" doc:id="a8ffc23a-7e5c-435c-8578-3eb610826d42" collection="#[vars.planningPayload.tools]" >
+					<flow-ref doc:name="Execute Single Iteration" doc:id="bfffaaf2-f3c1-41a9-86b4-7cc5a23b3f77" name="replan-tool-exec" />
+					<set-variable value='#[%dw 2.0 output text/plain --- vars.multiToolsResult ++ "/n" ++ vars.counter as String ++ " - " ++ payload]' doc:name="multiToolsResult" doc:id="2331bfe5-b0f8-4362-bfc0-404f8a6160d0" variableName="multiToolsResult" />
+				</foreach>
+				<choice doc:name="Choice" doc:id="7c217439-6bf7-4ba0-a4a6-7f1b1b942cbe" >
+					<when expression="#[(vars.multiTools.multiTools == true)]">
+						<flow-ref doc:name="Replanning" doc:id="2ff30bb8-1e65-4ef0-8357-f718aa0dc8ab" name="create-plan"/>
+					</when>
+				</choice>
+				<mac-inference:agent-define-prompt-template doc:name="Reply to user using tool call" doc:id="c0acde70-2c57-401b-b9bf-a927ccdcecc8" config-ref="OpenAIConf">
+					<mac-inference:template><![CDATA[ You are a helpful agent. Don't provide instructions to the users.]]></mac-inference:template>
+					<mac-inference:instructions><![CDATA[Please answer the users question based on the tool calls. You have to consider the tool calls, and reply as if you have done the job and offer assistant in future. Dont say things like 'I'm here to help with your question!' or 'I'm here to help!', answer straight ]]></mac-inference:instructions>
+					<mac-inference:data><![CDATA[#["Tool calls: " ++ vars.multiToolsResult as String ++ ", question: " ++ vars.userPrompt as String]]]></mac-inference:data>
+				</mac-inference:agent-define-prompt-template>
+			</when>
+			<otherwise >
+				<set-payload value="#[vars.planningPayload]" doc:name="Set Payload" doc:id="28ce85a6-b882-48a7-a9d4-77c81adf9962" />
+			</otherwise>
+		</choice>
+	</sub-flow>
+	<flow name="main-flow-mac-mcp-demo" doc:id="fabd6ae4-c505-40b7-bf1d-8c89c7e92633" >
+		<http:listener doc:name="Listener" doc:id="797008a6-1a85-43f4-9dee-674caf4a0479" config-ref="webApp" path="/prompt"/>
+		<flow-ref doc:name="Setting defaults" doc:id="0bd14f38-e566-4250-b792-5cfe2a5cf4b6" name="set-and-initialise-vars" />
+		<flow-ref doc:name="Create a plan" doc:id="067466fb-4810-4172-a137-f253edc309ab" name="create-plan"/>
+		<ee:transform doc:name="Transform Message" doc:id="35fccb0b-b048-4b79-bb38-0cad7b66b278" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+if (payload.tools?)
+    (payload update {
+        case .tools -> "not used"
+    }) ++ { plan: "General Knowledge" }
+else
+    payload ++ { tools: "used" } ++ vars.multiTools]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="load-main-page-Flow" doc:id="2b31fa74-10f2-4697-89d6-24808d3ad99b" >
+		<http:listener doc:name="HTML Listener" doc:id="a21f26fe-ab46-4185-ab86-1e0fe7876978" config-ref="webApp" path="/web/*" />
+		<http:load-static-resource doc:name="Load main page" doc:id="c27fd91e-b6e3-4024-a5a9-1c676098970d" resourceBasePath='#[mule.home ++ "/apps/" ++ app.name ++ "/webapp"]' />
+	</flow>
+</mule>

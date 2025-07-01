@@ -1,0 +1,17 @@
+http.port=8081
+
+# Default agents
+agent.erp.url=
+agent.crm.url=
+agent.agentforce.url=
+agent.einstein.url=
+
+agent.general.timeout=60
+
+openai.apikey=
+openai.model=gpt-4o-mini
+openai.maxToken=5000
+
+salesforce.tokenUrl=https://storm-f10cefd8484239.my.salesforce.com/services/oauth2/token
+salesforce.clientId=
+salesforce.clientSecret=
