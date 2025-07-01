@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:a2a="http://www.mulesoft.org/schema/mule/a2a"
+	xmlns:mac-inference="http://www.mulesoft.org/schema/mule/mac-inference" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/mac-inference http://www.mulesoft.org/schema/mule/mac-inference/current/mule-mac-inference.xsd
+http://www.mulesoft.org/schema/mule/a2a http://www.mulesoft.org/schema/mule/a2a/current/mule-a2a.xsd">
+
+	<http:listener-config name="A2A_CRM_Agent_HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="bcdea437-7a94-4d5f-abf5-2175862130ed" >
+		<http:listener-connection host="0.0.0.0" port="${http.port}" readTimeout="30000000"/>
+		<http:listener-interceptors >
+			<http:cors-interceptor >
+				<http:origins >
+					<http:public-resource />
+				</http:origins>
+			</http:cors-interceptor>
+		</http:listener-interceptors>
+	</http:listener-config>
+	
+	<mac-inference:text-generation-config name="GENERAL" doc:name="MuleSoft Inference Text generation config" doc:id="053811e6-106e-47b9-9f60-ab3da0355181" >
+		<mac-inference:openai-connection mcpSseServers="#[vars.mcpservers]" openAIModelName="${openai.model}" maxTokens="${openai.maxToken}" apiKey="${openai.apikey}"/>
+	</mac-inference:text-generation-config>
+	<configuration-properties doc:name="Configuration properties" doc:id="badfa291-b7da-486d-b4c2-1e381b9e7b11" file="config.properties" />
+	<a2a:server-config name="CRM_Agent_A2A_Server" doc:name="A2A Server" doc:id="179ff933-a0b0-40d4-bc9b-36ee2d897de6" >
+		<a2a:connection listenerConfig="A2A_CRM_Agent_HTTP_Listener_config" agentPath="/crm-agent" />
+		<a2a:card name="${agent.name}" url="${agent.host}/crm-agent" version="1.0.0" >
+			<a2a:description ><![CDATA[${agent.description}]]></a2a:description>
+			<a2a:skills >
+				<a2a:agent-skill id="${agent.skill.1.id}" name="${agent.skill.1.name}" >
+					<a2a:description ><![CDATA[${agent.skill.1.description}]]></a2a:description>
+					<a2a:tags >
+						<a2a:tag value="get-accounts" />
+					</a2a:tags>
+				</a2a:agent-skill>
+				<a2a:agent-skill id="${agent.skill.2.id}" name="${agent.skill.2.name}" >
+					<a2a:description ><![CDATA[${agent.skill.2.description}]]></a2a:description>
+					<a2a:tags >
+						<a2a:tag value="create-account" />
+					</a2a:tags>
+				</a2a:agent-skill>
+				<a2a:agent-skill id="${agent.skill.3.id}" name="${agent.skill.3.name}" >
+					<a2a:description ><![CDATA[${agent.skill.3.description}]]></a2a:description>
+					<a2a:tags >
+						<a2a:tag value="update-account" />
+					</a2a:tags>
+				</a2a:agent-skill>
+				<a2a:agent-skill id="${agent.skill.4.id}" name="${agent.skill.4.name}" >
+					<a2a:description ><![CDATA[${agent.skill.4.description}]]></a2a:description>
+				</a2a:agent-skill>
+			</a2a:skills>
+		</a2a:card>
+	</a2a:server-config>
+</mule>

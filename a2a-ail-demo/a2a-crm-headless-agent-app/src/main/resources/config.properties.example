@@ -1,0 +1,25 @@
+mcpserver.crm.url=
+
+agent.name=Account Mgmt Agent
+agent.host=
+agent.description=CRM Agent which is responsible for managing accounts. This agent can be called to do CRUD operations (read, insert, update and delete) on accounts.
+
+agent.skill.1.id=1
+agent.skill.1.name=Get Accounts
+agent.skill.1.description=Retrieve details about one or more accounts either by name or list of ids. 
+
+agent.skill.2.id=2
+agent.skill.2.name=Create Accounts
+agent.skill.2.description=Create one or more accounts.
+
+agent.skill.3.id=3
+agent.skill.3.name=Update Accounts
+agent.skill.3.description=Update one or more accounts.
+
+agent.skill.4.id=4
+agent.skill.4.name=Delete Accounts
+agent.skill.4.description=Delete one or more accounts by providing a list of ids.
+
+openai.apikey=
+openai.model=gpt-4o-mini
+openai.maxToken=5000
