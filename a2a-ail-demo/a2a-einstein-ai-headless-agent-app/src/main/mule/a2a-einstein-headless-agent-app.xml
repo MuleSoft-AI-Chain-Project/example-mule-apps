@@ -152,11 +152,7 @@ payload]]></ee:set-payload>
 					<http:headers ><![CDATA[#[output application/java
 ---
 {
-<<<<<<< HEAD
-	"Authorization" : "Bearer "
-=======
 	"Authorization" : "Bearer " ++ p('hubspot.token')
->>>>>>> 43377c7 (Store hubspot token within properties)
 }]]]></http:headers>
 				</http:request>
 			</otherwise>
@@ -168,11 +164,7 @@ payload]]></ee:set-payload>
 			<http:headers ><![CDATA[#[output application/java
 ---
 {
-<<<<<<< HEAD
-	"Authorization" : "Bearer "
-=======
 	"Authorization" : "Bearer " ++  p('hubspot.token')
->>>>>>> 43377c7 (Store hubspot token within properties)
 }]]]></http:headers>
 		</http:request>
 	</sub-flow>
@@ -182,11 +174,7 @@ payload]]></ee:set-payload>
 			<http:headers ><![CDATA[#[output application/java
 ---
 {
-<<<<<<< HEAD
-	"Authorization" : "Bearer "
-=======
 	"Authorization" : "Bearer " ++  p('hubspot.token')
->>>>>>> 43377c7 (Store hubspot token within properties)
 }]]]></http:headers>
 		</http:request>
 		<ee:transform doc:name="Transform Message" doc:id="86cd9243-c349-485a-af65-d8c4dc8be88a" >
