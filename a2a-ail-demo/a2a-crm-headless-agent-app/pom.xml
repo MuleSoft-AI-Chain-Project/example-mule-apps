@@ -49,15 +49,21 @@
 			<classifier>mule-plugin</classifier>
 		</dependency>
 		<dependency>
-			<groupId>com.mulesoft.connectors</groupId>
-			<artifactId>mule4-inference-connector</artifactId>
-			<version>0.5.9-SNAPSHOT</version>
-			<classifier>mule-plugin</classifier>
+		   <groupId>io.github.mulesoft-ai-chain-project</groupId>
+		   <artifactId>mule4-inference-connector</artifactId>
+		   <version>0.5.7</version>
+		   <classifier>mule-plugin</classifier>
 		</dependency>
 		<dependency>
 			<groupId>com.mulesoft.connectors</groupId>
 			<artifactId>mule4-a2a-connector</artifactId>
 			<version>0.1.0-BETA</version>
+			<classifier>mule-plugin</classifier>
+		</dependency>
+		<dependency>
+			<groupId>com.mulesoft.connectors</groupId>
+			<artifactId>mule-mcp-connector</artifactId>
+			<version>1.0.0</version>
 			<classifier>mule-plugin</classifier>
 		</dependency>
 	</dependencies>
