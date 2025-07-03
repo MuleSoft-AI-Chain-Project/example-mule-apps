@@ -1256,6 +1256,10 @@ body {
     color: #212529;
 }
 
+.toxicity-container {
+    max-width: 50%
+} 
+
 .toxicity-content {
     margin-top: 0.5rem;
     padding: 0.5rem;
@@ -1269,7 +1273,6 @@ body {
     flex-wrap: wrap;
     gap: 0.5rem;
     margin: 0rem 0.5rem;
-    max-width: 50%;
 }
 
 .toxicity-pill {
