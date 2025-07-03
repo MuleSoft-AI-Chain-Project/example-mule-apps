@@ -498,7 +498,7 @@ async function sendMessageToAgent(message) {
     }
     
     try {
-        const response = await fetch(`/prompt-agent?agentName=${encodeURIComponent(currentChatAgent)}`, {
+        const response = await fetch(`/prompt-agent?agentName=${encodeURIComponent(currentChatAgent)}&userSessionId=${getUserSessionId()}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
