@@ -12,6 +12,9 @@ openai.apikey=
 openai.model=gpt-4o-mini
 openai.maxToken=5000
 
-salesforce.tokenUrl=https://storm-f10cefd8484239.my.salesforce.com/services/oauth2/token
+salesforce.tokenUrl=
 salesforce.clientId=
 salesforce.clientSecret=
+
+einstein.queryAssessmentModel=sfdc_ai__DefaultGPT41
+einstein.agentReasoningModel=sfdc_ai__DefaultGPT41
