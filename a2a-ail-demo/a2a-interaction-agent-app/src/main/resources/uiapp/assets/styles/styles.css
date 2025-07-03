@@ -429,7 +429,7 @@ body {
     border-radius: 2rem;
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
     font-size: 1rem;
     color: #01a2ff;
@@ -456,8 +456,8 @@ body {
     color: #222;
     font-size: 1.6rem;
     margin-bottom: 0.5rem;
+    margin-right: 4.5rem;
     text-align: left;
-    width: 100%;
     display: flex;
     align-items: center;
     justify-content: flex-start;
@@ -1212,7 +1212,7 @@ body {
 
 .reasoning-toggle {
     font-size: 0.8em;
-    padding: 4px 8px;
+    padding: 3px 8px;
     margin-bottom: 4px;
     border-radius: 1rem;
 }
