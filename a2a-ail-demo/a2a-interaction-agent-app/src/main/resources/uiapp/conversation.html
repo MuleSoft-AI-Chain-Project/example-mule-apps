@@ -158,7 +158,7 @@
         // Update tracked reasoning engine value
         currentReasoningEngine = reasoningEngine;
         
-        // Create WebSocket URL with query parameters
+        // Create WebSocket URL with query parameters including useTrustLayer
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
         const wsUrl = new URL('/ws/prompt', window.location.origin.replace(/^https?:/, protocol));
         wsUrl.searchParams.set('userSessionId', userSessionId || '');
@@ -623,14 +623,7 @@
                 console.log('Reasoning engine changed from', currentReasoningEngine, 'to', newReasoningEngine, '- creating new connection');
             }
             
-            // Close existing connection if any (only if it's not already closed)
-            if (websocket && websocket.readyState !== WebSocket.CLOSED) {
-                websocket.close();
-                websocket = null;
-            } else if (websocket) {
-                websocket = null;
-            }
-            
+            // Create new WebSocket connection (backend will handle closing previous connections)
             createWebSocketConnection(a2aSessionId, function(event) {
                 if (event.data) {
                     try {

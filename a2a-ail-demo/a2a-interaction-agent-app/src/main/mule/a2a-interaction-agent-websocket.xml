@@ -9,19 +9,20 @@ http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/htt
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
 	<flow name="on-new-inbound-connection-flow" doc:id="21732549-ed3d-4641-a6fb-08184fefc326" >
 		<websocket:on-inbound-connection doc:id="25e7e121-ba26-49ff-8acc-2dd23c95082d" config-ref="WebSockets_Config" path="/ws/prompt" doc:name="On New Inbound Connection" />
+		<set-variable value="#[attributes.socketId]" doc:name="Set socketId" doc:id="5f3e9214-c09f-4c7a-8259-e34a5be846f0" variableName="socketId"/>
 		<set-variable value='#[attributes.queryParams.userSessionId default ""]' doc:name="Set userSessionId" doc:id="6bee03ee-42fe-4bd5-be00-2d834f5c567a" variableName="userSessionId" />
 		<os:contains doc:name="Contains" doc:id="89f8c5b9-57f8-4121-9106-c36f96424ac7" key='#[(vars.userSessionId default "") ++ "-webSocketConnectedId"]' objectStore="Object_store" target="webSocketConnected" />
 		<choice doc:name="Choice" doc:id="39c52798-1b12-44c4-9597-db0584243ab6" >
 			<when expression="#[vars.webSocketConnected]" >
 				<os:retrieve doc:name="Retrieve" doc:id="a3d10030-253c-4623-b402-6903c45e97c2" key='#[(vars.userSessionId default "") ++ "-webSocketConnectedId"]' objectStore="Object_store" target="webSocketConnectedId" />
 				<websocket:close-socket doc:id="a3dc5704-cf6a-4b0c-af89-8a398cbfd055" config-ref="WebSockets_Config" socketId="#[attributes.socketId]" reason="Sorry, spot taken" doc:name="Close socket" />
-				<os:store doc:name="Store" doc:id="5a602620-9290-4ec2-88fc-20cac87f0b3d" key='#[(vars.userSessionId default "") ++ "-webSocketConnectedId"]' objectStore="Object_store" >
-					<os:value ><![CDATA[#[attributes.socketId]]]></os:value>
+				<os:store doc:name="Store" doc:id="5a602620-9290-4ec2-88fc-20cac87f0b3d" key='#[(vars.userSessionId default "") ++ "-webSocketConnectedId"]' objectStore="Object_store">
+					<os:value><![CDATA[#[vars.socketId]]]></os:value>
 				</os:store>
 			</when>
 			<otherwise >
 				<os:store doc:name="Store" doc:id="8035f977-a923-4a7f-a024-50f8631a352d" key='#[(vars.userSessionId default "") ++ "-webSocketConnectedId"]' objectStore="Object_store" >
-					<os:value ><![CDATA[#[attributes.socketId]]]></os:value>
+					<os:value ><![CDATA[#[vars.socketId]]]></os:value>
 				</os:store>
 			</otherwise>
 		</choice>
