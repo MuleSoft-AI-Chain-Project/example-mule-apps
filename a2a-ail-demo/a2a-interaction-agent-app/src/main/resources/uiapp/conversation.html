@@ -287,8 +287,12 @@
                         }
                     }
                     
-                    // Pills logic (same as before)
+                    // Create bottom section with pills on left and toxicity on right
                     if (agentInfo) {
+                        const bottomSection = document.createElement('div');
+                        bottomSection.className = 'message-bottom-section';
+                        
+                        // Pills logic (left side)
                         const pillsContainer = document.createElement('div');
                         pillsContainer.className = 'pills-container';
                         let agentNames = [];
@@ -348,7 +352,58 @@
                                 pillsContainer.appendChild(agentPill);
                             });
                         }
-                        typingMsg.appendChild(pillsContainer);
+                        bottomSection.appendChild(pillsContainer);
+                        
+                        // Toxicity button (right side) - only if toxicity data exists
+                        if (agentInfo.toxicity && Array.isArray(agentInfo.toxicity) && agentInfo.toxicity.length > 0) {
+                            const toxicityContainer = document.createElement('div');
+                            toxicityContainer.className = 'toxicity-container';
+                            
+                            const toxicityToggle = document.createElement('button');
+                            toxicityToggle.className = 'btn btn-sm btn-outline-warning toxicity-toggle';
+                            toxicityToggle.textContent = 'Show Toxicity';
+                            toxicityToggle.onclick = function() {
+                                const toxicityContent = toxicityContainer.querySelector('.toxicity-content');
+                                if (toxicityContent.style.display === 'none' || !toxicityContent.style.display) {
+                                    toxicityContent.style.display = 'block';
+                                    toxicityToggle.textContent = 'Hide Toxicity';
+                                } else {
+                                    toxicityContent.style.display = 'none';
+                                    toxicityToggle.textContent = 'Show Toxicity';
+                                }
+                            };
+                            
+                            const toxicityContent = document.createElement('div');
+                            toxicityContent.className = 'toxicity-content';
+                            toxicityContent.style.display = 'none';
+                            
+                            const toxicityPillsContainer = document.createElement('div');
+                            toxicityPillsContainer.className = 'toxicity-pills-container';
+                            
+                            agentInfo.toxicity.forEach(toxicityItem => {
+                                const toxicityPill = document.createElement('span');
+                                toxicityPill.className = 'toxicity-pill';
+                                toxicityPill.textContent = `${toxicityItem.categoryName}: ${toxicityItem.score === 0 ? '0.0' : toxicityItem.score === 1 ? '1.0' : toxicityItem.score.toString()}`;
+                                
+                                // Color coding based on score
+                                if (toxicityItem.score >= 0.7) {
+                                    toxicityPill.className += ' high';
+                                } else if (toxicityItem.score >= 0.4) {
+                                    toxicityPill.className += ' medium';
+                                } else {
+                                    toxicityPill.className += ' low';
+                                }
+                                
+                                toxicityPillsContainer.appendChild(toxicityPill);
+                            });
+                            
+                            toxicityContent.appendChild(toxicityPillsContainer);
+                            toxicityContainer.appendChild(toxicityToggle);
+                            toxicityContainer.appendChild(toxicityContent);
+                            bottomSection.appendChild(toxicityContainer);
+                        }
+                        
+                        typingMsg.appendChild(bottomSection);
                     }
                     chatMessages.scrollTop = chatMessages.scrollHeight;
                     return;
@@ -400,7 +455,12 @@
                     }
                 }
                 
+                // Create bottom section with pills on left and toxicity on right
                 if (agentInfo) {
+                    const bottomSection = document.createElement('div');
+                    bottomSection.className = 'message-bottom-section';
+                    
+                    // Pills logic (left side)
                     const pillsContainer = document.createElement('div');
                     pillsContainer.className = 'pills-container';
                     let agentNames = [];
@@ -460,7 +520,58 @@
                             pillsContainer.appendChild(agentPill);
                         });
                     }
-                    messageDiv.appendChild(pillsContainer);
+                    bottomSection.appendChild(pillsContainer);
+                    
+                    // Toxicity button (right side) - only if toxicity data exists
+                    if (agentInfo.toxicity && Array.isArray(agentInfo.toxicity) && agentInfo.toxicity.length > 0) {
+                        const toxicityContainer = document.createElement('div');
+                        toxicityContainer.className = 'toxicity-container';
+                        
+                        const toxicityToggle = document.createElement('button');
+                        toxicityToggle.className = 'btn btn-sm btn-outline-warning toxicity-toggle';
+                        toxicityToggle.textContent = 'Show Toxicity';
+                        toxicityToggle.onclick = function() {
+                            const toxicityContent = toxicityContainer.querySelector('.toxicity-content');
+                            if (toxicityContent.style.display === 'none' || !toxicityContent.style.display) {
+                                toxicityContent.style.display = 'block';
+                                toxicityToggle.textContent = 'Hide Toxicity';
+                            } else {
+                                toxicityContent.style.display = 'none';
+                                toxicityToggle.textContent = 'Show Toxicity';
+                            }
+                        };
+                        
+                        const toxicityContent = document.createElement('div');
+                        toxicityContent.className = 'toxicity-content';
+                        toxicityContent.style.display = 'none';
+                        
+                        const toxicityPillsContainer = document.createElement('div');
+                        toxicityPillsContainer.className = 'toxicity-pills-container';
+                        
+                        agentInfo.toxicity.forEach(toxicityItem => {
+                            const toxicityPill = document.createElement('span');
+                            toxicityPill.className = 'toxicity-pill';
+                            toxicityPill.textContent = `${toxicityItem.categoryName}: ${toxicityItem.score === 0 ? '0.0' : toxicityItem.score === 1 ? '1.0' : toxicityItem.score.toString()}`;
+                            
+                            // Color coding based on score
+                            if (toxicityItem.score >= 0.7) {
+                                toxicityPill.className += ' high';
+                            } else if (toxicityItem.score >= 0.4) {
+                                toxicityPill.className += ' medium';
+                            } else {
+                                toxicityPill.className += ' low';
+                            }
+                            
+                            toxicityPillsContainer.appendChild(toxicityPill);
+                        });
+                        
+                        toxicityContent.appendChild(toxicityPillsContainer);
+                        toxicityContainer.appendChild(toxicityToggle);
+                        toxicityContainer.appendChild(toxicityContent);
+                        bottomSection.appendChild(toxicityContainer);
+                    }
+                    
+                    messageDiv.appendChild(bottomSection);
                 }
             }
             chatMessages.appendChild(messageDiv);
