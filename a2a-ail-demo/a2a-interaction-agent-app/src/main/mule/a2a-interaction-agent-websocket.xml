@@ -15,6 +15,9 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 			<when expression="#[vars.webSocketConnected]" >
 				<os:retrieve doc:name="Retrieve" doc:id="a3d10030-253c-4623-b402-6903c45e97c2" key='#[(vars.userSessionId default "") ++ "-webSocketConnectedId"]' objectStore="Object_store" target="webSocketConnectedId" />
 				<websocket:close-socket doc:id="a3dc5704-cf6a-4b0c-af89-8a398cbfd055" config-ref="WebSockets_Config" socketId="#[attributes.socketId]" reason="Sorry, spot taken" doc:name="Close socket" />
+				<os:store doc:name="Store" doc:id="5a602620-9290-4ec2-88fc-20cac87f0b3d" key='#[(vars.userSessionId default "") ++ "-webSocketConnectedId"]' objectStore="Object_store" >
+					<os:value ><![CDATA[#[attributes.socketId]]]></os:value>
+				</os:store>
 			</when>
 			<otherwise >
 				<os:store doc:name="Store" doc:id="8035f977-a923-4a7f-a024-50f8631a352d" key='#[(vars.userSessionId default "") ++ "-webSocketConnectedId"]' objectStore="Object_store" >
@@ -37,7 +40,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 		<os:contains doc:name="Contains" doc:id="be50dde1-472e-4769-9b1f-e0f124e8f1e7" key='#[(vars.userSessionId default "") ++ "-webSocketConnectedId"]' objectStore="Object_store" target="webSocketConnected" />
 		<choice doc:name="Choice" doc:id="8b659a8a-0381-45a9-8f94-8dea7ba30f74" >
 			<when expression="#[vars.webSocketConnected]" >
-				<os:retrieve doc:name="Retrieve" doc:id="b746657a-1f4c-4a54-8c43-da84f90fe4e9" key='#[(vars.userSessionId default "") ++ "-webSocketConnectedId"]' objectStore="Object_store" target="webSocketConnectedId" />
+				<os:remove doc:name="Remove" doc:id="7150f35d-f5c2-40ee-a299-a501971fe0a7" key='#[(vars.userSessionId default "") ++ "-webSocketConnectedId"]' />
 				<websocket:close-socket doc:id="27d7830b-749b-43ee-b9f2-a214f10987f7" config-ref="WebSockets_Config" socketId="#[vars.webSocketConnectedId]" reason="Producer app wanted to close the websocket" doc:name="Close socket" />
 			</when>
 		</choice>
