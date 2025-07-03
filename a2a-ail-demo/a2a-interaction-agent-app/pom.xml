@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>f684513f-280e-403a-ac53-80ca62e3de49</groupId>
-	<artifactId>a2a-orchestration-agent-app</artifactId>
+	<artifactId>a2a-interaction-agent-app</artifactId>
 	<version>1.0.0</version>
 	<packaging>mule-application</packaging>
 

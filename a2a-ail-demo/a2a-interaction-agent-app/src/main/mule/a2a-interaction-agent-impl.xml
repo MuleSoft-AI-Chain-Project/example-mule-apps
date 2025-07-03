@@ -49,13 +49,22 @@ output text
 			<ee:message>
 				<ee:set-payload><![CDATA[%dw 2.0
 output application/json
+var toxicityCategories = vars.toxicity[0] map ((item) -> item.categoryName)
+var toxicityAggregation = toxicityCategories map (cat) -> {
+    categoryName: cat,
+    score: 
+        (vars.toxicity map ((arr) -> 
+            (arr filter ((item) -> item.categoryName == cat))[0].score as Number
+        )) reduce ((item, acc=0) -> acc + item)
+}
 ---
 (payload default {}) ++ 
 { sessionId: vars.sessionId} ++
 { reasoningEngine: if (vars.useTrustLayer default false) "einstein" else "inference" } ++
 { agents: if (vars.agentUsed default false) "used" else "not used" } ++ 
 { replanCount: (vars.replanCount default 0)} ++
-{ reasoning: vars.chainsOfThoughts }]]></ee:set-payload>
+{ reasoning: vars.chainsOfThoughts } ++
+{ toxicity: toxicityAggregation default []}]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
 		<logger level="INFO" doc:name="❗️Response ❗️" doc:id="554dec17-9dc3-4824-8057-28a380722f99" message='#[%dw 2.0
@@ -68,7 +77,10 @@ output text
 "\n\n"]' />
 	</sub-flow>
 	<sub-flow name="set-and-initialise-vars" doc:id="48abd551-7eb5-4b2e-8e63-ba9b7697f603">
-		<set-variable value="#[%dw 2.0&#10;output application/json&#10;---&#10;if (attributes.queryParams.&quot;sessionId&quot; == '' or attributes.queryParams.&quot;sessionId&quot; == null) uuid() else attributes.queryParams.&quot;sessionId&quot;]" doc:name="Set sessionId with sessionID header" doc:id="d6d0e0bc-e3a2-4c68-9ec7-092beff280c2" variableName="sessionId"/>
+		<set-variable value="#[%dw 2.0
+output application/json
+---
+if (attributes.queryParams.&quot;sessionId&quot; == '' or attributes.queryParams.&quot;sessionId&quot; == null) uuid() else attributes.queryParams.&quot;sessionId&quot;]" doc:name="Set sessionId with sessionID header" doc:id="d6d0e0bc-e3a2-4c68-9ec7-092beff280c2" variableName="sessionId"/>
 		<set-variable value="#[(payload as Object).prompt as String]" doc:name="Set userPrompt with payload.prompt" doc:id="c0dec21e-3afe-41c6-ad9e-3774fad668ee" variableName="userPrompt" />
 		<set-variable value='#[""]' doc:name="Intialise taskHistory" doc:id="fd632a81-a1c5-4d3c-9f1e-6e741863a309" variableName="taskHistory" />
 		<set-variable value="#[[]]" doc:name="Initialise chainsOfThoughts" doc:id="c6f42a73-fe14-4722-8ec7-05b34a2d2127" variableName="chainsOfThoughts" />
@@ -76,6 +88,9 @@ output text
 		<set-variable value="#[false]" doc:name="Set agentUsed to false" doc:id="21e2aaae-1956-426b-a00c-4a538cb7ad8d" variableName="agentUsed"/>
 		<set-variable value="0" doc:name="Initialise replanCount to 0" doc:id="f6a15461-02da-493c-8731-500a153fcfbe" variableName="replanCount"/>
 		<set-variable value="#[if (attributes.queryParams.&quot;useTrustLayer&quot; == '' or attributes.queryParams.&quot;useTrustLayer&quot; == null) false else attributes.queryParams.&quot;useTrustLayer&quot; as Boolean]" doc:name="Set useTrustLayer with useTrustLayer header" doc:id="0791022a-9648-4cf7-8c87-beaf8708c732" variableName="useTrustLayer"/>
+		<set-variable value="#[output json
+---
+[]]" doc:name="Set toxicity" doc:id="04ffe526-f085-4d57-8851-41adf48c8d9f" variableName="toxicity"/>
 		<flow-ref doc:name="get-a2a-agents-cards" doc:id="1d812b6f-3d27-4c70-a43f-41de336b0366" name="get-a2a-agents-cards" />
 	</sub-flow>
 	<sub-flow name="process-user-query-with-inference" doc:id="789e2ae7-630e-48ad-9bdb-47dea98d86dd">
@@ -388,6 +403,12 @@ write(vars.selectedAgents, "application/json") ++
 "\n\n"]' />
 			</route>
 		</scatter-gather>
+		<set-variable value="#[%dw 2.0
+output application/json
+var currentToxicity = keysOf(payload) orderBy ((item) -&gt; item as Number)
+	map ((k) -&gt; payload[k].attributes.contentQuality.scanToxicity.categories)
+---
+(vars.toxicity default []) ++ currentToxicity]" doc:name="Set toxicity" doc:id="71780159-22d6-4629-a6c4-6a17b4ac8d4f" variableName="toxicity" />
 		<choice doc:name="Choice" doc:id="b71a26e9-d5cf-4af1-b923-5bdb99c9df95" >
 			<when expression="#[(sizeOf(vars.selectedAgents.tools default []) &gt; 0) and vars.queryAssessment.needAgents]" >
 				<set-variable value="#[true]" doc:name="Set agentUsed" doc:id="7a405058-fcf7-4177-9580-1a1f2e8c2909" variableName="agentUsed" />
@@ -453,6 +474,10 @@ Dont say things like 'I'm here to help with your question!' or 'I'm here to help
 ", Already called agents: " ++ write(vars.selectedAgents.tools, "application/json") ++ 
 ", Task executed through called agents: " ++ (vars.taskHistory as String)]]]></ms-einstein-ai:dataset>
 				</ms-einstein-ai:agent-define-prompt-template>
+				<set-variable value="#[%dw 2.0
+output application/json
+---
+(vars.toxicity default []) ++ (attributes.contentQuality.scanToxicity.categories default [])]" doc:name="Set toxicity" doc:id="389a1b56-4497-4400-9435-058e15305bcb" variableName="toxicity" />
 				<ee:transform doc:name="Transform Message" doc:id="a6c1bf27-f03d-4db4-bcf7-444b26205ba3">
 					<ee:message>
 						<ee:set-payload><![CDATA[%dw 2.0
