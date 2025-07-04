@@ -87,7 +87,7 @@ if (attributes.queryParams.&quot;sessionId&quot; == '' or attributes.queryParams
 		<set-variable value='#[{"agents":  []}]' doc:name="Intialise selectedAgents" doc:id="eef193c9-c66e-4238-96bf-eb11785baf1c" variableName="selectedAgents" />
 		<set-variable value="#[false]" doc:name="Set agentUsed to false" doc:id="21e2aaae-1956-426b-a00c-4a538cb7ad8d" variableName="agentUsed"/>
 		<set-variable value="0" doc:name="Initialise replanCount to 0" doc:id="f6a15461-02da-493c-8731-500a153fcfbe" variableName="replanCount"/>
-		<set-variable value="#[if (attributes.queryParams.&quot;useTrustLayer&quot; == '' or attributes.queryParams.&quot;useTrustLayer&quot; == null) false else attributes.queryParams.&quot;useTrustLayer&quot; as Boolean]" doc:name="Set useTrustLayer with useTrustLayer header" doc:id="0791022a-9648-4cf7-8c87-beaf8708c732" variableName="useTrustLayer"/>
+		<set-variable value="#[%dw 2.0&#10;output application/json&#10;---&#10;if ((payload as Object).&quot;useTrustLayer&quot; != '' or &#10;		(payload as Object).&quot;useTrustLayer&quot; != null) &#10;		&#10;	(payload as Object).&quot;useTrustLayer&quot; as Boolean&#10;	&#10;else if (attributes.queryParams.&quot;useTrustLayer&quot; != '' or &#10;		attributes.queryParams.&quot;useTrustLayer&quot; != null) &#10;		&#10;	attributes.queryParams.&quot;useTrustLayer&quot; &#10;	&#10;else &#10;			&#10;	false]" doc:name="Set useTrustLayer with useTrustLayer header" doc:id="0791022a-9648-4cf7-8c87-beaf8708c732" variableName="useTrustLayer"/>
 		<set-variable value="#[output json
 ---
 []]" doc:name="Set toxicity" doc:id="04ffe526-f085-4d57-8851-41adf48c8d9f" variableName="toxicity"/>
@@ -190,7 +190,22 @@ Your Guardrails
 ", Already Called Agents (results): " ++ write(vars.calledAgents, "application/json")]]]></mac-inference:data>
 					<mac-inference:tools><![CDATA[#[vars.agents.tools]]]></mac-inference:tools>
 				</mac-inference:tools-native-template>
-				<set-variable value="#[payload]" doc:name="Set selectedAgents" doc:id="a1fd1796-9242-49e0-81ee-9962b03da5fa" variableName="selectedAgents" />
+				<try doc:name="Try" doc:id="c223c450-364a-4174-a411-c216cdf93131" >
+					<set-variable value="#[payload]" doc:name="Set selectedAgents" doc:id="a1fd1796-9242-49e0-81ee-9962b03da5fa" variableName="selectedAgents" />
+					<error-handler >
+						<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="7199076c-dcc1-4782-92e3-f640921dc6af" >
+							<logger level="WARN" doc:name="⚠️Error while reasoning upon agents.⚠️" doc:id="5ecaa3ae-468a-41ef-b5ea-30443095890e" message='#[output text
+---
+"⚠️⚠️⚠️⚠️⚠️ ------------------- ERROR ------------------- ⚠️️️️️️⚠️⚠️⚠️⚠️️\n\n" ++
+"Error while reasoning upon agents. Set selectedAgents to {tools:[]}\n\n" ++
+"⚠️⚠️⚠️⚠️⚠️ --------------------------------------------- ⚠️️️️️️⚠️⚠️⚠️⚠️️"]'/>
+							<set-variable value="#[%dw 2.0
+output application/json
+---
+{tools:[]}]" doc:name="Set selectedAgents to {tools:[]}" doc:id="76c5ce90-3626-4a94-a25a-772146446709" variableName="selectedAgents" />
+						</on-error-continue>
+					</error-handler>
+				</try>
 				<logger level="INFO" doc:name="🛠️ Agents reasoning 🛠️" doc:id="6dc6b7b5-11b4-4126-a370-97fd64429775" message='#[%dw 2.0
 output text
 ---
@@ -282,7 +297,7 @@ var cleaned = raw replace '```json' with '' replace '```' with ''
 	<sub-flow name="process-user-query-with-einstein" doc:id="26bd7026-d43e-43ea-8a7e-a1348ad6ede7" >
 		<scatter-gather doc:name="Scatter-Gather" doc:id="094f171e-163e-4836-bd75-b6a5d4a5287e" >
 			<route >
-				<ms-einstein-ai:agent-define-prompt-template doc:id="eb9d0407-0a88-4194-b1c9-5c61ea8545a9" config-ref="Einstein_AI" modelApiName="sfdc_ai__DefaultOpenAIGPT4OmniMini" doc:name="Evaluate if agent calls are required" >
+				<ms-einstein-ai:agent-define-prompt-template doc:id="eb9d0407-0a88-4194-b1c9-5c61ea8545a9" config-ref="Einstein_AI" modelApiName="${einstein.queryAssessmentModel}" doc:name="Evaluate if agent calls are required" >
 					<ms-einstein-ai:template ><![CDATA[You are a orchestration agent. You answer user queries and if needed you can hand off tasks to specialized agents.]]></ms-einstein-ai:template>
 					<ms-einstein-ai:instructions ><![CDATA[Objective:
 Determine if additional agent calls are required to fulfill the user query or if the query can be answered directly without specialized agents.
@@ -355,7 +370,7 @@ write(vars.queryAssessment, "application/json") ++
 "\n\n"]' />
 			</route>
 			<route >
-				<ms-einstein-ai:agent-define-prompt-template doc:id="18576ab8-acf8-4d03-8602-e7b5ec8b8ade" config-ref="Einstein_AI" modelApiName="sfdc_ai__DefaultOpenAIGPT4OmniMini" doc:name="Tool Template" >
+				<ms-einstein-ai:agent-define-prompt-template doc:id="18576ab8-acf8-4d03-8602-e7b5ec8b8ade" config-ref="Einstein_AI" modelApiName="${einstein.agentReasoningModel}" doc:name="Tool Template" >
 					<ms-einstein-ai:template ><![CDATA[You are an orchestration agent reasoning on agents to be called.
 
 Your Goals:
@@ -386,12 +401,27 @@ Your Guardrails
 ++ ". Make sure to provide the name and arguments according to the json schema and don't change the format. Only select from 'Available specialised agents', don't make up tools. if the section 'Available specialised agents' is empty no tools are available. 
 "]]]></ms-einstein-ai:dataset>
 				</ms-einstein-ai:agent-define-prompt-template>
-				<set-variable value="#[%dw 2.0
+				<try doc:name="Try" doc:id="82244586-0c47-4090-814b-966a682ec92a" >
+					<set-variable value="#[%dw 2.0
 output application/json
 var raw = payload.response as String
 var cleaned = raw replace '```json' with '' replace '```' with ''
 ---
 (read(trim(cleaned), 'application/json'))]" doc:name="Set selectedAgents" doc:id="4287c214-4b8c-4a01-85af-2ccc34d745a6" variableName="selectedAgents" />
+					<error-handler >
+						<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="541986ab-9f35-478e-bb79-56a94a45d96a" >
+							<logger level="WARN" doc:name="⚠️Error while reasoning upon agents.⚠️" doc:id="2af4d850-4629-46e4-b289-929ce089c671" message='#[output text
+---
+"⚠️⚠️⚠️⚠️⚠️ ------------------- ERROR ------------------- ⚠️️️️️️⚠️⚠️⚠️⚠️️\n\n" ++
+"Error while reasoning upon agents. Set selectedAgents to {tools:[]}\n\n" ++
+"⚠️⚠️⚠️⚠️⚠️ --------------------------------------------- ⚠️️️️️️⚠️⚠️⚠️⚠️️"]' />
+							<set-variable value="#[%dw 2.0
+output application/json
+---
+{tools:[]}]" doc:name="Set selectedAgents to {tools:[]}" doc:id="80b94509-d47b-4652-ad0e-10e79bcadfca" variableName="selectedAgents" />
+						</on-error-continue>
+					</error-handler>
+				</try>
 				<logger level="INFO" doc:name="🛠️ Agents reasoning 🛠️" doc:id="f4ce19ac-6983-4e20-92f1-72e5563ae465" message='#[%dw 2.0
 output text
 ---
@@ -409,6 +439,23 @@ var currentToxicity = keysOf(payload) orderBy ((item) -&gt; item as Number)
 	map ((k) -&gt; payload[k].attributes.contentQuality.scanToxicity.categories)
 ---
 (vars.toxicity default []) ++ currentToxicity]" doc:name="Set toxicity" doc:id="71780159-22d6-4629-a6c4-6a17b4ac8d4f" variableName="toxicity" />
+		<logger level="INFO" doc:name="💀Toxicity 💀" doc:id="f65902eb-d8e7-4800-b4d4-b08c9621d4fb" message='#[%dw 2.0
+output text
+var toxicityCategories = vars.toxicity[0] map ((item) -&gt; item.categoryName)
+var toxicityAggregation = toxicityCategories map (cat) -&gt; {
+    categoryName: cat,
+    score: 
+        (vars.toxicity map ((arr) -&gt; 
+            (arr filter ((item) -&gt; item.categoryName == cat))[0].score as Number
+        )) reduce ((item, acc=0) -&gt; acc + item)
+}
+---
+"\n\n" ++
+"💀💀💀💀💀️️ --------------------------  Aggregated Toxicity -------------------------- 💀💀💀💀💀️\n\n" ++ 
+
+write(toxicityAggregation, "application/json") ++ 
+"\n 💀💀💀💀💀️️ ---------------------------------------------------------------------- 💀💀💀💀💀" ++
+"\n\n"]'/>
 		<choice doc:name="Choice" doc:id="b71a26e9-d5cf-4af1-b923-5bdb99c9df95" >
 			<when expression="#[(sizeOf(vars.selectedAgents.tools default []) &gt; 0) and vars.queryAssessment.needAgents]" >
 				<set-variable value="#[true]" doc:name="Set agentUsed" doc:id="7a405058-fcf7-4177-9580-1a1f2e8c2909" variableName="agentUsed" />
@@ -462,7 +509,7 @@ else
 				<flow-ref doc:name="process-user-query (replan)" doc:id="edf1d140-b36d-4856-bde5-fb9e741d17b2" name="process-user-query-with-einstein" />
 			</when>
 			<otherwise>
-				<ms-einstein-ai:agent-define-prompt-template doc:id="ad3c6e35-edb3-4e29-a4f5-40fbbfd3b824" config-ref="Einstein_AI" modelApiName="sfdc_ai__DefaultOpenAIGPT4OmniMini" doc:name="Formulate Answer">
+				<ms-einstein-ai:agent-define-prompt-template doc:id="ad3c6e35-edb3-4e29-a4f5-40fbbfd3b824" config-ref="Einstein_AI" modelApiName="${einstein.queryAssessmentModel}" doc:name="Formulate Answer">
 					<ms-einstein-ai:template><![CDATA[You are a planner agent.]]></ms-einstein-ai:template>
 					<ms-einstein-ai:instructions><![CDATA[You went through maximum number of iterations trying to call agents, please respond to answer the users question based on the agent calls done so far. 
 You have to consider the agent calls, and reply as if you have done the job and offer assistant in future. 
