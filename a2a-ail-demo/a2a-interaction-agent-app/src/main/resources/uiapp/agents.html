@@ -235,72 +235,72 @@ window.AGENT_TYPE_ICONS = {
 };
 
 // Flag to track if event listeners have been initialized
-let agentsTabInitialized = false;
+window.agentsTabInitialized = false;
 
 // Global modal instances
-let addAgentModal = null;
-let skillDescModal = null;
-let chatModal = null;
-let lastFocusedElement = null; // Store the element that had focus before modal opened
+window.addAgentModal = null;
+window.skillDescModal = null;
+window.chatModal = null;
+window.lastFocusedElement = null; // Store the element that had focus before modal opened
 
 // Chat state variables
-let currentChatAgent = null;
-let chatMessages = [];
+window.currentChatAgent = null;
+window.chatMessages = [];
 
 // Event listener references for cleanup
-let addAgentConfirmBtnListener = null;
-let deleteAllBtnListener = null;
-let addDefaultBtnListener = null;
-let cancelBtnListener = null;
-let closeBtnListener = null;
+window.addAgentConfirmBtnListener = null;
+window.deleteAllBtnListener = null;
+window.addDefaultBtnListener = null;
+window.cancelBtnListener = null;
+window.closeBtnListener = null;
 
 // Reset initialization state when content is reloaded
 function resetAgentsTabState() {
-    agentsTabInitialized = false;
-    addAgentModal = null;
-    skillDescModal = null;
-    chatModal = null;
-    lastFocusedElement = null;
+    window.agentsTabInitialized = false;
+    window.addAgentModal = null;
+    window.skillDescModal = null;
+    window.chatModal = null;
+    window.lastFocusedElement = null;
     
     // Remove old event listeners if they exist
-    if (addAgentConfirmBtnListener) {
+    if (window.addAgentConfirmBtnListener) {
         const addAgentConfirmBtn = document.getElementById('saveAgentBtn');
         if (addAgentConfirmBtn) {
-            addAgentConfirmBtn.removeEventListener('click', addAgentConfirmBtnListener);
+            addAgentConfirmBtn.removeEventListener('click', window.addAgentConfirmBtnListener);
         }
-        addAgentConfirmBtnListener = null;
+        window.addAgentConfirmBtnListener = null;
     }
     
-    if (deleteAllBtnListener) {
+    if (window.deleteAllBtnListener) {
         const deleteAllBtn = document.getElementById('deleteAllAgentsBtn');
         if (deleteAllBtn) {
-            deleteAllBtn.removeEventListener('click', deleteAllBtnListener);
+            deleteAllBtn.removeEventListener('click', window.deleteAllBtnListener);
         }
-        deleteAllBtnListener = null;
+        window.deleteAllBtnListener = null;
     }
     
-    if (addDefaultBtnListener) {
+    if (window.addDefaultBtnListener) {
         const addDefaultBtn = document.getElementById('addDefaultAgentsBtn');
         if (addDefaultBtn) {
-            addDefaultBtn.removeEventListener('click', addDefaultBtnListener);
+            addDefaultBtn.removeEventListener('click', window.addDefaultBtnListener);
         }
-        addDefaultBtnListener = null;
+        window.addDefaultBtnListener = null;
     }
     
-    if (cancelBtnListener) {
+    if (window.cancelBtnListener) {
         const cancelBtn = document.querySelector('#addAgentModal .btn-secondary');
         if (cancelBtn) {
-            cancelBtn.removeEventListener('click', cancelBtnListener);
+            cancelBtn.removeEventListener('click', window.cancelBtnListener);
         }
-        cancelBtnListener = null;
+        window.cancelBtnListener = null;
     }
     
-    if (closeBtnListener) {
+    if (window.closeBtnListener) {
         const closeBtn = document.querySelector('#addAgentModal .btn-close');
         if (closeBtn) {
-            closeBtn.removeEventListener('click', closeBtnListener);
+            closeBtn.removeEventListener('click', window.closeBtnListener);
         }
-        closeBtnListener = null;
+        window.closeBtnListener = null;
     }
 }
 
@@ -346,8 +346,8 @@ function getAgentIconHtml(agentUrl) {
 // Function to start a chat with a specific agent
 function startChatWithAgent(agentId, agentName) {
     // Set current chat agent
-    currentChatAgent = agentId;
-    chatMessages = [];
+    window.currentChatAgent = agentId;
+    window.chatMessages = [];
     
     // Update modal title
     const chatModalLabel = document.getElementById('chatModalLabel');
@@ -392,8 +392,8 @@ function startChatWithAgent(agentId, agentName) {
     }
     
     // Show the chat modal
-    if (chatModal) {
-        chatModal.show();
+    if (window.chatModal) {
+        window.chatModal.show();
     } else {
         // Fallback: manually show the modal
         console.warn('Using fallback chat modal show method');
@@ -467,7 +467,7 @@ function addChatMessage(message, isUser = false) {
     chatContainer.scrollTop = chatContainer.scrollHeight;
     
     // Store message in chat history
-    chatMessages.push({
+    window.chatMessages.push({
         message: message,
         isUser: isUser,
         timestamp: new Date()
@@ -476,7 +476,7 @@ function addChatMessage(message, isUser = false) {
 
 // Function to send a message to the agent
 async function sendMessageToAgent(message) {
-    if (!currentChatAgent) {
+    if (!window.currentChatAgent) {
         console.error('No agent selected for chat');
         return;
     }
@@ -498,7 +498,7 @@ async function sendMessageToAgent(message) {
     }
     
     try {
-        const response = await fetch(`/prompt-agent?agentName=${encodeURIComponent(currentChatAgent)}&userSessionId=${getUserSessionId()}`, {
+        const response = await fetch(`/prompt-agent?agentName=${encodeURIComponent(window.currentChatAgent)}&userSessionId=${getUserSessionId()}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -580,9 +580,9 @@ function initializeModals() {
         var ModalClass = window.bootstrap ? window.bootstrap.Modal : (window.Modal || null);
         if (ModalClass) {
             try {
-                addAgentModal = new ModalClass(modalEl);
-                skillDescModal = new ModalClass(skillModalEl);
-                chatModal = new ModalClass(chatModalEl);
+                window.addAgentModal = new ModalClass(modalEl);
+                window.skillDescModal = new ModalClass(skillModalEl);
+                window.chatModal = new ModalClass(chatModalEl);
                 console.log('Modals initialized successfully');
                 // Reset retry counter on success
                 window.modalInitRetryCount = 0;
@@ -777,13 +777,13 @@ window.attachAgentsTab = function() {
             addTile.innerHTML = '+';
             addTile.addEventListener('click', function() {
                 // Store the currently focused element
-                lastFocusedElement = document.activeElement;
+                window.lastFocusedElement = document.activeElement;
                 
                 // Reset modal to add mode
                 resetModalToAddMode();
                 
-                if (addAgentModal) {
-                    addAgentModal.show();
+                if (window.addAgentModal) {
+                    window.addAgentModal.show();
                 } else {
                     // Fallback: manually show the modal
                     console.warn('Using fallback modal show method');
@@ -808,8 +808,8 @@ window.attachAgentsTab = function() {
                                 modalEl.setAttribute('inert', '');
                                 backdrop.remove();
                                 // Restore focus
-                                if (lastFocusedElement) {
-                                    lastFocusedElement.focus();
+                                if (window.lastFocusedElement) {
+                                    window.lastFocusedElement.focus();
                                 }
                             }
                         });
@@ -833,16 +833,16 @@ window.attachAgentsTab = function() {
                     const skillDesc = decodeURIComponent(this.getAttribute('data-skill-desc'));
                     if (skillDescModalLabel) skillDescModalLabel.textContent = skillName;
                     if (skillDescModalBody) skillDescModalBody.textContent = skillDesc;
-                    if (skillDescModal) skillDescModal.show();
+                    if (window.skillDescModal) window.skillDescModal.show();
                     e.stopPropagation();
                 });
             });
 
             // Add event listener for the Add button only once
-            if (!agentsTabInitialized) {
+            if (!window.agentsTabInitialized) {
                 const addAgentConfirmBtn = document.getElementById('saveAgentBtn');
                 if (addAgentConfirmBtn) {
-                    addAgentConfirmBtnListener = function() {
+                    window.addAgentConfirmBtnListener = function() {
                         const agentUrlInput = document.getElementById('agentUrlInput');
                         const agentTypeSelect = document.getElementById('agentTypeSelect');
                         
@@ -873,8 +873,8 @@ window.attachAgentsTab = function() {
                             resetModalToAddMode();
                             
                             // Hide the modal
-                            if (addAgentModal) {
-                                addAgentModal.hide();
+                            if (window.addAgentModal) {
+                                window.addAgentModal.hide();
                             } else {
                                 // Fallback: manually hide the modal
                                 const modalEl = document.getElementById('addAgentModal');
@@ -891,8 +891,8 @@ window.attachAgentsTab = function() {
                             }
                             
                             // Restore focus
-                            if (lastFocusedElement) {
-                                lastFocusedElement.focus();
+                            if (window.lastFocusedElement) {
+                                window.lastFocusedElement.focus();
                             }
                             
                             return; // Exit early for edit mode
@@ -988,8 +988,8 @@ window.attachAgentsTab = function() {
                             agentUrlInput.value = '';
                             agentTypeSelect.value = '';
                             // Hide the modal
-                            if (addAgentModal) {
-                                addAgentModal.hide();
+                            if (window.addAgentModal) {
+                                window.addAgentModal.hide();
                             } else {
                                 // Fallback: manually hide the modal
                                 const modalEl = document.getElementById('addAgentModal');
@@ -1005,8 +1005,8 @@ window.attachAgentsTab = function() {
                                 }
                             }
                             // Restore focus
-                            if (lastFocusedElement) {
-                                lastFocusedElement.focus();
+                            if (window.lastFocusedElement) {
+                                window.lastFocusedElement.focus();
                             }
                             // Refresh the agents list
                             window.attachAgentsTab();
@@ -1016,13 +1016,13 @@ window.attachAgentsTab = function() {
                             alert('Failed to add agent. Please try again.');
                         });
                     };
-                    addAgentConfirmBtn.addEventListener('click', addAgentConfirmBtnListener);
+                    addAgentConfirmBtn.addEventListener('click', window.addAgentConfirmBtnListener);
                 }
 
                 // Add event listener for the Delete All button
                 const deleteAllBtn = document.getElementById('deleteAllAgentsBtn');
                 if (deleteAllBtn) {
-                    deleteAllBtnListener = function() {
+                    window.deleteAllBtnListener = function() {
                         if (confirm('Are you sure you want to delete all agents? This action cannot be undone.')) {
                             // Get all agent IDs from the current tiles
                             const agentTiles = document.querySelectorAll('.agent-tile[data-agent-id]');
@@ -1061,13 +1061,13 @@ window.attachAgentsTab = function() {
                             });
                         }
                     };
-                    deleteAllBtn.addEventListener('click', deleteAllBtnListener);
+                    deleteAllBtn.addEventListener('click', window.deleteAllBtnListener);
                 }
 
                 // Add event listener for the Add Default Agents button
                 const addDefaultBtn = document.getElementById('addDefaultAgentsBtn');
                 if (addDefaultBtn) {
-                    addDefaultBtnListener = function() {
+                    window.addDefaultBtnListener = function() {
                         if (confirm('Add all default agents?')) {
                             // Prefill local storage with default agent type mappings using URLs
                             Object.entries(window.DEFAULT_AGENT_TYPES).forEach(([agentUrl, agentType]) => {
@@ -1100,10 +1100,10 @@ window.attachAgentsTab = function() {
                             });
                         }
                     };
-                    addDefaultBtn.addEventListener('click', addDefaultBtnListener);
+                    addDefaultBtn.addEventListener('click', window.addDefaultBtnListener);
                 }
                 
-                agentsTabInitialized = true;
+                window.agentsTabInitialized = true;
             }
             
             // Add event listeners for modal close buttons (fallback)
@@ -1111,12 +1111,12 @@ window.attachAgentsTab = function() {
             const closeBtn = document.querySelector('#addAgentModal .btn-close');
             
             if (cancelBtn) {
-                cancelBtnListener = function() {
+                window.cancelBtnListener = function() {
                     // Reset modal to add mode
                     resetModalToAddMode();
                     
-                    if (addAgentModal) {
-                        addAgentModal.hide();
+                    if (window.addAgentModal) {
+                        window.addAgentModal.hide();
                     } else {
                         // Fallback: manually hide the modal
                         const modalEl = document.getElementById('addAgentModal');
@@ -1132,20 +1132,20 @@ window.attachAgentsTab = function() {
                         }
                     }
                     // Restore focus
-                    if (lastFocusedElement) {
-                        lastFocusedElement.focus();
+                    if (window.lastFocusedElement) {
+                        window.lastFocusedElement.focus();
                     }
                 };
-                cancelBtn.addEventListener('click', cancelBtnListener);
+                cancelBtn.addEventListener('click', window.cancelBtnListener);
             }
             
             if (closeBtn) {
-                closeBtnListener = function() {
+                window.closeBtnListener = function() {
                     // Reset modal to add mode
                     resetModalToAddMode();
                     
-                    if (addAgentModal) {
-                        addAgentModal.hide();
+                    if (window.addAgentModal) {
+                        window.addAgentModal.hide();
                     } else {
                         // Fallback: manually hide the modal
                         const modalEl = document.getElementById('addAgentModal');
@@ -1161,11 +1161,11 @@ window.attachAgentsTab = function() {
                         }
                     }
                     // Restore focus
-                    if (lastFocusedElement) {
-                        lastFocusedElement.focus();
+                    if (window.lastFocusedElement) {
+                        window.lastFocusedElement.focus();
                     }
                 };
-                closeBtn.addEventListener('click', closeBtnListener);
+                closeBtn.addEventListener('click', window.closeBtnListener);
             }
             
             // Initialize chat functionality
@@ -1208,7 +1208,7 @@ function handleChatSubmit() {
     const chatInput = document.getElementById('chatInput');
     const chatSendBtn = document.getElementById('chatSendBtn');
     
-    if (!chatInput || !currentChatAgent) return;
+    if (!chatInput || !window.currentChatAgent) return;
     
     const message = chatInput.value.trim();
     if (!message) return;
@@ -1268,7 +1268,7 @@ function openEditAgentModal(agentUrl, agentName, tileElement) {
     console.log('Opening edit modal for agent:', agentName, 'with URL:', agentUrl);
     
     // Store the currently focused element
-    lastFocusedElement = document.activeElement;
+    window.lastFocusedElement = document.activeElement;
     
     // Update modal title
     const modalTitle = document.getElementById('addAgentModalLabel');
@@ -1297,8 +1297,8 @@ function openEditAgentModal(agentUrl, agentName, tileElement) {
     window.currentEditingAgentUrl = agentUrl;
     
     // Show the modal
-    if (addAgentModal) {
-        addAgentModal.show();
+    if (window.addAgentModal) {
+        window.addAgentModal.show();
     } else {
         // Fallback: manually show the modal
         console.warn('Using fallback modal show method for edit');
@@ -1323,8 +1323,8 @@ function openEditAgentModal(agentUrl, agentName, tileElement) {
                     modalEl.setAttribute('inert', '');
                     backdrop.remove();
                     // Restore focus
-                    if (lastFocusedElement) {
-                        lastFocusedElement.focus();
+                    if (window.lastFocusedElement) {
+                        window.lastFocusedElement.focus();
                     }
                 }
             });
