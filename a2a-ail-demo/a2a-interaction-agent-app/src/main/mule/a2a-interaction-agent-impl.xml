@@ -87,7 +87,7 @@ if (attributes.queryParams.&quot;sessionId&quot; == '' or attributes.queryParams
 		<set-variable value='#[{"agents":  []}]' doc:name="Intialise selectedAgents" doc:id="eef193c9-c66e-4238-96bf-eb11785baf1c" variableName="selectedAgents" />
 		<set-variable value="#[false]" doc:name="Set agentUsed to false" doc:id="21e2aaae-1956-426b-a00c-4a538cb7ad8d" variableName="agentUsed"/>
 		<set-variable value="0" doc:name="Initialise replanCount to 0" doc:id="f6a15461-02da-493c-8731-500a153fcfbe" variableName="replanCount"/>
-		<set-variable value="#[if (attributes.queryParams.&quot;useTrustLayer&quot; == '' or attributes.queryParams.&quot;useTrustLayer&quot; == null) false else attributes.queryParams.&quot;useTrustLayer&quot; as Boolean]" doc:name="Set useTrustLayer with useTrustLayer header" doc:id="0791022a-9648-4cf7-8c87-beaf8708c732" variableName="useTrustLayer"/>
+		<set-variable value="#[%dw 2.0&#10;output application/json&#10;---&#10;if ((payload as Object).&quot;useTrustLayer&quot; != '' or &#10;		(payload as Object).&quot;useTrustLayer&quot; != null) &#10;		&#10;	(payload as Object).&quot;useTrustLayer&quot; as Boolean&#10;	&#10;else if (attributes.queryParams.&quot;useTrustLayer&quot; != '' or &#10;		attributes.queryParams.&quot;useTrustLayer&quot; != null) &#10;		&#10;	attributes.queryParams.&quot;useTrustLayer&quot; &#10;	&#10;else &#10;			&#10;	false]" doc:name="Set useTrustLayer with useTrustLayer header" doc:id="0791022a-9648-4cf7-8c87-beaf8708c732" variableName="useTrustLayer"/>
 		<set-variable value="#[output json
 ---
 []]" doc:name="Set toxicity" doc:id="04ffe526-f085-4d57-8851-41adf48c8d9f" variableName="toxicity"/>

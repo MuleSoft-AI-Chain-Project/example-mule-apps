@@ -37,15 +37,6 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 			</when>
 		</choice>
 	</flow>
-	<flow name="close-websocket-flow" doc:id="e96adb4b-f00c-42ac-9df3-ec07548d7752" >
-		<os:contains doc:name="Contains" doc:id="be50dde1-472e-4769-9b1f-e0f124e8f1e7" key='#[(vars.userSessionId default "") ++ "-webSocketConnectedId"]' objectStore="Object_store" target="webSocketConnected" />
-		<choice doc:name="Choice" doc:id="8b659a8a-0381-45a9-8f94-8dea7ba30f74" >
-			<when expression="#[vars.webSocketConnected]" >
-				<os:remove doc:name="Remove" doc:id="7150f35d-f5c2-40ee-a299-a501971fe0a7" key='#[(vars.userSessionId default "") ++ "-webSocketConnectedId"]' />
-				<websocket:close-socket doc:id="27d7830b-749b-43ee-b9f2-a214f10987f7" config-ref="WebSockets_Config" socketId="#[vars.webSocketConnectedId]" reason="Producer app wanted to close the websocket" doc:name="Close socket" />
-			</when>
-		</choice>
-	</flow>
 	<flow name="on-new-inbound-message-flow" doc:id="4e686910-b208-4121-93d4-2a49bd3126ee" >
 		<websocket:inbound-listener doc:id="cca12c55-8c07-4b91-b9ff-280daef2deb8" config-ref="WebSockets_Config" path="/ws/prompt" doc:name="On New Inbound Message" />
 		<set-variable value="#[attributes.socketId]" doc:name="Set socketId" doc:id="c39c4d57-82e0-4cdc-a3cc-5a7d544c7531" variableName="socketId" />

@@ -31,7 +31,6 @@
     let websocket = null;
     let currentReasoningUpdates = [];
     let responseReasoningMap = new Map(); // Store reasoning updates for each response
-    let currentReasoningEngine = null; // Track current reasoning engine to detect changes
     
     // Utility to load the shared session modal and script, and ensure no duplicates
     function ensureSessionModalLoaded(callback) {
@@ -137,10 +136,15 @@
     
     // WebSocket connection management
     function createWebSocketConnection(sessionId, messageHandler) {
-        // Close existing connection if any
-        if (websocket) {
-            websocket.close();
+        // Only close existing connection if it's in a bad state
+        if (websocket && (websocket.readyState === WebSocket.CLOSED || websocket.readyState === WebSocket.CLOSING)) {
             websocket = null;
+        }
+        
+        // If we already have a valid connection, just return it
+        if (websocket && websocket.readyState === WebSocket.OPEN) {
+            console.log('Reusing existing WebSocket connection');
+            return websocket;
         }
         
         // Get user session ID from cookie
@@ -152,18 +156,12 @@
         }
         
         const userSessionId = getCookie('userSessionId');
-        const reasoningEngine = getCookie('reasoningEngine') || 'inference';
-        const useTrustLayer = reasoningEngine === 'einstein';
         
-        // Update tracked reasoning engine value
-        currentReasoningEngine = reasoningEngine;
-        
-        // Create WebSocket URL with query parameters including useTrustLayer
+        // Create WebSocket URL with query parameters
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
         const wsUrl = new URL('/ws/prompt', window.location.origin.replace(/^https?:/, protocol));
         wsUrl.searchParams.set('userSessionId', userSessionId || '');
         wsUrl.searchParams.set('sessionId', sessionId);
-        wsUrl.searchParams.set('useTrustLayer', useTrustLayer.toString());
         
         console.log('Creating WebSocket connection to:', wsUrl.toString());
         websocket = new WebSocket(wsUrl);
@@ -183,6 +181,10 @@
         
         websocket.onclose = function(event) {
             console.log('WebSocket connection closed:', event.code, event.reason);
+            // Clear the websocket reference when it's closed
+            if (websocket === this) {
+                websocket = null;
+            }
         };
         
         return websocket;
@@ -600,7 +602,12 @@
         }
         
         function sendPromptMessage(prompt) {
-            const message = JSON.stringify({ prompt: prompt });
+            const reasoningEngine = getReasoningEngine();
+            const useTrustLayer = reasoningEngine === 'einstein';
+            const message = JSON.stringify({ 
+                prompt: prompt,
+                useTrustLayer: useTrustLayer
+            });
             console.log('Sending WebSocket message:', message);
             websocket.send(message);
         }
@@ -616,69 +623,123 @@
             // Reset reasoning updates for new prompt
             currentReasoningUpdates = [];
             
-            // Always create a new WebSocket connection since backend closes after each request
-            // Check if reasoning engine has changed to log the change
-            const newReasoningEngine = getReasoningEngine();
-            if (currentReasoningEngine && currentReasoningEngine !== newReasoningEngine) {
-                console.log('Reasoning engine changed from', currentReasoningEngine, 'to', newReasoningEngine, '- creating new connection');
-            }
-            
-            // Create new WebSocket connection (backend will handle closing previous connections)
-            createWebSocketConnection(a2aSessionId, function(event) {
-                if (event.data) {
-                    try {
-                        const data = JSON.parse(event.data);
-                        console.log('WebSocket message received:', data);
-                        
-                        if (data.type === 'update') {
-                            // Handle reasoning update
-                            const updateObj = {
-                                content: data.content,
-                                timestamp: data.timestamp || new Date().toISOString()
-                            };
-                            currentReasoningUpdates.push(updateObj);
-                            updateTypingMessageWithReasoning();
-                            // Ensure scrolling to bottom for each reasoning update
-                            const chatMessages = document.getElementById('chatMessages');
-                            if (chatMessages) {
-                                chatMessages.scrollTop = chatMessages.scrollHeight;
+            // Create WebSocket connection only if it doesn't exist or is not in a valid state
+            if (!websocket || websocket.readyState === WebSocket.CLOSED || websocket.readyState === WebSocket.CLOSING) {
+                console.log('Creating new WebSocket connection - current state:', websocket ? websocket.readyState : 'null');
+                createWebSocketConnection(a2aSessionId, function(event) {
+                    if (event.data) {
+                        try {
+                            const data = JSON.parse(event.data);
+                            console.log('WebSocket message received:', data);
+                            
+                            if (data.type === 'update') {
+                                // Handle reasoning update
+                                const updateObj = {
+                                    content: data.content,
+                                    timestamp: data.timestamp || new Date().toISOString()
+                                };
+                                currentReasoningUpdates.push(updateObj);
+                                updateTypingMessageWithReasoning();
+                                // Ensure scrolling to bottom for each reasoning update
+                                const chatMessages = document.getElementById('chatMessages');
+                                if (chatMessages) {
+                                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                                }
+                            } else if (data.response) {
+                                // Handle final response (when type is not present or not 'update')
+                                // Store reasoning updates for this response
+                                const responseId = generateUUID();
+                                responseReasoningMap.set(responseId, [...currentReasoningUpdates]);
+                                addMessage(data.response, false, data, true, responseId);
+                                
+                                // Store session in localStorage with timestamp and interactionId
+                                const sessionHistory = JSON.parse(localStorage.getItem('agent_sessions') || '[]');
+                                sessionHistory.push({
+                                    interactionId: generateUUID(),
+                                    timestamp: new Date().toISOString(),
+                                    data: data
+                                });
+                                localStorage.setItem('agent_sessions', JSON.stringify(sessionHistory));
+                                
+                                currentReasoningUpdates = []; // Reset for next conversation
                             }
-                        } else if (data.response) {
-                            // Handle final response (when type is not present or not 'update')
-                            // Store reasoning updates for this response
-                            const responseId = generateUUID();
-                            responseReasoningMap.set(responseId, [...currentReasoningUpdates]);
-                            addMessage(data.response, false, data, true, responseId);
-                            
-                            // Store session in localStorage with timestamp and interactionId
-                            const sessionHistory = JSON.parse(localStorage.getItem('agent_sessions') || '[]');
-                            sessionHistory.push({
-                                interactionId: generateUUID(),
-                                timestamp: new Date().toISOString(),
-                                data: data
-                            });
-                            localStorage.setItem('agent_sessions', JSON.stringify(sessionHistory));
-                            
-                            currentReasoningUpdates = []; // Reset for next conversation
+                        } catch (error) {
+                            console.error('Error parsing WebSocket message:', error);
                         }
-                    } catch (error) {
-                        console.error('Error parsing WebSocket message:', error);
                     }
-                }
-            });
-            
-            // Wait for connection to be established
-            if (websocket.readyState === WebSocket.CONNECTING) {
-                websocket.onopen = function() {
-                    console.log('WebSocket opened, sending message');
+                });
+                
+                // Send message when connection is ready
+                if (websocket.readyState === WebSocket.CONNECTING) {
+                    websocket.onopen = function() {
+                        console.log('WebSocket opened, sending message');
+                        sendPromptMessage(prompt);
+                    };
+                } else if (websocket.readyState === WebSocket.OPEN) {
+                    console.log('WebSocket already open, sending message');
                     sendPromptMessage(prompt);
-                };
-            } else if (websocket.readyState === WebSocket.OPEN) {
-                console.log('WebSocket already open, sending message');
-                sendPromptMessage(prompt);
+                } else {
+                    console.error('WebSocket is not in a valid state:', websocket.readyState);
+                    addMessage('Sorry, there was an error with the connection.', false, null, true);
+                }
             } else {
-                console.error('WebSocket is not in a valid state:', websocket.readyState);
-                addMessage('Sorry, there was an error with the connection.', false, null, true);
+                console.log('Reusing existing WebSocket connection - state:', websocket.readyState);
+                // Set up message handler for existing connection
+                websocket.onmessage = function(event) {
+                    if (event.data) {
+                        try {
+                            const data = JSON.parse(event.data);
+                            console.log('WebSocket message received:', data);
+                            
+                            if (data.type === 'update') {
+                                // Handle reasoning update
+                                const updateObj = {
+                                    content: data.content,
+                                    timestamp: data.timestamp || new Date().toISOString()
+                                };
+                                currentReasoningUpdates.push(updateObj);
+                                updateTypingMessageWithReasoning();
+                                // Ensure scrolling to bottom for each reasoning update
+                                const chatMessages = document.getElementById('chatMessages');
+                                if (chatMessages) {
+                                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                                }
+                            } else if (data.response) {
+                                // Handle final response (when type is not present or not 'update')
+                                // Store reasoning updates for this response
+                                const responseId = generateUUID();
+                                responseReasoningMap.set(responseId, [...currentReasoningUpdates]);
+                                addMessage(data.response, false, data, true, responseId);
+                                
+                                // Store session in localStorage with timestamp and interactionId
+                                const sessionHistory = JSON.parse(localStorage.getItem('agent_sessions') || '[]');
+                                sessionHistory.push({
+                                    interactionId: generateUUID(),
+                                    timestamp: new Date().toISOString(),
+                                    data: data
+                                });
+                                localStorage.setItem('agent_sessions', JSON.stringify(sessionHistory));
+                                
+                                currentReasoningUpdates = []; // Reset for next conversation
+                            }
+                        } catch (error) {
+                            console.error('Error parsing WebSocket message:', error);
+                        }
+                    }
+                };
+                
+                // Send message immediately if connection is already open
+                if (websocket.readyState === WebSocket.OPEN) {
+                    sendPromptMessage(prompt);
+                } else if (websocket.readyState === WebSocket.CONNECTING) {
+                    websocket.onopen = function() {
+                        console.log('WebSocket opened, sending message');
+                        sendPromptMessage(prompt);
+                    };
+                } else {
+                    console.error('WebSocket is not in a valid state:', websocket.readyState);
+                    addMessage('Sorry, there was an error with the connection.', false, null, true);
+                }
             }
         }
         
