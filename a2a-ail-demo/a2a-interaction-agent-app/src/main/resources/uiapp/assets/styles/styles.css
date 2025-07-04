@@ -1045,21 +1045,25 @@ body {
 
 .reasoning-engine-options {
     display: flex;
-    gap: 1.5rem;
-    justify-content: center;
+    flex-direction: column;
+    gap: 0.75rem;
     margin-bottom: 1rem;
 }
 
 .reasoning-engine-tile {
     border: 2px solid #e0e0e0;
     border-radius: 12px;
-    padding: 1rem 1.5rem;
+    padding: 0.75rem 1.5rem;
     text-align: center;
     cursor: pointer;
     transition: border-color 0.2s, box-shadow 0.2s;
     background: #fafbfc;
-    min-width: 140px;
+    width: 100%;
     box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
 }
 
 .reasoning-engine-tile.selected {
@@ -1069,12 +1073,20 @@ body {
 }
 
 .engine-icon {
-    margin-bottom: 0.5rem;
+    margin-bottom: 0;
 }
 
 .engine-logo {
     display: block;
-    margin: 0rem 0.2rem;
+    margin: 0;
+    height: 32px;
+    width: 32px;
+    padding: 0.2rem;
+}
+
+.engine-logo-modal {
+    display: block;
+    margin: 0;
     height: 40px;
     width: 40px;
     padding: 0.3rem;
@@ -1082,8 +1094,9 @@ body {
 
 .engine-name {
     font-weight: 500;
-    font-size: 1rem;
+    font-size: 1.2rem;
     color: #222;
+    margin: 0;
 }
 
 .powered-by-text {
@@ -1128,16 +1141,16 @@ body {
 /* Responsive adjustments */
 @media (max-width: 576px) {
     .reasoning-engine-tile {
-        padding: 1rem;
+        padding: 0.5rem 1rem;
     }
     
     .engine-logo {
-        height: 30px;
-        max-width: 50px;
+        height: 28px;
+        width: 28px;
     }
     
     .engine-name {
-        font-size: 1rem;
+        font-size: 0.9rem;
     }
     
     .powered-by-text {
