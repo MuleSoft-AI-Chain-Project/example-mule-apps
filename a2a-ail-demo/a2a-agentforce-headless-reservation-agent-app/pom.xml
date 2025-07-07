@@ -3,11 +3,11 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>f684513f-280e-403a-ac53-80ca62e3de49</groupId>
-	<artifactId>a2a-agentforce-headless-agent-app</artifactId>
+	<artifactId>a2a-agentforce-headless-reservation-agent-app</artifactId>
 	<version>1.0.0</version>
 	<packaging>mule-application</packaging>
 
-	<name>a2a-agentforce-headless-agent-app</name>
+	<name>a2a-agentforce-headless-reservation-agent-app</name>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
