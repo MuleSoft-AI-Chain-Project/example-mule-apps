@@ -28,6 +28,7 @@
                         <select class="form-select" id="agentTypeSelect" required>
                             <option value="">Select Agent Type</option>
                             <option value="Agentforce">Agentforce</option>
+                            <option value="Amazon Bedrock">Amazon Bedrock</option>
                             <option value="AutoGen">AutoGen</option>
                             <option value="CrewAI">CrewAI</option>
                             <option value="GoogleADK">Google ADK</option>
@@ -222,6 +223,7 @@ function getAgentTypeForUrl(agentUrl) {
 // Agent type icons mapping
 window.AGENT_TYPE_ICONS = {
     "Agentforce": "assets/images/agentforceagent.png",
+    "Amazon Bedrock": "assets/images/bedrockagent.png",
     "AutoGen": "assets/images/autogenagent.png",
     "CrewAI": "assets/images/crewaiagent.png",
     "GoogleADK": "assets/images/adkagent.png",
