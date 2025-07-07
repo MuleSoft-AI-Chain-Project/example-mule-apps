@@ -45,4 +45,27 @@ http://www.mulesoft.org/schema/mule/websocket http://www.mulesoft.org/schema/mul
 	</websocket:config>
 	<os:object-store name="AgentObjectStore" doc:name="Object store" doc:id="202d801e-4c20-4b9d-8013-4c779cba5015" persistent="false"/>
 	<os:object-store name="ChatMessagesObjectStore" doc:name="Object store" doc:id="c6519eb1-bb67-4baf-aa2d-888e3b523c17" persistent="false" />
+	<a2a:server-config name="A2A_Server" doc:name="A2A Server" doc:id="955329a0-ca7d-4411-9429-fe40b0f0bd3c" >
+		<a2a:connection listenerConfig="HTTP_Listener_config" agentPath="/crm-domain-agent" />
+		<a2a:card name="${agent.name}" url="${agent.host}/crm-domain-agent" version="1.0.0">
+			<a2a:description ><![CDATA[${agent.description}]]></a2a:description>
+			<a2a:skills >
+				<a2a:agent-skill id="${agent.skill.1.id}" name="${agent.skill.1.name}" >
+					<a2a:description ><![CDATA[${agent.skill.1.description}]]></a2a:description>
+				</a2a:agent-skill>
+				<a2a:agent-skill id="${agent.skill.2.id}" name="${agent.skill.2.name}" >
+					<a2a:description ><![CDATA[${agent.skill.2.description}]]></a2a:description>
+				</a2a:agent-skill>
+				<a2a:agent-skill id="${agent.skill.3.id}" name="${agent.skill.3.name}" >
+					<a2a:description ><![CDATA[${agent.skill.3.description}]]></a2a:description>
+				</a2a:agent-skill>
+				<a2a:agent-skill id="${agent.skill.4.id}" name="${agent.skill.4.name}" >
+					<a2a:description ><![CDATA[${agent.skill.4.description}]]></a2a:description>
+				</a2a:agent-skill>
+				<a2a:agent-skill id="${agent.skill.5.id}" name="${agent.skill.5.name}" >
+					<a2a:description ><![CDATA[${agent.skill.5.description}]]></a2a:description>
+				</a2a:agent-skill>
+			</a2a:skills>
+		</a2a:card>
+	</a2a:server-config>
 </mule>

@@ -49,10 +49,10 @@
 			<classifier>mule-plugin</classifier>
 		</dependency>
 		<dependency>
-		   <groupId>io.github.mulesoft-ai-chain-project</groupId>
-		   <artifactId>mule4-inference-connector</artifactId>
-		   <version>0.5.7</version>
-		   <classifier>mule-plugin</classifier>
+			<groupId>io.github.mulesoft-ai-chain-project</groupId>
+			<artifactId>mule4-inference-connector</artifactId>
+			<version>0.5.7</version>
+			<classifier>mule-plugin</classifier>
 		</dependency>
 		<dependency>
 			<groupId>org.mule.connectors</groupId>

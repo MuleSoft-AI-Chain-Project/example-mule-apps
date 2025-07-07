@@ -83,28 +83,13 @@ output text
 output application/json
 ---
 if (attributes.queryParams.&quot;sessionId&quot; == '' or attributes.queryParams.&quot;sessionId&quot; == null) uuid() else attributes.queryParams.&quot;sessionId&quot;]" doc:name="Set sessionId with sessionID header" doc:id="d6d0e0bc-e3a2-4c68-9ec7-092beff280c2" variableName="sessionId"/>
-		<set-variable value="#[(payload as Object).prompt as String]" doc:name="Set userPrompt with payload.prompt" doc:id="c0dec21e-3afe-41c6-ad9e-3774fad668ee" variableName="userPrompt" />
+		<set-variable value="#[(payload as Object).prompt as String default payload.message.parts[0].text]" doc:name="Set userPrompt with payload.prompt" doc:id="c0dec21e-3afe-41c6-ad9e-3774fad668ee" variableName="userPrompt" />
 		<set-variable value='#[""]' doc:name="Intialise taskHistory" doc:id="fd632a81-a1c5-4d3c-9f1e-6e741863a309" variableName="taskHistory" />
 		<set-variable value="#[[]]" doc:name="Initialise chainsOfThoughts" doc:id="c6f42a73-fe14-4722-8ec7-05b34a2d2127" variableName="chainsOfThoughts" />
 		<set-variable value='#[{"agents":  []}]' doc:name="Intialise selectedAgents" doc:id="eef193c9-c66e-4238-96bf-eb11785baf1c" variableName="selectedAgents" />
 		<set-variable value="#[false]" doc:name="Set agentUsed to false" doc:id="21e2aaae-1956-426b-a00c-4a538cb7ad8d" variableName="agentUsed"/>
 		<set-variable value="0" doc:name="Initialise replanCount to 0" doc:id="f6a15461-02da-493c-8731-500a153fcfbe" variableName="replanCount"/>
-		<set-variable value="#[%dw 2.0
-output application/json
----
-if ((payload as Object).&quot;useTrustLayer&quot; != '' or 
-		(payload as Object).&quot;useTrustLayer&quot; != null) 
-		
-	(payload as Object).&quot;useTrustLayer&quot; as Boolean
-	
-else if (attributes.queryParams.&quot;useTrustLayer&quot; != '' or 
-		attributes.queryParams.&quot;useTrustLayer&quot; != null) 
-		
-	attributes.queryParams.&quot;useTrustLayer&quot; 
-	
-else 
-			
-	false]" doc:name="Set useTrustLayer with useTrustLayer header" doc:id="0791022a-9648-4cf7-8c87-beaf8708c732" variableName="useTrustLayer"/>
+		<set-variable value="#[%dw 2.0&#10;output application/json&#10;---&#10;if ((payload as Object).&quot;useTrustLayer&quot; != '' or &#10;		(payload as Object).&quot;useTrustLayer&quot; != null) &#10;		&#10;	(payload as Object).&quot;useTrustLayer&quot; as Boolean default true&#10;	&#10;else if (attributes.queryParams.&quot;useTrustLayer&quot; != '' or &#10;		attributes.queryParams.&quot;useTrustLayer&quot; != null) &#10;		&#10;	attributes.queryParams.&quot;useTrustLayer&quot; &#10;	&#10;else &#10;			&#10;	false]" doc:name="Set useTrustLayer with useTrustLayer header" doc:id="0791022a-9648-4cf7-8c87-beaf8708c732" variableName="useTrustLayer"/>
 		<set-variable value="#[output json
 ---
 []]" doc:name="Set toxicity" doc:id="04ffe526-f085-4d57-8851-41adf48c8d9f" variableName="toxicity"/>
@@ -117,36 +102,20 @@ else
 				<os:retrieve doc:name="Retrieve chat messages by sessionId" doc:id="482f982e-e9d9-441d-921a-dfb001cbc94e" key="#[vars.sessionId]" objectStore="ChatMessagesObjectStore" target="chatMessages">
 					<os:default-value ><![CDATA[[]]]></os:default-value>
 				</os:retrieve>
-				<logger level="INFO" doc:name="💬 Log Conversations's chat messages 💬" doc:id="da58f74e-0bb6-4151-855b-fd44129f3ba8" message='#[output text
----
-"💬💬💬💬💬 ---------- EXISTING CHAT MESSAGES ---------- 💬💬💬💬💬 \n\n" ++
-"Chat messages:\n" ++
-write(vars.chatMessages, "application/json") ++ "\n\n" ++
-"💬💬💬💬💬 -------------------------------------------- 💬💬💬💬💬"]'/>
+				<logger level="INFO" doc:name="💬 Log Conversations's chat messages 💬" doc:id="da58f74e-0bb6-4151-855b-fd44129f3ba8" message='#[output text&#10;---&#10;"💬💬💬💬💬 ---------- EXISTING CHAT MESSAGES ---------- 💬💬💬💬💬 \n\n" ++&#10;"Chat messages:\n" ++&#10;write(vars.chatMessages, "application/json") ++ "\n\n" ++&#10;"💬💬💬💬💬 -------------------------------------------- 💬💬💬💬💬"]'/>
 			</when>
 			<otherwise >
 				<set-variable value="#[[]]" doc:name="Initialize chatMessages to []" doc:id="9b8f9e80-b605-473c-8cd5-fdbadbb1b387" variableName="chatMessages"/>
 			</otherwise>
 		</choice>
-		<set-variable value='#[%dw 2.0
-output application/json
----
-(vars.chatMessages as Array) default [] ++ [{role: "user", content: vars.userPrompt default ""}]]' doc:name="Add user prompt to chatMessages" doc:id="624bab1e-0f81-4793-9730-5b037ed66ab3" variableName="chatMessages" />
+		<set-variable value='#[%dw 2.0&#10;output application/json&#10;---&#10;(vars.chatMessages as Array) default [] ++ [{role: "user", content: vars.userPrompt default ""}]]' doc:name="Add user prompt to chatMessages" doc:id="624bab1e-0f81-4793-9730-5b037ed66ab3" variableName="chatMessages" />
 	</sub-flow>
 	<sub-flow name="store-chat-messages" doc:id="73da46a7-dd8a-401a-9c59-cf3d1c686174" >
-		<set-variable value='#[%dw 2.0
-output application/json
----
-(vars.chatMessages as Array) default [] ++ [{role: "agent", content: (payload as Object).response default ""}]]' doc:name="Add agent response to chatMessages" doc:id="5c02f591-c99e-4ace-bdd0-eddbb4f826cb" variableName="chatMessages" />
+		<set-variable value='#[%dw 2.0&#10;output application/json&#10;---&#10;(vars.chatMessages as Array) default [] ++ [{role: "agent", content: (payload as Object).response default ""}]]' doc:name="Add agent response to chatMessages" doc:id="5c02f591-c99e-4ace-bdd0-eddbb4f826cb" variableName="chatMessages" />
 		<os:store doc:name="Store" doc:id="6c4386c3-d07d-4d66-9bd8-56cb0d1c73fd" key="#[vars.sessionId]" objectStore="ChatMessagesObjectStore">
 			<os:value ><![CDATA[#[vars.chatMessages]]]></os:value>
 		</os:store>
-		<logger level="INFO" doc:name="💬 Log Conversations's chat messages 💬" doc:id="3c12fca8-7264-4b3b-bd78-2888bcb9b0d2" message='#[output text
----
-"💬💬💬💬💬 ---------- STORED CHAT MESSAGES ---------- 💬💬💬💬💬 \n\n" ++
-"Chat messages:\n" ++
-write(vars.chatMessages, "application/json") ++ "\n\n" ++
-"💬💬💬💬💬 -------------------------------------------- 💬💬💬💬💬"]' />
+		<logger level="INFO" doc:name="💬 Log Conversations's chat messages 💬" doc:id="3c12fca8-7264-4b3b-bd78-2888bcb9b0d2" message='#[output text&#10;---&#10;"💬💬💬💬💬 ---------- STORED CHAT MESSAGES ---------- 💬💬💬💬💬 \n\n" ++&#10;"Chat messages:\n" ++&#10;write(vars.chatMessages, "application/json") ++ "\n\n" ++&#10;"💬💬💬💬💬 -------------------------------------------- 💬💬💬💬💬"]' />
 	</sub-flow>
 	<sub-flow name="process-user-query-with-inference" doc:id="789e2ae7-630e-48ad-9bdb-47dea98d86dd">
 		<scatter-gather doc:name="Scatter-Gather" doc:id="90a5b527-4fd4-4798-9818-6d1e3aa7bcd2" >
