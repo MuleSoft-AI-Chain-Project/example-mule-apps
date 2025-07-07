@@ -11,17 +11,17 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 		<websocket:on-inbound-connection doc:id="25e7e121-ba26-49ff-8acc-2dd23c95082d" config-ref="WebSockets_Config" path="/ws/prompt" doc:name="On New Inbound Connection" />
 		<set-variable value="#[attributes.socketId]" doc:name="Set socketId" doc:id="5f3e9214-c09f-4c7a-8259-e34a5be846f0" variableName="socketId"/>
 		<set-variable value='#[attributes.queryParams.userSessionId default ""]' doc:name="Set userSessionId" doc:id="6bee03ee-42fe-4bd5-be00-2d834f5c567a" variableName="userSessionId" />
-		<os:contains doc:name="Contains" doc:id="89f8c5b9-57f8-4121-9106-c36f96424ac7" key='#[(vars.userSessionId default "") ++ "-webSocketConnectedId"]' objectStore="Object_store" target="webSocketConnected" />
+		<os:contains doc:name="Contains" doc:id="89f8c5b9-57f8-4121-9106-c36f96424ac7" key='#[(vars.userSessionId default "") ++ "-webSocketConnectedId"]' objectStore="AgentObjectStore" target="webSocketConnected" />
 		<choice doc:name="Choice" doc:id="39c52798-1b12-44c4-9597-db0584243ab6" >
 			<when expression="#[vars.webSocketConnected]" >
-				<os:retrieve doc:name="Retrieve" doc:id="a3d10030-253c-4623-b402-6903c45e97c2" key='#[(vars.userSessionId default "") ++ "-webSocketConnectedId"]' objectStore="Object_store" target="webSocketConnectedId" />
+				<os:retrieve doc:name="Retrieve" doc:id="a3d10030-253c-4623-b402-6903c45e97c2" key='#[(vars.userSessionId default "") ++ "-webSocketConnectedId"]' objectStore="AgentObjectStore" target="webSocketConnectedId" />
 				<websocket:close-socket doc:id="a3dc5704-cf6a-4b0c-af89-8a398cbfd055" config-ref="WebSockets_Config" socketId="#[attributes.socketId]" reason="Sorry, spot taken" doc:name="Close socket" />
-				<os:store doc:name="Store" doc:id="5a602620-9290-4ec2-88fc-20cac87f0b3d" key='#[(vars.userSessionId default "") ++ "-webSocketConnectedId"]' objectStore="Object_store">
+				<os:store doc:name="Store" doc:id="5a602620-9290-4ec2-88fc-20cac87f0b3d" key='#[(vars.userSessionId default "") ++ "-webSocketConnectedId"]' objectStore="AgentObjectStore">
 					<os:value><![CDATA[#[vars.socketId]]]></os:value>
 				</os:store>
 			</when>
 			<otherwise >
-				<os:store doc:name="Store" doc:id="8035f977-a923-4a7f-a024-50f8631a352d" key='#[(vars.userSessionId default "") ++ "-webSocketConnectedId"]' objectStore="Object_store" >
+				<os:store doc:name="Store" doc:id="8035f977-a923-4a7f-a024-50f8631a352d" key='#[(vars.userSessionId default "") ++ "-webSocketConnectedId"]' objectStore="AgentObjectStore" >
 					<os:value ><![CDATA[#[vars.socketId]]]></os:value>
 				</os:store>
 			</otherwise>
@@ -30,10 +30,10 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 	<flow name="on-socket-closed-flow" doc:id="27855b89-add9-4200-8f7d-6850d4f43169" >
 		<websocket:on-socket-closed doc:id="13b52ee2-404d-4cac-9c5a-c69b2af1c0fa" config-ref="WebSockets_Config" path="/ws/prompt" doc:name="On Socket Closed" />
 		<set-variable value='#[attributes.queryParams.userSessionId default ""]' doc:name="Set userSessionId" doc:id="139475ea-f758-4c8b-bf2e-2c39afa5d084" variableName="userSessionId" />
-		<os:retrieve doc:name="Retrieve" doc:id="e9a7d1d8-c219-446b-8ea8-aaea4de1c199" key='#[(vars.userSessionId default "") ++ "-webSocketConnectedId"]' objectStore="Object_store" target="webSocketConnectedId" />
+		<os:retrieve doc:name="Retrieve" doc:id="e9a7d1d8-c219-446b-8ea8-aaea4de1c199" key='#[(vars.userSessionId default "") ++ "-webSocketConnectedId"]' objectStore="AgentObjectStore" target="webSocketConnectedId" />
 		<choice doc:name="Choice" doc:id="2d23dbff-0170-4253-9d54-4d9f890ec0a1" >
 			<when expression="#[attributes.socketId == vars.webSocketConnectedId]" >
-				<os:remove doc:name="Remove" doc:id="b6925b19-c25b-4ee0-91f7-32a4579b5fc0" key='#[(vars.userSessionId default "") ++ "-webSocketConnectedId"]' objectStore="Object_store" />
+				<os:remove doc:name="Remove" doc:id="b6925b19-c25b-4ee0-91f7-32a4579b5fc0" key='#[(vars.userSessionId default "") ++ "-webSocketConnectedId"]' objectStore="AgentObjectStore" />
 			</when>
 		</choice>
 	</flow>
