@@ -34,7 +34,7 @@ output text/plain
         "application/json"
     ) as Object
 ).agentName as String]' doc:name="Set agentDisplayName" doc:id="471b63e5-ad9e-4b76-96b8-ceabfa92ac68" variableName="agentToCallDisplayName" />
-		<os:retrieve doc:name="Retrieve url by agent name and set vars.agentUrl" doc:id="b3838250-0158-402c-b876-88e3b63aa588" key='#[(vars.userSessionId default "") ++ "-agent-url-" ++ (vars.agentToCall as String)]' objectStore="Object_store" />
+		<os:retrieve doc:name="Retrieve url by agent name and set vars.agentUrl" doc:id="b3838250-0158-402c-b876-88e3b63aa588" key='#[(vars.userSessionId default "") ++ "-agent-url-" ++ (vars.agentToCall as String)]' objectStore="AgentObjectStore" />
 		<set-variable value="#[%dw 2.0
 output text
 ---

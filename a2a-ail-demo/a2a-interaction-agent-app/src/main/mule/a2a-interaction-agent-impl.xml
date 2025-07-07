@@ -21,6 +21,7 @@ output text
 "\n❓❓❓❓❓️️ ------------------------------------------------------------------ ❓❓❓❓❓️" ++
 "\n\n"]' />
 		<flow-ref doc:name="set-and-initialise-vars" doc:id="7a8bd844-f364-4586-8489-1b20c0d42fe3" name="set-and-initialise-vars" />
+		<flow-ref doc:name="get-chat-messages" doc:id="65d320bc-83d6-4b79-90b1-ec762c6b0907" name="get-chat-messages"/>
 		<choice doc:name="🧠 Choose if trust layer should be used for planning and reasoning 🧠" doc:id="a51cd7c6-607c-4645-bd0a-9d689068bff9">
 			<when expression="#[vars.useTrustLayer == true]">
 				<logger level="INFO" doc:name="🧱 Use trust layer through einstein connector 🧱" doc:id="9e3bbc5a-195e-41ca-a49a-9c620cc3b013" message='#[%dw 2.0
@@ -45,6 +46,7 @@ output text
 				<flow-ref doc:name="Use inference connector fro planning" doc:id="c5c6e9fc-0673-4bed-8e38-c70688478132" name="process-user-query-with-inference" />
 			</otherwise>
 		</choice>
+		<flow-ref doc:name="store-chat-messages" doc:id="07ea1353-fc95-446d-a58e-aa7388b743c2" name="store-chat-messages"/>
 		<ee:transform doc:name="Prepare response" doc:id="bd1a1aca-327d-423c-8ed8-a3d35abecead">
 			<ee:message>
 				<ee:set-payload><![CDATA[%dw 2.0
@@ -92,6 +94,28 @@ if (attributes.queryParams.&quot;sessionId&quot; == '' or attributes.queryParams
 ---
 []]" doc:name="Set toxicity" doc:id="04ffe526-f085-4d57-8851-41adf48c8d9f" variableName="toxicity"/>
 		<flow-ref doc:name="get-a2a-agents-cards" doc:id="1d812b6f-3d27-4c70-a43f-41de336b0366" name="get-a2a-agents-cards" />
+	</sub-flow>
+	<sub-flow name="get-chat-messages" doc:id="d63f8f77-4fb2-4d33-99cb-a2ae074153c0" >
+		<os:contains doc:name="Contains sessionsId" doc:id="206cfafc-f5a9-45db-8c92-edc505170eb5" key="#[vars.sessionId]" objectStore="ChatMessagesObjectStore"/>
+		<choice doc:name="Choice" doc:id="aac5502d-0ea3-4c57-bf4e-f0b9bbfa1a73" >
+			<when expression="payload">
+				<os:retrieve doc:name="Retrieve chat messages by sessionId" doc:id="482f982e-e9d9-441d-921a-dfb001cbc94e" key="#[vars.sessionId]" objectStore="ChatMessagesObjectStore" target="chatMessages">
+					<os:default-value ><![CDATA[[]]]></os:default-value>
+				</os:retrieve>
+				<logger level="INFO" doc:name="💬 Log Conversations's chat messages 💬" doc:id="da58f74e-0bb6-4151-855b-fd44129f3ba8" message='#[output text&#10;---&#10;"💬💬💬💬💬 ---------- EXISTING CHAT MESSAGES ---------- 💬💬💬💬💬 \n\n" ++&#10;"Chat messages:\n" ++&#10;write(vars.chatMessages, "application/json") ++ "\n\n" ++&#10;"💬💬💬💬💬 -------------------------------------------- 💬💬💬💬💬"]'/>
+			</when>
+			<otherwise >
+				<set-variable value="#[[]]" doc:name="Initialize chatMessages to []" doc:id="9b8f9e80-b605-473c-8cd5-fdbadbb1b387" variableName="chatMessages"/>
+			</otherwise>
+		</choice>
+		<set-variable value='#[%dw 2.0&#10;output application/json&#10;---&#10;(vars.chatMessages as Array) default [] ++ [{role: "user", content: vars.userPrompt default ""}]]' doc:name="Add user prompt to chatMessages" doc:id="624bab1e-0f81-4793-9730-5b037ed66ab3" variableName="chatMessages" />
+	</sub-flow>
+	<sub-flow name="store-chat-messages" doc:id="73da46a7-dd8a-401a-9c59-cf3d1c686174" >
+		<set-variable value='#[%dw 2.0&#10;output application/json&#10;---&#10;(vars.chatMessages as Array) default [] ++ [{role: "agent", content: (payload  as Object).response default ""}]]' doc:name="Add agent response to chatMessages" doc:id="5c02f591-c99e-4ace-bdd0-eddbb4f826cb" variableName="chatMessages" />
+		<os:store doc:name="Store" doc:id="6c4386c3-d07d-4d66-9bd8-56cb0d1c73fd" key="#[vars.sessionId]" objectStore="ChatMessagesObjectStore">
+			<os:value ><![CDATA[#[vars.chatMessages]]]></os:value>
+		</os:store>
+		<logger level="INFO" doc:name="💬 Log Conversations's chat messages 💬" doc:id="3c12fca8-7264-4b3b-bd78-2888bcb9b0d2" message='#[output text&#10;---&#10;"💬💬💬💬💬 ---------- STORED CHAT MESSAGES ---------- 💬💬💬💬💬 \n\n" ++&#10;"Chat messages:\n" ++&#10;write(vars.chatMessages, "application/json") ++ "\n\n" ++&#10;"💬💬💬💬💬 -------------------------------------------- 💬💬💬💬💬"]' />
 	</sub-flow>
 	<sub-flow name="process-user-query-with-inference" doc:id="789e2ae7-630e-48ad-9bdb-47dea98d86dd">
 		<scatter-gather doc:name="Scatter-Gather" doc:id="90a5b527-4fd4-4798-9818-6d1e3aa7bcd2" >
@@ -143,7 +167,8 @@ Rules for Agent Call Decision:
     "response": "response to send back to the user",
     "needAgents": false
   }]]></mac-inference:instructions>
-			<mac-inference:data><![CDATA[#["Users query: " ++ (vars.userPrompt as String) ++ 
+			<mac-inference:data><![CDATA[#[// "User query: " ++ (vars.userPrompt as String) ++ 
+"Messages: " ++ write(vars.chatMessages, "application/json") ++
 ", Available agents: " ++ write(vars.agents.tools, "application/json") ++ 
 ", Already called agents: " ++ write(vars.selectedAgents.tools, "application/json") ++ 
 ", Task executed through called agents: " ++ (vars.taskHistory as String)]]]></mac-inference:data>
@@ -184,7 +209,8 @@ Your Guardrails
 - Don't change the context of prompt,
 - Don't add '.' at the end of the prompts,
 - Don't make the same call with the same prompt again to an agent,]]></mac-inference:instructions>
-					<mac-inference:data><![CDATA[#["Users query: " ++ (vars.userPrompt as String) ++ 
+					<mac-inference:data><![CDATA[#[// "User query: " ++ (vars.userPrompt as String) ++ 
+"Messages: " ++ write(vars.chatMessages, "application/json") ++
 ", Tasks executed by called agents: " ++ (vars.taskHistory as String) ++ 
 ", Available specialised agents: " ++ write(vars.agents.tools, "application/json") ++
 ", Already Called Agents (results): " ++ write(vars.calledAgents, "application/json")]]]></mac-inference:data>
@@ -199,10 +225,7 @@ Your Guardrails
 "⚠️⚠️⚠️⚠️⚠️ ------------------- ERROR ------------------- ⚠️️️️️️⚠️⚠️⚠️⚠️️\n\n" ++
 "Error while reasoning upon agents. Set selectedAgents to {tools:[]}\n\n" ++
 "⚠️⚠️⚠️⚠️⚠️ --------------------------------------------- ⚠️️️️️️⚠️⚠️⚠️⚠️️"]'/>
-							<set-variable value="#[%dw 2.0
-output application/json
----
-{tools:[]}]" doc:name="Set selectedAgents to {tools:[]}" doc:id="76c5ce90-3626-4a94-a25a-772146446709" variableName="selectedAgents" />
+							<flow-ref doc:name="replan-process-user-query" doc:id="c1160643-6f2b-4f42-96e2-e200a26500bb" name="replan-process-user-query-with-inference" />
 						</on-error-continue>
 					</error-handler>
 				</try>
@@ -277,7 +300,8 @@ You have to consider the agent calls, and reply as if you have done the job and 
 Base your answer on the task executed with success and not on any ongoing one.
 Let the user know if you faced any error while executing a task, but mention a generic problem nothing to technical.
 Dont say things like 'I'm here to help with your question!' or 'I'm here to help!', answer straight ]]></mac-inference:instructions>
-					<mac-inference:data ><![CDATA[#["Users query: " ++ (vars.userPrompt as String) ++ 
+					<mac-inference:data ><![CDATA[#[// "User query: " ++ (vars.userPrompt as String) ++ 
+"Messages: " ++ write(vars.chatMessages, "application/json") ++
 ", Already called agents: " ++ write(vars.selectedAgents.tools, "application/json") ++ 
 ", Task executed through called agents: " ++ (vars.taskHistory as String)]]]></mac-inference:data>
 				</mac-inference:agent-define-prompt-template>
@@ -348,7 +372,8 @@ Rules for Agent Call Decision:
     "response": "response to send back to the user",
     "needAgents": false
   }]]></ms-einstein-ai:instructions>
-					<ms-einstein-ai:dataset ><![CDATA[#["Users query: " ++ (vars.userPrompt as String) ++ 
+					<ms-einstein-ai:dataset ><![CDATA[#[// "User query: " ++ (vars.userPrompt as String) ++ 
+"Messages: " ++ write(vars.chatMessages, "application/json") ++
 ", Available agents: " ++ write(vars.agents.tools, "application/json") ++ 
 ", Already called agents: " ++ write(vars.selectedAgents.tools, "application/json") ++ 
 ", Task executed through called agents: " ++ (vars.taskHistory as String)]]]></ms-einstein-ai:dataset>
@@ -392,7 +417,8 @@ Your Guardrails
 - Don't make the same call with the same prompt again to an agent
 - Only select from 'Available specialised agents', don't make up tools.
 ]]></ms-einstein-ai:template>
-					<ms-einstein-ai:instructions ><![CDATA[#["Users query: " ++ (vars.userPrompt as String) ++ 
+					<ms-einstein-ai:instructions ><![CDATA[#[// "User query: " ++ (vars.userPrompt as String) ++ 
+"Messages: " ++ write(vars.chatMessages, "application/json") ++
 ", Tasks executed by called agents: " ++ (vars.taskHistory as String) ++ 
 ", Available specialised agents: " ++ write(vars.agents.tools, "application/json") ++
 ", Already Called Agents (results): " ++ write(vars.calledAgents, "application/json")]]]></ms-einstein-ai:instructions>
@@ -415,10 +441,7 @@ var cleaned = raw replace '```json' with '' replace '```' with ''
 "⚠️⚠️⚠️⚠️⚠️ ------------------- ERROR ------------------- ⚠️️️️️️⚠️⚠️⚠️⚠️️\n\n" ++
 "Error while reasoning upon agents. Set selectedAgents to {tools:[]}\n\n" ++
 "⚠️⚠️⚠️⚠️⚠️ --------------------------------------------- ⚠️️️️️️⚠️⚠️⚠️⚠️️"]' />
-							<set-variable value="#[%dw 2.0
-output application/json
----
-{tools:[]}]" doc:name="Set selectedAgents to {tools:[]}" doc:id="80b94509-d47b-4652-ad0e-10e79bcadfca" variableName="selectedAgents" />
+							<flow-ref doc:name="replan-process-user-query" doc:id="c19555d7-e7c5-43b1-86e8-b5cfe31c3777" name="replan-process-user-query-with-einstein" />
 						</on-error-continue>
 					</error-handler>
 				</try>
@@ -517,7 +540,8 @@ Base your answer on the task executed with success and not on any ongoing one.
 If there are questions which requires user input, mention it in your answer. 
 Let the user know if you faced any error while executing a task, but mention a generic problem nothing to technical.
 Dont say things like 'I'm here to help with your question!' or 'I'm here to help!', answer straight ]]></ms-einstein-ai:instructions>
-					<ms-einstein-ai:dataset><![CDATA[#["Users query: " ++ (vars.userPrompt as String) ++ 
+					<ms-einstein-ai:dataset><![CDATA[#[// "User query: " ++ (vars.userPrompt as String) ++ 
+"Messages: " ++ write(vars.chatMessages, "application/json") ++
 ", Already called agents: " ++ write(vars.selectedAgents.tools, "application/json") ++ 
 ", Task executed through called agents: " ++ (vars.taskHistory as String)]]]></ms-einstein-ai:dataset>
 				</ms-einstein-ai:agent-define-prompt-template>
@@ -571,7 +595,7 @@ output text/plain
 				</on-error-continue>
 			</error-handler>
 		</try>
-		<os:retrieve doc:name="Retrieve url by agent name and set vars.agentUrl" doc:id="bdbe709c-28e5-4012-ab35-6c179cfda5c9" key='#[(vars.userSessionId default "") ++ "-agent-url-" ++ (vars.agentToCall as String)]' objectStore="Object_store" />
+		<os:retrieve doc:name="Retrieve url by agent name and set vars.agentUrl" doc:id="bdbe709c-28e5-4012-ab35-6c179cfda5c9" key='#[(vars.userSessionId default "") ++ "-agent-url-" ++ (vars.agentToCall as String)]' objectStore="AgentObjectStore" />
 		<set-variable value="#[%dw 2.0
 output text
 ---
