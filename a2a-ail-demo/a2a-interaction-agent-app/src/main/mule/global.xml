@@ -24,17 +24,7 @@ http://www.mulesoft.org/schema/mule/websocket http://www.mulesoft.org/schema/mul
 			</http:cors-interceptor>
 		</http:listener-interceptors>
 	</http:listener-config>
-	<!-- <a2a:client-config name="A2A_Client_Agentforce" doc:name="A2A Client" doc:id="45aafae8-c140-406a-809f-a8ee0f1a0fc6" >
-		<a2a:client-connection serverUrl="${agent.agentforce.url}" requestTimeout="${agent.agentforce.timeout}"/>
-	</a2a:client-config>
-	<a2a:client-config name="A2A_Client_CRM" doc:name="A2A Client" doc:id="23a2ee35-273a-4c3c-a195-e0f5637ca104" >
-		<a2a:client-connection serverUrl="${agent.crm.url}" requestTimeout="${agent.crm.timeout}"/>
-	</a2a:client-config>
-	<a2a:client-config name="A2A_Client_Einstein" doc:name="A2A Client" doc:id="bd3cc05c-7e7a-46b2-a5ca-4ab66bae914f" >
-		<a2a:client-connection serverUrl="${agent.einstein.url}" requestTimeout="${agent.einstein.timeout}"/>
-	</a2a:client-config> -->
 	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="25405d11-7b16-4925-8be7-168fb677743c" />
-	<os:object-store name="Object_store" doc:name="Object store" doc:id="f8a7612a-47cb-4e1a-abf0-8acd61904c5b" persistent="false"/>
 	<mac-inference:text-generation-config name="MuleSoft_Inference_Text_generation_config" doc:name="MuleSoft Inference Text generation config" doc:id="92ed977e-07a1-4c84-9ce3-3fb23ace28c6" >
 		<mac-inference:llm-connection inferenceType="OPENAI" modelName="${openai.model}" apiKey="${openai.apikey}" maxTokens="${openai.maxToken}"/>
 	</mac-inference:text-generation-config>
@@ -53,4 +43,6 @@ http://www.mulesoft.org/schema/mule/websocket http://www.mulesoft.org/schema/mul
 			<websocket:client-settings />
 		</websocket:connection>
 	</websocket:config>
+	<os:object-store name="AgentObjectStore" doc:name="Object store" doc:id="202d801e-4c20-4b9d-8013-4c779cba5015" persistent="false"/>
+	<os:object-store name="ChatMessagesObjectStore" doc:name="Object store" doc:id="c6519eb1-bb67-4baf-aa2d-888e3b523c17" persistent="false" />
 </mule>
