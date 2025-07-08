@@ -137,7 +137,7 @@ output application/json
 		<set-variable value='#[%dw 2.0
 output application/json
 ---
-(vars.chatMessages as Array) default [] ++ [{role: "agent", content: (payload as Object).response default ""}]]' doc:name="Add agent response to chatMessages" doc:id="5c02f591-c99e-4ace-bdd0-eddbb4f826cb" variableName="chatMessages" />
+(vars.chatMessages default [] as Array)  ++ [{role: "agent", content: (payload as Object).response default ""}]]' doc:name="Add agent response to chatMessages" doc:id="5c02f591-c99e-4ace-bdd0-eddbb4f826cb" variableName="chatMessages" />
 		<os:store doc:name="Store" doc:id="6c4386c3-d07d-4d66-9bd8-56cb0d1c73fd" key="#[vars.sessionId]" objectStore="ChatMessagesObjectStore">
 			<os:value ><![CDATA[#[vars.chatMessages]]]></os:value>
 		</os:store>
