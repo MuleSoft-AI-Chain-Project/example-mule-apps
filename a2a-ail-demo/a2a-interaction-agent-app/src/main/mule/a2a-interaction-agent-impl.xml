@@ -157,7 +157,7 @@ write(vars.chatMessages, "application/json") ++ "\n\n" ++
 Determine if additional agent calls are required to fulfill the user query or if the query can be answered directly without specialized agents.
 
 Task:
-- Analyze the user query, available agents, agents already called, and tasks executed via agent calls.
+- Analyze the user query, available agents, agents already called, and tasks executed via agent calls. Process the last message in the list with role: 'user' as the current user query. Reference previous messages only if the current query explicitly refers to or depends on them.
 - Decide whether further agent calls are needed or if the query can be answered directly.
 - Respond using the specified JSON schema.
 
@@ -224,7 +224,7 @@ write(vars.queryAssessment, "application/json") ++
 				<mac-inference:tools-native-template doc:name="[Tools] Native Template (Reasoning only)" doc:id="7ea552c0-7068-46da-ac20-31d3eb95a6e6" config-ref="MuleSoft_Inference_Text_generation_config">
 					<mac-inference:template><![CDATA[You are an orchestration agent reasoning on agents to be called.]]></mac-inference:template>
 					<mac-inference:instructions><![CDATA[Your Goals:
-- Analyze the user query and the list of available tools provided in the data. 
+- Analyze the user query and the list of available tools provided in the data. Process the last message in the list with role: 'user' as the current user query. Reference previous messages only if the current query explicitly refers to or depends on them.
 - Each tool represent an agent providing multiple skills.
 
 Your Tasks:
@@ -358,7 +358,7 @@ var cleaned = raw replace '```json' with '' replace '```' with ''
 Determine if additional agent calls are required to fulfill the user query or if the query can be answered directly without specialized agents.
 
 Task:
-- Analyze the user query, available agents, agents already called, and tasks executed via agent calls.
+- Analyze the user query, available agents, agents already called, and tasks executed via agent calls. Process the last message in the list with role: 'user' as the current user query. Reference previous messages only if the current query explicitly refers to or depends on them.
 - Decide whether further agent calls are needed or if the query can be answered directly.
 - Always check if available agents are better suited to answer the query.
 - Respond using the specified JSON schema.
@@ -430,7 +430,7 @@ write(vars.queryAssessment, "application/json") ++
 					<ms-einstein-ai:template ><![CDATA[You are an orchestration agent reasoning on agents to be called.
 
 Your Goals:
-- Analyze the user query and the list of available tools provided in the data. 
+- Analyze the user query and the list of available tools provided in the data. Process the last message in the list with role: 'user' as the current user query. Reference previous messages only if the current query explicitly refers to or depends on them.
 - Each tool represent an agent providing multiple skills.
 
 Your Tasks:
