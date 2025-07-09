@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:a2a="http://www.mulesoft.org/schema/mule/a2a"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/a2a http://www.mulesoft.org/schema/mule/a2a/current/mule-a2a.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<flow name="task-listener" doc:id="69c2804b-2cee-44e4-8486-fc6f0879c6e1" >
+		<a2a:task-listener doc:name="Task Listener" doc:id="a3765975-12fd-4087-bf72-d0cdc66064aa" config-ref="A2A_Server"/>
+		<set-variable value="#[payload.Id]" doc:name="Set a2aTaskId" doc:id="24eda3c0-2724-437a-86f9-6f23752fd0ef" variableName="taskId"/>
+		<set-variable value="#[payload.sessionId]" doc:name="Set a2aSessionId" doc:id="e8a1de4c-b72a-4a92-9907-2b14a2c3c269" variableName="a2aSessionId"/>
+		<flow-ref doc:name="answer-prompt-flow" doc:id="8f728b6d-3647-4657-8999-94dd33dcacd1" name="answer-prompt-flow" />
+		<ee:transform doc:name="Prepare A2A Server Response" doc:id="259f7129-631d-4393-a6a4-b73a1b50663b">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "id": vars.a2aTaskId,
+    "sessionId": vars.a2aSessionId,
+    "status": {
+      "state": "completed",
+      "message": {
+        "role": "agent",
+        "parts": [
+          {
+            "type": "text",
+            "text": payload.response
+          }
+        ]
+      },
+      "timestamp": (now() >> 'UTC') as String {format: "yyyy-MM-dd'T'HH:mm:ss'Z'"}
+    },
+    "artifacts": [
+      {
+        "name": "Answer",
+        "index": 0,
+        "parts": [
+          {
+            "type": "text",
+            "text": payload.response
+          }
+        ]
+      }
+    ]
+  }]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>
