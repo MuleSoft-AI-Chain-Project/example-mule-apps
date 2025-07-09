@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MuleSoft AI Chain: Inference + MCP Connector Demo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            background-color: #f5f5f5;
+        }
+        .header {
+            background: linear-gradient(to right, #0052d4, #4364f7);
+            color: white;
+            padding: 10px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .header img {
+            width: 30px;
+            height: 30px;
+        }
+        .message-area {
+            flex-grow: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        .message {
+            background-color: #e8ecef;
+            padding: 15px;
+            border-radius: 10px;
+            max-width: 80%;
+            margin-bottom: 15px;
+            position: relative;
+            animation: fadeIn 0.3s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .user-message {
+            background-color: #d1e7dd;
+            margin-left: auto;
+            text-align: right;
+        }
+        .error-message {
+            background-color: #f8d7da;
+            border: 1px solid #dc3545;
+        }
+        .thinking-message {
+            background-color: #e8ecef;
+            color: #555;
+            font-style: italic;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .thinking-message::after {
+            content: '...';
+            display: inline-block;
+            animation: dots 1.5s infinite;
+        }
+        @keyframes dots {
+            0% { content: '.'; }
+            33% { content: '..'; }
+            66% { content: '...'; }
+        }
+        .account-list {
+            display: grid;
+            gap: 10px;
+        }
+        .account-card {
+            background-color: #ffffff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+        .account-card:hover {
+            transform: translateY(-2px);
+        }
+        .account-card h4 {
+            margin: 0 0 12px;
+            color: #0052d4;
+            font-size: 18px;
+        }
+        .account-card p {
+            margin: 6px 0;
+            font-size: 14px;
+            line-height: 1.5;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .account-card strong {
+            color: #333;
+            font-weight: 600;
+        }
+        .inventory-card {
+            background-color: #ffffff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 10px;
+        }
+        .inventory-card h4 {
+            margin: 0 0 12px;
+            color: #0052d4;
+            font-size: 18px;
+        }
+        .inventory-card p {
+            margin: 6px 0;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .inventory-card strong {
+            color: #333;
+            font-weight: 600;
+        }
+        .input-area {
+            display: flex;
+            padding: 10px;
+            background-color: white;
+            border-top: 1px solid #ddd;
+        }
+        .input-area input {
+            flex-grow: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 20px;
+            margin-right: 10px;
+            font-size: 16px;
+        }
+        .input-area button {
+            background-color: #4364f7;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        .input-area button:hover {
+            background-color: #0052d4;
+        }
+        .tools-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-top: 10px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .tools-used {
+            background-color: #28a745;
+            color: white;
+            animation: pulse 1.5s infinite;
+        }
+        .tools-not-used {
+            background-color: #6c757d;
+            color: white;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        .formatted-text p {
+            margin: 8px 0;
+            line-height: 1.6;
+        }
+        .formatted-text strong {
+            font-weight: 600;
+            color: #333;
+        }
+        .formatted-text em {
+            font-style: italic;
+        }
+        .response-card {
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+        }
+        .card-header {
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+        }
+        .card-header h3 {
+            margin: 0;
+            font-size: 18px;
+        }
+        .inventory-header {
+            background-color: #e3f2fd;
+            color: #0d47a1;
+        }
+        .crm-header {
+            background-color: #e8f5e9;
+            color: #1b5e20;
+        }
+        .answer-header {
+            background-color: #fff3e0;
+            color: #e65100;
+        }
+        .card-body {
+            padding: 15px;
+            background-color: #fff;
+        }
+        .info-row {
+            display: flex;
+            margin-bottom: 8px;
+        }
+        .info-label {
+            font-weight: bold;
+            width: 150px;
+            flex-shrink: 0;
+        }
+        .info-value {
+            flex-grow: 1;
+        }
+        .accounts-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+        }
+        .account-card {
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        .account-header {
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .account-header h4 {
+            margin: 0;
+            font-size: 16px;
+        }
+        .account-body {
+            padding: 12px;
+        }
+        .answer-text {
+            font-size: 16px;
+            line-height: 1.5;
+            margin: 0 0 10px 0;
+        }
+        .plan-box {
+            background-color: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 10px;
+            margin-top: 10px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        .plan-box h5 {
+            margin: 0 0 8px;
+            color: #0052d4;
+            font-size: 16px;
+        }
+        .plan-box p {
+            margin: 5px 0;
+        }
+        .plan-step {
+            margin-bottom: 10px;
+        }
+        .plan-step strong {
+            font-weight: 600;
+            color: #333;
+        }
+        .sub-step {
+            margin: 3px 0 3px 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <img src="mac.png" alt="MuleSoft Logo">
+        MuleSoft AI Chain: Inference + MCP Connector Demo
+    </div>
+    <div class="message-area" id="messageArea">
+        <div class="message">
+            Hi, I'm a MAC AI Agent built with the MAC Project on the MuleSoft Anypoint Platform. I am also using the MCP Connector to get access to tools which have been made available to me. 
+        </div>
+    </div>
+    <div class="input-area">
+        <input type="text" id="promptInput" placeholder="Send a message to the MAC AI Agent">
+        <button onclick="sendPrompt()">↑</button>
+    </div>
+
+    <script>
+        function formatApiResponse(text) {
+            // Clean up escaped characters
+            text = text.replace(/\\n/g, '\n').replace(/\\"/g, '"');
+            
+            // Check for account list response
+            if (text.includes("accounts") || text.match(/\d+\.\s*\*\*([A-Za-z]+)\*\*/)) {
+                return formatInventoryResponse(text);
+            }
+            // Check for inventory response
+            else if (text.includes("inventory") && text.includes("quantity")) {
+                return formatInventoryResponse(text);
+            }
+            // Default formatting for other responses
+            else {
+                return formatInventoryResponse(text);
+            }
+        }
+
+        function formatTextResponse(text) {
+            // Split by newlines and format as paragraphs
+            const lines = text.split('\n').filter(line => line.trim());
+            let html = '<div class="formatted-text">';
+            
+            lines.forEach(line => {
+                // Handle bold markdown (**text**)
+                line = line.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+                // Handle italic markdown (*text*)
+                line = line.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+                html += `<p>${line}</p>`;
+            });
+            
+            html += '</div>';
+            return html;
+        }
+
+        function formatAccountResponse(text) {
+            // Extract company name with multiple patterns
+            let company = 'N/A';
+            const companyPatterns = [
+                /company (?:is |)["']?([^"':]+)["']?[:\s]/i,
+                /associated with (?:the company |)["']?([^"':]+)["']?[:\s]/i,
+                /for the company ([^:]+):/i,
+                /accounts (?:for|where the company is) ["']?([^"':]+)["']?/i
+            ];
+            for (const pattern of companyPatterns) {
+                const match = text.match(pattern);
+                if (match) {
+                    company = match[1].trim();
+                    break;
+                }
+            }
+
+            // Flexible regex for account data
+            const accountPattern = /(\d+)\.\s*\*\*([^*]+)\*\*\s*(?:[\n\s]*-\s*\*\*Name:\*\*\s*([^-]+))?\s*-\s*\*\*Address:\*\*\s*([^-]+)\s*-\s*\*\*(?:ZipCode|Zip Code):\*\*\s*([^-]+)\s*(?:-\s*\*\*City:\*\*\s*([^-]+))?\s*-\s*\*\*Country:\*\*\s*([^0-9\n]+)/gi;
+            
+            let matches = Array.from(text.matchAll(accountPattern));
+            
+            if (matches.length === 0) {
+                return `<div class="formatted-text"><p>${text}</p></div>`;
+            }
+
+            // Extract intro and outro text
+            const firstMatch = matches[0];
+            const accountStartIndex = text.indexOf(firstMatch[0]);
+            const introText = accountStartIndex > 0 ? text.substring(0, accountStartIndex).trim() : '';
+            
+            const lastMatch = matches[matches.length - 1];
+            const lastMatchText = lastMatch[0];
+            const lastAccountEndIndex = text.indexOf(lastMatchText) + lastMatchText.length;
+            const outroText = lastAccountEndIndex < text.length ? text.substring(lastAccountEndIndex).trim() : '';
+
+            let html = '<div class="formatted-text">';
+            if (introText) {
+                html += `<p>${introText}</p>`;
+            }
+            html += '</div><div class="account-list">';
+            
+            matches.forEach(match => {
+                const type = (match[2] || 'Account').trim();
+                const name = (match[3] || 'N/A').trim();
+                const address = (match[4] || 'N/A').trim();
+                const zip = (match[5] || 'N/A').trim();
+                const city = (match[6] || 'N/A').trim();
+                const country = (match[7] || 'N/A').trim();
+                
+                html += `
+                    <div class="account-card">
+                        <h4>${type}</h4>
+                        <p><strong>Name:</strong> ${name}</p>
+                        <p><strong>Company:</strong> ${company}</p>
+                        <p><strong>Address:</strong> ${address}</p>
+                        <p><strong>Zip Code:</strong> ${zip}</p>
+                        <p><strong>City:</strong> ${city}</p>
+                        <p><strong>Country:</strong> ${country}</p>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            if (outroText) {
+                html += `<div class="formatted-text"><p>${outroText}</p></div>`;
+            }
+            
+            return html;
+        }
+
+        function formatInventoryResponse(text) {
+            const productMatch = text.match(/product (?:ID |)(\w+)/i);
+            const quantityMatch = text.match(/(?:quantity|available) (?:of |)([0-9,]+)/i);
+            
+            if (productMatch && quantityMatch) {
+                const productId = productMatch[1];
+                const quantity = quantityMatch[1];
+                
+                return `
+                    <div class="inventory-card">
+                        <h4>Inventory Information</h4>
+                        <p><strong>Product ID:</strong> ${productId}</p>
+                        <p><strong>Available Quantity:</strong> ${quantity} units</p>
+                    </div>
+                `;
+            }
+            
+            return `<div class="formatted-text"><p>${text}</p></div>`;
+        }
+
+        function formatDefaultResponse(text, plan) {
+            // Add paragraph breaks for readability
+            const formattedText = text
+                .split('\n\n')
+                .map(paragraph => paragraph.trim())
+                .filter(paragraph => paragraph.length > 0)
+                .map(paragraph => `<p>${paragraph}</p>`)
+                .join('');
+            
+            // Format the plan if it exists
+            let planHtml = '';
+            if (plan) {
+                // Split plan into main steps by ". Step:"
+                const steps = plan
+                    .split(/\.?\s*Step:/)
+                    .map(step => step.trim())
+                    .filter(step => step.length > 0);
+                
+                planHtml = `
+                    <div class="plan-box">
+                        <h5>Reasoning and Action Plan</h5>
+                `;
+                
+                steps.forEach((step, index) => {
+                    // Split each step into main step and sub-steps
+                    const parts = step.split(/,\s*-/).map(part => part.trim());
+                    // The main step might start with a number or not
+                    const mainStep = parts[0].replace(/^\d+:\s*/, '');
+                    const subSteps = parts.slice(1).map(subStep => subStep.replace(/^\s*-\s*/, ''));
+                    
+                    planHtml += `
+                        <div class="plan-step">
+                            <p><strong>Step ${index + 1}: ${mainStep}</strong></p>
+                    `;
+                    
+                    subSteps.forEach(subStep => {
+                        if (subStep) {
+                            planHtml += `<p class="sub-step">- ${subStep}</p>`;
+                        }
+                    });
+                    
+                    planHtml += `</div>`;
+                });
+                
+                planHtml += `</div>`;
+            }
+            
+            return `
+                <div class="response-card default-card">
+                    <div class="card-body">
+                        ${formattedText || `<p>${text}</p>`}
+                        ${planHtml}
+                    </div>
+                </div>
+            `;
+        }
+
+        async function sendPrompt() {
+            const promptInput = document.getElementById('promptInput');
+            const messageArea = document.getElementById('messageArea');
+            const prompt = promptInput.value.trim();
+
+            if (!prompt) return;
+
+            const userMessage = document.createElement('div');
+            userMessage.className = 'message user-message';
+            userMessage.textContent = prompt;
+            messageArea.appendChild(userMessage);
+
+            promptInput.value = '';
+
+            const thinkingMessage = document.createElement('div');
+            thinkingMessage.className = 'message thinking-message';
+            thinkingMessage.textContent = 'Thinking';
+            messageArea.appendChild(thinkingMessage);
+
+            messageArea.scrollTop = messageArea.scrollHeight;
+
+            try {
+                const response = await fetch('http://localhost:8081/prompt', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Access-Control-Allow-Origin': '*',
+                    },
+                    body: JSON.stringify({ prompt }),
+                });
+
+                thinkingMessage.remove();
+
+                const data = await response.json();
+                let responseText = data.response || 'No response received.';
+                let planText = data.plan || '';
+
+                const apiMessage = document.createElement('div');
+                apiMessage.className = 'message';
+                const formattedResponse = formatDefaultResponse(responseText, planText);
+                const toolsStatus = data.tools || 'not used';
+                const toolsBadgeClass = toolsStatus === 'used' ? 'tools-used' : 'tools-not-used';
+                const toolsText = toolsStatus === 'used' ? 'Tools Used' : 'Tools Not Used';
+                apiMessage.innerHTML = `
+                    ${formattedResponse}
+                    <div class="tools-badge ${toolsBadgeClass}">${toolsText}</div>
+                `;
+                messageArea.appendChild(apiMessage);
+
+                messageArea.scrollTop = messageArea.scrollHeight;
+            } catch (error) {
+                thinkingMessage.remove();
+
+                const errorMessage = document.createElement('div');
+                errorMessage.className = 'message error-message';
+                errorMessage.innerHTML = `
+                    <strong>Error:</strong> Unable to connect to the API. Please ensure it is running on <code>http://localhost:8081</code>.
+                `;
+                messageArea.appendChild(errorMessage);
+
+                messageArea.scrollTop = messageArea.scrollHeight;
+            }
+        }
+
+        document.getElementById('promptInput').addEventListener('keypress', (event) => {
+            if (event.key === 'Enter') {
+                sendPrompt();
+            }
+        });
+    </script>
+</body>
+</html>
