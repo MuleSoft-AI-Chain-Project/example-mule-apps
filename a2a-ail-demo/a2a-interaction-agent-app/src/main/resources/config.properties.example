@@ -18,3 +18,27 @@ salesforce.clientSecret=
 
 einstein.queryAssessmentModel=sfdc_ai__DefaultGPT41
 einstein.agentReasoningModel=sfdc_ai__DefaultGPT41
+
+agent.name=CRM Domain Agent
+agent.host=
+agent.description=Domain agent with access to CRM specialist agents, which are capable of managing accounts (creating, updating and retrieving), managing leads (creating, updating and retrieving).
+
+agent.skill.1.id=1
+agent.skill.1.name=Account Mgmt
+agent.skill.1.description=Account management specialization to create, update and retrieve account data
+
+agent.skill.2.id=2
+agent.skill.2.name=Lead Mgmt
+agent.skill.2.description=Lead management specialization to create, update and retrieve lead details
+
+agent.skill.3.id=3
+agent.skill.3.name=Reservation Mgmt
+agent.skill.3.description=Reservation specialization to make reservation based on users requests
+
+agent.skill.4.id=4
+agent.skill.4.name=Opportunities
+agent.skill.4.description=Agent has access to opportunities
+
+agent.skill.5.id=5
+agent.skill.5.name=Contacts
+agent.skill.5.description=Agent has access to contacts

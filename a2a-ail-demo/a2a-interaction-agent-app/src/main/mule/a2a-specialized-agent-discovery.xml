@@ -17,7 +17,6 @@ output application/json
 {
 	urls: [
 		p('agent.agentforce.url'),
-		p('agent.erp.url'),
 		p('agent.crm.url'),
 		p('agent.einstein.url')
 	]
@@ -56,7 +55,7 @@ output text
 "\n\n" ++
 "👮👮👮👮👮️️ --------------------------  Agents -------------------------- 👮👮👮👮👮️\n" ++
 "Agents : \n" ++ 
-write(vars.agents.tools, "application/json") ++ 
+write(vars.agents.tools default [], "application/json") ++ 
 "\n 👮👮👮👮👮️️ ---------------------------------------------------------- 👮👮👮👮👮" ++
 "\n\n"]' />
 	</sub-flow>
@@ -118,8 +117,21 @@ output application/json
 		<foreach doc:name="For Each to add agent urls to the response" doc:id="c8d61501-252f-4385-8694-89f8878b4e98" collection="#[vars.agents.tools]">
 			<set-variable value="#[payload.function.name]" doc:name="Set currAgent" doc:id="79a82105-0c84-48d1-8757-b0aa4ea1944a" variableName="currAgent"/>
 			<os:retrieve doc:name="Retrieve url by agent name and set vars.agentUrl" doc:id="85b7f977-3942-4d38-99ec-428f4eb045f9" key='#[(vars.userSessionId default "") ++ "-agent-url-" ++ (vars.currAgent as String)]' objectStore="AgentObjectStore" />
-			<set-variable value="#[%dw 2.0&#10;output text&#10;---&#10;payload]" doc:name="agentUrl" doc:id="89565302-0f13-4d73-bf2b-a0a41278c2d5" variableName="agentUrl" />
-			<set-variable value="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;	tools: vars.agents.tools map ((item, index) -&gt; &#10;	    if (item.function.name == vars.currAgent)&#10;	        item ++ { agentUrl: vars.agentUrl }&#10;	    else&#10;	        item&#10;	)&#10;}]" doc:name="Set agents" doc:id="59ffc200-57dd-4409-9e29-a3e9fb75640e" variableName="agents"/>
+			<set-variable value="#[%dw 2.0
+output text
+---
+payload]" doc:name="agentUrl" doc:id="89565302-0f13-4d73-bf2b-a0a41278c2d5" variableName="agentUrl" />
+			<set-variable value="#[%dw 2.0
+output application/json
+---
+{
+	tools: vars.agents.tools map ((item, index) -&gt; 
+	    if (item.function.name == vars.currAgent)
+	        item ++ { agentUrl: vars.agentUrl }
+	    else
+	        item
+	)
+}]" doc:name="Set agents" doc:id="59ffc200-57dd-4409-9e29-a3e9fb75640e" variableName="agents"/>
 		</foreach>
 		<set-payload value="#[vars.agents]" doc:name="Set Payload to vars.agents" doc:id="c0fe7b72-b57c-4f3c-8948-41ffd779d0c4" />
 	</flow>
@@ -135,7 +147,17 @@ output application/json
 				<flow-ref doc:name="retrieve-a2a-agents-cards" doc:id="f39f7869-ec3f-423b-a376-6a82ff4a2b75" name="retrieve-a2a-agents-cards" />
 			</when>
 		</choice>
-		<set-variable value="#[%dw 2.0&#10;output application/json&#10;&#10;var tools1 = (vars.agents.tools default []) as Array&#10;var tools2 = (vars.newAgents.tools default []) as Array&#10;var allTools = tools2 ++ tools1 // newAgents first so they take precedence&#10;&#10;---&#10;{&#10;  tools: distinctBy(&#10;    allTools,&#10;    (item, index) -&gt; item.function.name&#10;  )&#10;}]" doc:name="Set agents" doc:id="be085375-722d-4ddc-8d30-ef789ccb8876" variableName="agents" />
+		<set-variable value="#[%dw 2.0
+output application/json
+
+var tools1 = (vars.agents.tools default []) as Array
+var tools2 = (vars.newAgents.tools default []) as Array
+var allTools = tools2 ++ tools1
+
+---
+{
+  tools: distinctBy(allTools,(item, index) -&gt; item.function.name)
+}]" doc:name="Set agents" doc:id="be085375-722d-4ddc-8d30-ef789ccb8876" variableName="agents" />
 		<logger level="INFO" doc:name="👮 Available Agents  👮" doc:id="64f7cbd8-7cc6-4b00-bbc4-bc698ce2874a" message='#[%dw 2.0
 output text
 ---
