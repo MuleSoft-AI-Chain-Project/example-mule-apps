@@ -151,8 +151,8 @@ write(vars.chatMessages, "application/json") ++ "\n\n" ++
 	<sub-flow name="process-user-query-with-inference" doc:id="789e2ae7-630e-48ad-9bdb-47dea98d86dd">
 		<scatter-gather doc:name="Scatter-Gather" doc:id="90a5b527-4fd4-4798-9818-6d1e3aa7bcd2" >
 			<route >
-				<mac-inference:agent-define-prompt-template doc:name="Evaluate if agent calls are required." doc:id="136ebd3b-8c96-4cfc-83f5-466481f8fe35" config-ref="MuleSoft_Inference_Text_generation_config">
-			<mac-inference:template><![CDATA[You are a orchestration agent. You anser user queries and if needed you can hand off tasks to specialized agents.]]></mac-inference:template>
+				<mac-inference:agent-define-prompt-template doc:name="Evaluate if agent calls are required." doc:id="136ebd3b-8c96-4cfc-83f5-466481f8fe35" config-ref="nvidia-planning">
+			<mac-inference:template><![CDATA[You are a orchestration agent. You anwser user queries and if needed you can hand off tasks to specialized agents.]]></mac-inference:template>
 			<mac-inference:instructions><![CDATA[Objective:
 Determine if additional agent calls are required to fulfill the user query or if the query can be answered directly without specialized agents.
 
@@ -197,7 +197,12 @@ Rules for Agent Call Decision:
   {
     "response": "response to send back to the user",
     "needAgents": false
+<<<<<<< Updated upstream
   }]]></mac-inference:instructions>
+=======
+  }
+]]></mac-inference:instructions>
+>>>>>>> Stashed changes
 			<mac-inference:data><![CDATA[#["User query: " ++ (vars.userPrompt as String) ++ 
 "Conversation history: " ++ write(vars.chatMessages, "application/json") ++
 ", Available agents: " ++ write(vars.agents.tools, "application/json") ++ 
@@ -221,7 +226,7 @@ write(vars.queryAssessment, "application/json") ++
 "\n\n"]' />
 			</route>
 			<route >
-				<mac-inference:tools-native-template doc:name="[Tools] Native Template (Reasoning only)" doc:id="7ea552c0-7068-46da-ac20-31d3eb95a6e6" config-ref="MuleSoft_Inference_Text_generation_config">
+				<mac-inference:tools-native-template doc:name="[Tools] Native Template (Reasoning only)" doc:id="7ea552c0-7068-46da-ac20-31d3eb95a6e6" config-ref="nvidia-tooling">
 					<mac-inference:template><![CDATA[You are an orchestration agent reasoning on agents to be called.]]></mac-inference:template>
 					<mac-inference:instructions><![CDATA[Your Goals:
 - Analyze the user query and the list of available tools provided in the data.
@@ -241,6 +246,10 @@ Your Guardrails
 - Don't add '.' at the end of the prompts,
 - Don't make the same call with the same prompt again to an agent,]]></mac-inference:instructions>
 					<mac-inference:data><![CDATA[#["User query: " ++ (vars.userPrompt as String) ++ 
+<<<<<<< Updated upstream
+=======
+//"Messages: " ++ write(vars.chatMessages, "application/json") ++
+>>>>>>> Stashed changes
 ", Tasks executed by called agents: " ++ (vars.taskHistory as String) ++ 
 ", Available specialised agents: " ++ write(vars.agents.tools, "application/json") ++
 ", Already Called Agents (results): " ++ write(vars.calledAgents, "application/json")]]]></mac-inference:data>
@@ -323,7 +332,7 @@ else
 				<flow-ref doc:name="process-user-query (replan)" doc:id="a483a0fb-b7a5-4e82-add3-3bea237eeb52" name="process-user-query-with-inference" />
 			</when>
 			<otherwise>
-				<mac-inference:agent-define-prompt-template doc:name="Answer query" doc:id="7a73336d-ddcd-4d76-bd83-46f6a4b6e0f1" config-ref="MuleSoft_Inference_Text_generation_config" >
+				<mac-inference:agent-define-prompt-template doc:name="Answer query" doc:id="7a73336d-ddcd-4d76-bd83-46f6a4b6e0f1" config-ref="nvidia-planning" >
 					<mac-inference:template ><![CDATA[You are a planner agent.]]></mac-inference:template>
 					<mac-inference:instructions ><![CDATA[You went through maximum number of iterations trying to call agents, please respond to answer the users question based on the agent calls done so far. 
 You have to consider the agent calls, and reply as if you have done the job and offer assistant in future. 
@@ -331,7 +340,11 @@ Base your answer on the task executed with success and not on any ongoing one.
 Let the user know if you faced any error while executing a task, but mention a generic problem nothing to technical.
 Dont say things like 'I'm here to help with your question!' or 'I'm here to help!', answer straight ]]></mac-inference:instructions>
 					<mac-inference:data ><![CDATA[#["User query: " ++ (vars.userPrompt as String) ++ 
+<<<<<<< Updated upstream
 "Conversation history: " ++ write(vars.chatMessages, "application/json") ++
+=======
+"Conversation History: " ++ write(vars.chatMessages, "application/json") ++
+>>>>>>> Stashed changes
 ", Already called agents: " ++ write(vars.selectedAgents.tools, "application/json") ++ 
 ", Task executed through called agents: " ++ (vars.taskHistory as String)]]]></mac-inference:data>
 				</mac-inference:agent-define-prompt-template>

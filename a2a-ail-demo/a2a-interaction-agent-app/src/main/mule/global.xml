@@ -25,8 +25,11 @@ http://www.mulesoft.org/schema/mule/websocket http://www.mulesoft.org/schema/mul
 		</http:listener-interceptors>
 	</http:listener-config>
 	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="25405d11-7b16-4925-8be7-168fb677743c" />
-	<mac-inference:text-generation-config name="MuleSoft_Inference_Text_generation_config" doc:name="MuleSoft Inference Text generation config" doc:id="92ed977e-07a1-4c84-9ce3-3fb23ace28c6" >
-		<mac-inference:llm-connection inferenceType="NVIDIA" modelName="${nim.model}" apiKey="${nim.apikey}" maxTokens="${nim.maxToken}"/>
+	<mac-inference:text-generation-config name="nvidia-tooling" doc:name="MuleSoft Inference Text generation config" doc:id="89466898-a1a3-408a-9936-f1a4bd61de43" >
+		<mac-inference:llm-connection inferenceType="NVIDIA" apiKey="${nim.apikey}" modelName="${nim.model.tooling}" maxTokens="${nim.maxToken}" />
+	</mac-inference:text-generation-config>
+	<mac-inference:text-generation-config name="nvidia-planning" doc:name="MuleSoft Inference Text generation config" doc:id="d53ed9cf-8cfc-45c3-b20d-09b04d808b33" >
+		<mac-inference:llm-connection inferenceType="NVIDIA" apiKey="${nim.apikey}" modelName="${nim.model.planning}" maxTokens="${nim.maxToken}"/>
 	</mac-inference:text-generation-config>
 	<configuration-properties doc:name="Configuration properties" doc:id="6d86e7e5-a6b8-4e0a-b7b8-5a053649db54" file="config.properties" />
 	<a2a:client-config name="A2A_Client" doc:name="A2A Client" doc:id="8a9fffe5-1981-4bad-9dc2-2324810b36de" >
