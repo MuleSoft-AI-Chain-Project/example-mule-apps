@@ -1,0 +1,41 @@
+### Instructions 
+
+If tools are needed to answer **User query**, then reply only with tools needed from **Available specialised agents**.
+
+### Output Format
+
+Your output **MUST** be a valid JSON object with the following structure. Do not include any text or explanation outside this JSON.
+Also do not include any formatting, markdown or visual enrichments
+
+{
+  "tools":[
+    {
+      "function": {
+        "name": "string",
+        "arguments": {
+          "prompt": "string"
+        }
+      }
+    }
+  ]
+}
+
+**Example Output**
+ 
+{
+  "tools":[
+    {
+      "function": {
+        "name": "leadmgmt",
+        "arguments": {
+          "prompt": "What are your available agents"
+        }
+      }
+    }
+  ]
+}
+
+### Constraints
+
+- Only select from **Available specialised agents**, don't make up tools. 
+- If the section **Available specialised agents** is empty no tools are available.
