@@ -69,17 +69,3 @@ generated-test-sources/
 # Miscellaneous
 *.bak
 *.tmp
-
-# Project specific items
-service_now_incident_agent/exchange-docs/
-service_now_incident_agent/.vscode/
-
-jira_bug_agent/exchange-docs/
-jira_bug_agent/.vscode/
-
-knowledge-store/exchange-docs/
-knowledge-store/.vscode/
-
-/mac-webcrawler-demo/mac-knowledge-store-webapp/node_modules
-mac-webcrawler-demo/mac-knowledge-store-webapp/pnpm-lock.yaml
-/mac-webcrawler-demo/mac-knowledge-store-webapp/.next
