@@ -197,12 +197,8 @@ Rules for Agent Call Decision:
   {
     "response": "response to send back to the user",
     "needAgents": false
-<<<<<<< Updated upstream
-  }]]></mac-inference:instructions>
-=======
   }
 ]]></mac-inference:instructions>
->>>>>>> Stashed changes
 			<mac-inference:data><![CDATA[#["User query: " ++ (vars.userPrompt as String) ++ 
 "Conversation history: " ++ write(vars.chatMessages, "application/json") ++
 ", Available agents: " ++ write(vars.agents.tools, "application/json") ++ 
@@ -246,10 +242,6 @@ Your Guardrails
 - Don't add '.' at the end of the prompts,
 - Don't make the same call with the same prompt again to an agent,]]></mac-inference:instructions>
 					<mac-inference:data><![CDATA[#["User query: " ++ (vars.userPrompt as String) ++ 
-<<<<<<< Updated upstream
-=======
-//"Messages: " ++ write(vars.chatMessages, "application/json") ++
->>>>>>> Stashed changes
 ", Tasks executed by called agents: " ++ (vars.taskHistory as String) ++ 
 ", Available specialised agents: " ++ write(vars.agents.tools, "application/json") ++
 ", Already Called Agents (results): " ++ write(vars.calledAgents, "application/json")]]]></mac-inference:data>
@@ -340,11 +332,7 @@ Base your answer on the task executed with success and not on any ongoing one.
 Let the user know if you faced any error while executing a task, but mention a generic problem nothing to technical.
 Dont say things like 'I'm here to help with your question!' or 'I'm here to help!', answer straight ]]></mac-inference:instructions>
 					<mac-inference:data ><![CDATA[#["User query: " ++ (vars.userPrompt as String) ++ 
-<<<<<<< Updated upstream
 "Conversation history: " ++ write(vars.chatMessages, "application/json") ++
-=======
-"Conversation History: " ++ write(vars.chatMessages, "application/json") ++
->>>>>>> Stashed changes
 ", Already called agents: " ++ write(vars.selectedAgents.tools, "application/json") ++ 
 ", Task executed through called agents: " ++ (vars.taskHistory as String)]]]></mac-inference:data>
 				</mac-inference:agent-define-prompt-template>
