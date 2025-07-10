@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:websocket="http://www.mulesoft.org/schema/mule/websocket" xmlns:ms-einstein-ai="http://www.mulesoft.org/schema/mule/ms-einstein-ai"
-	xmlns:mac-inference="http://www.mulesoft.org/schema/mule/mac-inference"
-	xmlns:mcp="http://www.mulesoft.org/schema/mule/mcp" xmlns:os="http://www.mulesoft.org/schema/mule/os" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:a2a="http://www.mulesoft.org/schema/mule/a2a" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+<mule xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:websocket="http://www.mulesoft.org/schema/mule/websocket"
+	xmlns:ms-einstein-ai="http://www.mulesoft.org/schema/mule/ms-einstein-ai"
+	xmlns:mac-inference="http://www.mulesoft.org/schema/mule/mac-inference" xmlns:mcp="http://www.mulesoft.org/schema/mule/mcp" xmlns:os="http://www.mulesoft.org/schema/mule/os" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:a2a="http://www.mulesoft.org/schema/mule/a2a" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
 http://www.mulesoft.org/schema/mule/a2a http://www.mulesoft.org/schema/mule/a2a/current/mule-a2a.xsd
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
@@ -10,7 +10,8 @@ http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/cu
 http://www.mulesoft.org/schema/mule/mcp http://www.mulesoft.org/schema/mule/mcp/current/mule-mcp.xsd
 http://www.mulesoft.org/schema/mule/mac-inference http://www.mulesoft.org/schema/mule/mac-inference/current/mule-mac-inference.xsd
 http://www.mulesoft.org/schema/mule/ms-einstein-ai http://www.mulesoft.org/schema/mule/ms-einstein-ai/current/mule-ms-einstein-ai.xsd
-http://www.mulesoft.org/schema/mule/websocket http://www.mulesoft.org/schema/mule/websocket/current/mule-websocket.xsd">
+http://www.mulesoft.org/schema/mule/websocket http://www.mulesoft.org/schema/mule/websocket/current/mule-websocket.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd">
 	<sub-flow name="answer-prompt-flow" doc:id="4dfc37d6-652e-430c-8ce8-ff8942eec870" >
 		<logger level="INFO" doc:name="❓Log user prompt ❓" doc:id="94db756a-591c-4e6f-9506-4877875eb0c3" message='#[%dw 2.0
 output text
@@ -109,6 +110,7 @@ else
 ---
 []]" doc:name="Set toxicity" doc:id="04ffe526-f085-4d57-8851-41adf48c8d9f" variableName="toxicity"/>
 		<flow-ref doc:name="get-a2a-agents-cards" doc:id="1d812b6f-3d27-4c70-a43f-41de336b0366" name="get-a2a-agents-cards" />
+		<flow-ref doc:name="load-prompts" doc:id="97609abe-b733-4aea-badf-0670f198bf99" name="load-prompts"/>
 	</sub-flow>
 	<sub-flow name="get-chat-messages" doc:id="d63f8f77-4fb2-4d33-99cb-a2ae074153c0" >
 		<os:contains doc:name="Contains sessionsId" doc:id="206cfafc-f5a9-45db-8c92-edc505170eb5" key="#[vars.sessionId]" objectStore="ChatMessagesObjectStore"/>
@@ -153,56 +155,21 @@ write(vars.chatMessages, "application/json") ++ "\n\n" ++
 			<route >
 				<mac-inference:agent-define-prompt-template doc:name="Evaluate if agent calls are required." doc:id="136ebd3b-8c96-4cfc-83f5-466481f8fe35" config-ref="MuleSoft_Inference_Text_generation_config">
 			<mac-inference:template><![CDATA[You are a orchestration agent. You anser user queries and if needed you can hand off tasks to specialized agents.]]></mac-inference:template>
-			<mac-inference:instructions><![CDATA[Objective:
-Determine if additional agent calls are required to fulfill the user query or if the query can be answered directly without specialized agents.
+			<mac-inference:instructions><![CDATA[#[vars.inferencePlanningInstructions]]]></mac-inference:instructions>
+			<mac-inference:data><![CDATA[#["### User query\n" ++ 
+(vars.userPrompt as String) ++ 
 
-Task:
-- Analyze the user query, available agents, agents already called, and tasks executed via agent calls. Process the last message in the conversation history with role: 'user' as the current user query. Reference previous messages only if the current query explicitly refers to or depends on them.
-- Decide whether further agent calls are needed or if the query can be answered directly.
-- Respond using the specified JSON schema.
+"### Conversation history\n" ++ 
+write(vars.chatMessages, "application/json") ++
 
-- JSON Schema:
-    {
-      "response": String,
-      "needAgents": Boolean
-    }
+"### Available agents\n" ++ 
+write(vars.agents.tools, "application/json") ++ 
 
-Rules for Agent Call Decision:
-(1) Direct Response Criteria:
-- If the query is generic (e.g., greetings or simple questions), answer directly without agents.
-- If all required tasks have been successfully executed by agents, answer based on those results.
-(2) Agent Call Criteria:
-- If the query requires one or more available agents that have not been called, indicate an agent call is needed.
-(3) Error Handling:
-- If an error during a task execution prevents fulfilling the request, mention a generic issue (e.g., "Sorry, there was a problem completing the task") in the response.
-(4) Avoid technical details about the error.
-- Do not mention errors for ongoing tasks that do not prevent fulfilling the request.
-(5) Response Guidelines:
-- If answering directly, provide a straightforward response without phrases like "I'm here to help!"
-- Base the response on successfully executed agent tasks, if applicable.
+"### Already called agents\n" ++ 
+write(vars.selectedAgents.tools, "application/json") ++ 
 
-(6) Output Logic:
-(a) Case 1: Agent Call Required
-- If one or more available agents need to be called:
-    {
-      "response": "",
-      "needAgents": true
-    }
-
-(b) Case 2: No Agent Call Required
-- If no agents are available or no further agents are needed:
-- Set "response" to the answer for the user, based on successfully executed agent tasks or direct knowledge.
-- Set "needAgents" to false.
-- If an error prevents fulfilling the request, include a generic error message in "response".
-  {
-    "response": "response to send back to the user",
-    "needAgents": false
-  }]]></mac-inference:instructions>
-			<mac-inference:data><![CDATA[#["User query: " ++ (vars.userPrompt as String) ++ 
-"Conversation history: " ++ write(vars.chatMessages, "application/json") ++
-", Available agents: " ++ write(vars.agents.tools, "application/json") ++ 
-", Already called agents: " ++ write(vars.selectedAgents.tools, "application/json") ++ 
-", Task executed through called agents: " ++ (vars.taskHistory as String)]]]></mac-inference:data>
+"### Task executed through called agents\n" ++ 
+(vars.taskHistory as String)]]]></mac-inference:data>
 		</mac-inference:agent-define-prompt-template>
 				<set-variable value="#[%dw 2.0
 output application/json
@@ -223,27 +190,18 @@ write(vars.queryAssessment, "application/json") ++
 			<route >
 				<mac-inference:tools-native-template doc:name="[Tools] Native Template (Reasoning only)" doc:id="7ea552c0-7068-46da-ac20-31d3eb95a6e6" config-ref="MuleSoft_Inference_Text_generation_config">
 					<mac-inference:template><![CDATA[You are an orchestration agent reasoning on agents to be called.]]></mac-inference:template>
-					<mac-inference:instructions><![CDATA[Your Goals:
-- Analyze the user query and the list of available tools provided in the data.
-- Each tool represent an agent providing multiple skills.
+					<mac-inference:instructions><![CDATA[#[vars.inferenceToolingInstructions]]]></mac-inference:instructions>
+					<mac-inference:data><![CDATA[#["### User query\n" ++ 
+(vars.userPrompt as String) ++ 
 
-Your Tasks:
-- Assess the users query and complete task by task,
-- Identify which tools (agents) are required to fulfill the user's request,
-- Consider the agentTaskRequest and agentTaskResponse in the section 'Already Called Agents (results)',
-- Not every tool is possible to be called at once,
-- Make use of 'Available specialised agents' to complete the tasks.
-- If there is a question in the agentTaskResponse within the section 'Already Called Agents (results)', don't call any tools,
+"### Task executed through called agents\n" ++ 
+(vars.taskHistory as String) ++
 
-Your Guardrails
-- Don't call a tool with the same prompt, if it is already in 'agentTaskRequest' of the section 'Already Called Agents (results)',
-- Don't change the context of prompt,
-- Don't add '.' at the end of the prompts,
-- Don't make the same call with the same prompt again to an agent,]]></mac-inference:instructions>
-					<mac-inference:data><![CDATA[#["User query: " ++ (vars.userPrompt as String) ++ 
-", Tasks executed by called agents: " ++ (vars.taskHistory as String) ++ 
-", Available specialised agents: " ++ write(vars.agents.tools, "application/json") ++
-", Already Called Agents (results): " ++ write(vars.calledAgents, "application/json")]]]></mac-inference:data>
+"### Available agents\n" ++ 
+write(vars.agents.tools, "application/json") ++ 
+
+"### Already called agents\n" ++ 
+write(vars.selectedAgents.tools, "application/json")]]]></mac-inference:data>
 					<mac-inference:tools><![CDATA[#[vars.agents.tools]]]></mac-inference:tools>
 				</mac-inference:tools-native-template>
 				<try doc:name="Try" doc:id="c223c450-364a-4174-a411-c216cdf93131" >
@@ -353,55 +311,7 @@ var cleaned = raw replace '```json' with '' replace '```' with ''
 			<route >
 				<ms-einstein-ai:agent-define-prompt-template doc:id="eb9d0407-0a88-4194-b1c9-5c61ea8545a9" config-ref="Einstein_AI" modelApiName="${einstein.queryAssessmentModel}" doc:name="Evaluate if agent calls are required" >
 					<ms-einstein-ai:template ><![CDATA[You are a orchestration agent. You answer user queries and if needed you can hand off tasks to specialized agents.]]></ms-einstein-ai:template>
-					<ms-einstein-ai:instructions ><![CDATA[Objective:
-Determine if additional agent calls are required to fulfill the user query or if the query can be answered directly without specialized agents.
-
-Task:
-- Analyze the user query, available agents, agents already called, and tasks executed via agent calls. Process the last message in the conversation history with role: 'user' as the current user query. Reference previous messages only if the current query explicitly refers to or depends on them.
-- Decide whether further agent calls are needed or if the query can be answered directly.
-- Always check if available agents are better suited to answer the query.
-- Respond using the specified JSON schema.
-- Observe 'Task executed through called agents' to not make same calls again.
-- If there is a question in the agentTaskResponse within the section 'Already Called Agents', don't call any tools,
-
-- JSON Schema:
-    {
-      "response": String,
-      "needAgents": Boolean
-    }
-
-Rules for Agent Call Decision:
-(1) Direct Response Criteria:
-- If the query is generic (e.g., greetings or simple questions), answer directly without agents.
-- If all required tasks have been successfully executed by agents, answer based on those results.
-(2) Agent Call Criteria:
-- If the query requires one or more available agents that have not been called, indicate an agent call is needed.
-(3) Error Handling:
-- If an error during a task execution prevents fulfilling the request, mention a generic issue (e.g., "Sorry, there was a problem completing the task") in the response.
-- If no agents are available but need to fulfill the request, reply with "No specialised agents available at this moment to process your query".
-(4) Avoid technical details about the error.
-- Do not mention errors for ongoing tasks that do not prevent fulfilling the request.
-(5) Response Guidelines:
-- If answering directly, provide a straightforward response without phrases like "I'm here to help!"
-- Base the response on successfully executed agent tasks, if applicable.
-
-(6) Output Logic:
-(a) Case 1: Agent Call Required
-- If one or more available agents need to be called:
-    {
-      "response": "",
-      "needAgents": true
-    }
-
-(b) Case 2: No Agent Call Required
-- If no agents are available or no further agents are needed:
-- Set "response" to the answer for the user, based on successfully executed agent tasks or direct knowledge.
-- Set "needAgents" to false.
-- If an error prevents fulfilling the request, include a generic error message in "response".
-  {
-    "response": "response to send back to the user",
-    "needAgents": false
-  }]]></ms-einstein-ai:instructions>
+					<ms-einstein-ai:instructions ><![CDATA[#[vars.einsteinPlanningInstructions]]]></ms-einstein-ai:instructions>
 					<ms-einstein-ai:dataset ><![CDATA[#["User query: " ++ (vars.userPrompt as String) ++ 
 "Conversation history: " ++ write(vars.chatMessages, "application/json") ++
 ", Available agents: " ++ write(vars.agents.tools, "application/json") ++ 
@@ -447,14 +357,18 @@ Your Guardrails
 - Don't make the same call with the same prompt again to an agent
 - Only select from 'Available specialised agents', don't make up tools.
 ]]></ms-einstein-ai:template>
-					<ms-einstein-ai:instructions ><![CDATA[#["User query: " ++ (vars.userPrompt as String) ++ 
-", Tasks executed by called agents: " ++ (vars.taskHistory as String) ++ 
-", Available specialised agents: " ++ write(vars.agents.tools, "application/json") ++
-", Already Called Agents (results): " ++ write(vars.calledAgents, "application/json")]]]></ms-einstein-ai:instructions>
-					<ms-einstein-ai:dataset ><![CDATA[#["If tools are needed, then reply only with a json the tools needed from here: " ++ write(vars.agents.tools, "application/json")
-++ ". respond only with a valid JSON object matching this schema: " ++ "{\"tools\":[{\"function\":{\"name\":\"<name-of-tool>\",\"arguments\":{\"prompt\":\"<user-prompt>\"}}}]}"
-++ ". Make sure to provide the name and arguments according to the json schema and don't change the format. Only select from 'Available specialised agents', don't make up tools. if the section 'Available specialised agents' is empty no tools are available. 
-"]]]></ms-einstein-ai:dataset>
+					<ms-einstein-ai:instructions ><![CDATA[#[vars.einsteinToolingInstructions]]]></ms-einstein-ai:instructions>
+					<ms-einstein-ai:dataset ><![CDATA[#["### User query\n" ++ 
+(vars.userPrompt as String) ++ 
+
+"### Tasks executed by called agents\n" ++ 
+(vars.taskHistory as String) ++ 
+
+"### Available specialised agents\n" ++ 
+write(vars.agents.tools, "application/json") ++
+
+"### Already Called Agents (results)\n" ++ 
+write(vars.calledAgents, "application/json")]]]></ms-einstein-ai:dataset>
 				</ms-einstein-ai:agent-define-prompt-template>
 				<try doc:name="Try" doc:id="82244586-0c47-4090-814b-966a682ec92a" >
 					<set-variable value="#[%dw 2.0
@@ -487,7 +401,7 @@ write(vars.selectedAgents, "application/json") ++
 		</scatter-gather>
 		<set-variable value="#[%dw 2.0
 output application/json
-var currentToxicity = keysOf(payload) orderBy ((item) -&gt; item as Number)
+var currentToxicity = keysOf(payload) orderBy ((item) -&gt; item default 0.0 as Number)
 	map ((k) -&gt; payload[k].attributes.contentQuality.scanToxicity.categories)
 ---
 (vars.toxicity default []) ++ currentToxicity]" doc:name="Set toxicity" doc:id="71780159-22d6-4629-a6c4-6a17b4ac8d4f" variableName="toxicity" />
