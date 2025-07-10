@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:file="http://www.mulesoft.org/schema/mule/file"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+	<sub-flow name="load-prompts" doc:id="1af75afc-921e-411a-99f6-949868165bdb" >
+		<scatter-gather doc:name="Scatter-Gather" doc:id="f148e110-9e88-4e67-a686-880881902d17" >
+			<route >
+				<choice doc:name="Choice" doc:id="c573e45c-f9b8-4ec1-bd00-13373890976f" >
+					<when expression="#[isEmpty(vars.inferencePlanningInstructions)]">
+						<file:read doc:name="Read inferencePlanningInstructions" doc:id="0bb55de8-f90d-4a88-a6e0-78cec916abd3" config-ref="File_Config" path='#[mule.home ++ "/apps/" ++ app.name ++ "/prompts/inference-planning-instructions.txt"]' />
+						<set-variable value="#[output text
+---
+payload]" doc:name="Set inferencePlanningInstructions" doc:id="4700643c-c607-4d6b-a2de-0e1d97602d24" variableName="inferencePlanningInstructions" />
+					</when>
+				</choice>
+			</route>
+			<route >
+				<choice doc:name="Choice" doc:id="5d5a6ffd-069e-4443-bbe0-cabe216e1291" >
+					<when expression="#[isEmpty(vars.inferenceToolingInstructions)]">
+						<file:read doc:name="Read inferenceToolingInstructions" doc:id="b975aab2-4287-4217-8137-1a19507cce26" config-ref="File_Config" path='#[mule.home ++ "/apps/" ++ app.name ++ "/prompts/inference-tooling-instructions.txt"]' />
+						<set-variable value="#[output text
+---
+payload]" doc:name="Set inferenceToolingInstructions" doc:id="1fd437fb-ed14-4a7c-8ab2-465db9a38a3b" variableName="inferenceToolingInstructions" />
+					</when>
+				</choice>
+			</route>
+			<route >
+				<choice doc:name="Choice" doc:id="0013b167-b4f4-4056-ada0-de0482597fef" >
+					<when expression="#[isEmpty(vars.einsteinPlanningInstructions)]">
+						<file:read doc:name="Read einsteinPlanningInstructions" doc:id="3067d13c-5e77-4445-bd21-2da24e2ea4be" config-ref="File_Config" path='#[mule.home ++ "/apps/" ++ app.name ++ "/prompts/einstein-planning-instructions.txt"]' />
+						<set-variable value="#[output text
+---
+payload]" doc:name="Set einsteinPlanningInstructions" doc:id="05b9f4ec-c838-4043-b190-258100bf6623" variableName="einsteinPlanningInstructions" />
+					</when>
+				</choice>
+			</route>
+			<route >
+				<choice doc:name="Choice" doc:id="0ee2b93b-bc8f-4f5a-b601-3989497710d6" >
+					<when expression="#[isEmpty(vars.einsteinToolingInstructions)]">
+						<file:read doc:name="Read einsteinToolingInstructions" doc:id="7b2341a3-1f64-44fe-be8b-5479cb19cec7" config-ref="File_Config" path='#[mule.home ++ "/apps/" ++ app.name ++ "/prompts/einstein-tooling-instructions.txt"]' />
+						<set-variable value="#[output text
+---
+payload]" doc:name="Set einsteinToolingInstructions" doc:id="aedce593-2bed-42f7-8076-2bb787bc888d" variableName="einsteinToolingInstructions" />
+					</when>
+				</choice>
+			</route>
+		</scatter-gather>
+	</sub-flow>	
+</mule>
