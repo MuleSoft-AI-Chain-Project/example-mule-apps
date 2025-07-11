@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:a2a="http://www.mulesoft.org/schema/mule/a2a"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/a2a http://www.mulesoft.org/schema/mule/a2a/current/mule-a2a.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<flow name="a2a-server-listner" doc:id="02d598f7-dfc2-475d-9b29-c3fc2eb10326" >
+		<a2a:task-listener doc:name="Task Listener" doc:id="5f072bc9-569e-4d84-994b-52cf6be84145" config-ref="ERP_Agent_A2A_Server" />
+		<logger level="INFO" doc:name="❓Log user prompt ❓" doc:id="88e0c5a5-a7b0-46f7-ab60-eff933b04c68" message='#[%dw 2.0&#10;output text&#10;---&#10;"\n\n" ++&#10;"❓❓❓❓❓️️ --------------------------  User Prompt -------------------------- ❓❓❓❓❓️\n\n" ++&#10;(payload.message.parts[0].text default "") ++ "\n" ++&#10;"\n❓❓❓❓❓️️ ------------------------------------------------------------------ ❓❓❓❓❓️" ++&#10;"\n\n"]' category="❓Log user prompt ❓" />
+		<flow-ref doc:name="Setting defaults" doc:id="37c8ec4f-10da-42e3-9cfc-23ce3fa6692a" name="set-and-initialise-vars" />
+		<flow-ref doc:name="Create a plan" doc:id="8ce2a3a1-1e0b-4a74-ab3d-e41c725a8388" name="create-plan" />
+		<ee:transform doc:name="Transform Message" doc:id="0d132383-92cb-4e7f-94e1-5dc55c4ef042" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+if (payload.tools?)
+    (payload update {
+        case .tools -> "not used"
+    }) ++ { plan: "General Knowledge" } ++ "chainsOfThoughts": vars.chainsOfThoughts
+else
+    payload ++ { tools: "used" } ++ vars.multiTools ++ "chainsOfThoughts": vars.chainsOfThoughts ]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="❗️Response ❗️" doc:id="fcb0a987-bca9-4b8b-9e30-70c4d38508e1" message='#[%dw 2.0&#10;output text&#10;---&#10;"\n\n" ++&#10;"❗️❗️❗️❗️❗️️ --------------------------  Response -------------------------- ❗️❗️❗️❗️❗️\n\n" ++&#10;(payload.response default "") ++ "\n" ++&#10;"\n❗️❗️❗️❗️❗️️ -------------------------------------------------------------- ❗️❗️❗️❗️❗️" ++&#10;"\n\n"]' category="❗️Response ❗" />
+		<ee:transform doc:name="Prepare A2A Server Response" doc:id="15c15c7f-f18e-4fff-b9b4-a764f98e3fb2" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "id": vars.task_id,
+    "sessionId": vars.session_id,
+    "status": {
+      "state": "completed",
+      "message": {
+        "role": "agent",
+        "parts": [
+          {
+            "type": "text",
+            "text": payload.response
+          }
+        ]
+      },
+      "timestamp": (now() >> 'UTC') as String {format: "yyyy-MM-dd'T'HH:mm:ss'Z'"}
+    },
+    "artifacts": [
+      {
+        "name": "Answer",
+        "index": 0,
+        "parts": [
+          {
+            "type": "text",
+            "text": payload.response
+          }
+        ]
+      }
+    ]
+  }]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>

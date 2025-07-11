@@ -7,6 +7,9 @@ Determine if additional agent calls are required to fulfill the **User query** o
 - Analyze the **User query**, **Available agents**, **Already called agents**, and **Task executed through called agents**. 
 - Process the last message in the **Conversation history** with role: 'user' as the current user query. Reference previous messages only if the current query explicitly refers to or depends on them.
 - Decide whether further agent calls are needed or if the query can be answered directly.
+- Always check if available agents are better suited to answer the query.
+- Observe **Task executed through called agents** to not make same calls again.
+- If there is a question in the agentTaskResponse within the section 'Already Called Agents', don't call any tools,
 
 ### Rules for Agent Call Decision
 

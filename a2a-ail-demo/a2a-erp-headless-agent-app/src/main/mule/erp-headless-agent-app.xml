@@ -22,62 +22,14 @@ http://www.mulesoft.org/schema/mule/a2a http://www.mulesoft.org/schema/mule/a2a/
 		<set-variable value="#[[]]" doc:name="set toolsUsed" doc:id="fd4e589e-fbe2-4275-baee-34e135b771bf" variableName="toolsUsed" />
 		<set-variable value="#[[]]" doc:name="set COT" doc:id="720be86b-57e8-4fcc-b03f-06749e9d029c" variableName="chainsOfThoughts" />
 		<set-variable value='#[{"tools":  []}]' doc:name="Set Tool Planning" doc:id="96b639fe-f99d-49b2-ae37-65df5d3ee7dd" variableName="planningPayload"/>
+		<flow-ref doc:name="load prompts" doc:id="7c40a7dd-ba1f-4387-b686-edcd2fca6a19" name="load-prompts"/>
 	</sub-flow>
 	<sub-flow name="create-plan" doc:id="ef9c2d20-7967-4d7c-b56a-ddd9af66c363" >
 		<scatter-gather doc:name="Scatter-Gather" doc:id="4411dda8-14f0-4ad2-adbd-38d12f69f73f" >
 			<route >
 				<mac-inference:agent-define-prompt-template doc:name="Create Plan" doc:id="96651109-b214-4a94-bd3b-6d6ac17fb2e2" config-ref="GENERAL">
 					<mac-inference:template ><![CDATA[You are a planner agent. You answer general question based on your knowledge. Things you know of without making up things.]]></mac-inference:template>
-					<mac-inference:instructions ><![CDATA[Objective:
-Identify the tools required to fulfill the user query and define a plan with sequenced steps for tool execution, ensuring each tool is executed only once.
-
-(1) Task:
-- Analyze the user query to determine the necessary tools.
-- Define a plan with steps and sub-steps for tool execution.
-- Exclude tools listed in the "already executed tools" section of the provided data.
-- Respond using the specified JSON schema based on the number of tools required.
-
-- JSON Schema:
-    {
-    "plan": String,
-    "multiTools": Boolean,
-    "final": Boolean
-    }
-
-
-(2) Rules for Tool Identification and Planning:
-    (a) Tool Uniqueness:
-        - Execute each tool only once.
-        - Do not include tools already executed, as specified in the "already executed tools" section.
-
-    (b) Plan Structure:
-        - For each tool, provide a step with sub-steps as bullet points.
-        - Example: For a query like "Check Inventory for a product":
-        Step: Check Inventory for MULETEST0
-            - Open Inventory System
-            - Go to Stock Overview
-            - Filter by MULETEST0
-            - Get Inventory details
-
-    (c) Output Logic:
-        (c-1)Single Tool Required:
-            - Set "plan" to the defined steps for the tool.
-            - Set "multiTools" to false.
-            - Set "final" to true.
-        (c-2) Multiple Tools Required:
-            - Set "plan" to the combined steps for all tools.
-            - Set "multiTools" to true.
-            - Set "final" to false unless no open tasks remain after the plan.
-        (c-3) No Open Tasks:
-            - If the plan completes all tasks, set "final" to true.
-
-    (d) Tool Handling:
-    - The actual tool execution will be handled later; focus on defining the plan.
-
-(3) Output Guidelines:
-- Ensure the plan is clear and formatted with steps and sub-steps as bullet points.
-- Maintain the context of the user query without altering its intent.
-- Do not execute tools; only provide the plan for their execution.]]></mac-inference:instructions>
+					<mac-inference:instructions ><![CDATA[#[vars.inferencePlanningInstructions]]]></mac-inference:instructions>
 					<mac-inference:data ><![CDATA[#["Users query: " ++ (vars.userPrompt as String) ++ 
 ", Current Observation through called tools: " ++ (vars.multiToolsResult as String) ++ 
 ", already executed tools: " ++ (write(vars.toolsUsed default {}, "application/json") as String)]]]></mac-inference:data>
@@ -88,19 +40,7 @@ Identify the tools required to fulfill the user query and define a plan with seq
 			<route >
 				<mac-inference:mcp-tools-native-template doc:name="[MCP] Tooling" doc:id="5367d7dc-d043-4f38-9739-121a206cec5f" target="planningPayload" config-ref="GENERAL">
 					<mac-inference:template ><![CDATA[You are a planner agent. You answer general question based on your knowledge.]]></mac-inference:template>
-					<mac-inference:instructions ><![CDATA[Your Goals:
-- Provide a polite, accurate, and concise response to the user's request, utilizing available tools as appropriate.
-- Ensure responses align with the user's intent while maintaining efficiency and relevance.
-
-Your Tasks:
-- Review the user's query, current observation (if available), and previously executed tools to determine the appropriate response or tool usage.
-- Execute tools only once, avoiding tools listed in the 'already executed tools' section in the data.
-- If the 'Current Observation through called tools' is empty, assume no tools have been executed yet.
-
-Your Guardrails:
-- Do not suggest or execute tools already used, as specified in the "already executed tools" section in the data.
-- Avoid redundant tool usage by cross-referencing the user's query, current observation, and last tools used before suggesting any tools.
-- Don't make up things]]></mac-inference:instructions>
+					<mac-inference:instructions ><![CDATA[#[vars.inferenceToolingInstructions]]]></mac-inference:instructions>
 					<mac-inference:data ><![CDATA[#["Users query: " ++ (vars.userPrompt as String) ++ 
 ", Current Observation through called tools: " ++ (vars.multiToolsResult as String) ++ 
 ", already executed tools: " ++ (write(vars.toolsUsed default {}, "application/json") as String)]]]></mac-inference:data>
@@ -134,60 +74,4 @@ Your Guardrails:
 			</otherwise>
 		</choice>
 	</sub-flow>
-	<flow name="a2a-server-listner" doc:id="54fb25cd-0029-485c-964e-af71580ec3dd" >
-		<a2a:task-listener doc:name="Task Listener" doc:id="a6b1f8cc-e7e8-48b1-8fd5-3e0bbd7a9777" config-ref="ERP_Agent_A2A_Server"/>
-		<logger level="INFO" doc:name="❓Log user prompt ❓" doc:id="d8ca8c02-8c9c-45d9-af1c-aa68cb4e9bbb" message='#[%dw 2.0&#10;output text&#10;---&#10;"\n\n" ++&#10;"❓❓❓❓❓️️ --------------------------  User Prompt -------------------------- ❓❓❓❓❓️\n\n" ++&#10;(payload.message.parts[0].text default "") ++ "\n" ++&#10;"\n❓❓❓❓❓️️ ------------------------------------------------------------------ ❓❓❓❓❓️" ++&#10;"\n\n"]' category="❓Log user prompt ❓"/>
-		<flow-ref doc:name="Setting defaults" doc:id="c92f934a-d6ea-4f76-9ec3-ee474ce596c5" name="set-and-initialise-vars" />
-		<flow-ref doc:name="Create a plan" doc:id="eeff7d61-a3f6-45ca-9cd4-12dd87212d1b" name="create-plan" />
-		<ee:transform doc:name="Transform Message" doc:id="d3fa7c3f-eadc-4362-901a-d833bfb0e415">
-			<ee:message>
-				<ee:set-payload><![CDATA[%dw 2.0
-output application/json
----
-if (payload.tools?)
-    (payload update {
-        case .tools -> "not used"
-    }) ++ { plan: "General Knowledge" } ++ "chainsOfThoughts": vars.chainsOfThoughts
-else
-    payload ++ { tools: "used" } ++ vars.multiTools ++ "chainsOfThoughts": vars.chainsOfThoughts ]]></ee:set-payload>
-			</ee:message>
-		</ee:transform>
-		<logger level="INFO" doc:name="❗️Response ❗️" doc:id="e4638de1-d4c2-4313-adc3-5f07a45d2c89" message='#[%dw 2.0&#10;output text&#10;---&#10;"\n\n" ++&#10;"❗️❗️❗️❗️❗️️ --------------------------  Response -------------------------- ❗️❗️❗️❗️❗️\n\n" ++&#10;(payload.response default "") ++ "\n" ++&#10;"\n❗️❗️❗️❗️❗️️ -------------------------------------------------------------- ❗️❗️❗️❗️❗️" ++&#10;"\n\n"]' category="❗️Response ❗"/>
-		<ee:transform doc:name="Prepare A2A Server Response" doc:id="6437a75a-68b0-4d80-8ad6-ed3d096ad2b1">
-			<ee:message>
-				<ee:set-payload><![CDATA[%dw 2.0
-output application/json
----
-{
-    "id": vars.task_id,
-    "sessionId": vars.session_id,
-    "status": {
-      "state": "completed",
-      "message": {
-        "role": "agent",
-        "parts": [
-          {
-            "type": "text",
-            "text": payload.response
-          }
-        ]
-      },
-      "timestamp": (now() >> 'UTC') as String {format: "yyyy-MM-dd'T'HH:mm:ss'Z'"}
-    },
-    "artifacts": [
-      {
-        "name": "Answer",
-        "index": 0,
-        "parts": [
-          {
-            "type": "text",
-            "text": payload.response
-          }
-        ]
-      }
-    ]
-  }]]></ee:set-payload>
-			</ee:message>
-		</ee:transform>
-	</flow>
 </mule>
