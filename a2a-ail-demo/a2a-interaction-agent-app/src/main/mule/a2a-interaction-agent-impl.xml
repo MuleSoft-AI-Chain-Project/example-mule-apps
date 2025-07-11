@@ -13,14 +13,7 @@ http://www.mulesoft.org/schema/mule/ms-einstein-ai http://www.mulesoft.org/schem
 http://www.mulesoft.org/schema/mule/websocket http://www.mulesoft.org/schema/mule/websocket/current/mule-websocket.xsd
 http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd">
 	<sub-flow name="answer-prompt-flow" doc:id="4dfc37d6-652e-430c-8ce8-ff8942eec870" >
-		<logger level="INFO" doc:name="❓Log user prompt ❓" doc:id="94db756a-591c-4e6f-9506-4877875eb0c3" message='#[%dw 2.0
-output text
----
-"\n\n" ++
-"❓❓❓❓❓️️ --------------------------  User Prompt -------------------------- ❓❓❓❓❓️\n\n" ++
-(payload.prompt default "") ++ "\n" ++
-"\n❓❓❓❓❓️️ ------------------------------------------------------------------ ❓❓❓❓❓️" ++
-"\n\n"]' />
+		<logger level="INFO" doc:name="❓Log user prompt ❓" doc:id="94db756a-591c-4e6f-9506-4877875eb0c3" message='#[%dw 2.0&#10;output text&#10;---&#10;"\n\n" ++&#10;"❓❓❓❓❓️️ --------------------------  User Prompt -------------------------- ❓❓❓❓❓️\n\n" ++&#10;(payload.prompt default payload.message.parts[0].text) ++ "\n" ++&#10;"\n❓❓❓❓❓️️ ------------------------------------------------------------------ ❓❓❓❓❓️" ++&#10;"\n\n"]' />
 		<flow-ref doc:name="set-and-initialise-vars" doc:id="7a8bd844-f364-4586-8489-1b20c0d42fe3" name="set-and-initialise-vars" />
 		<flow-ref doc:name="get-chat-messages" doc:id="65d320bc-83d6-4b79-90b1-ec762c6b0907" name="get-chat-messages"/>
 		<choice doc:name="🧠 Choose if trust layer should be used for planning and reasoning 🧠" doc:id="a51cd7c6-607c-4645-bd0a-9d689068bff9">
@@ -80,10 +73,7 @@ output text
 "\n\n"]' />
 	</sub-flow>
 	<sub-flow name="set-and-initialise-vars" doc:id="48abd551-7eb5-4b2e-8e63-ba9b7697f603">
-		<set-variable value="#[%dw 2.0
-output application/json
----
-if (attributes.queryParams.&quot;sessionId&quot; == '' or attributes.queryParams.&quot;sessionId&quot; == null) uuid() else attributes.queryParams.&quot;sessionId&quot;]" doc:name="Set sessionId with sessionID header" doc:id="d6d0e0bc-e3a2-4c68-9ec7-092beff280c2" variableName="sessionId"/>
+		<set-variable value="#[%dw 2.0&#10;output application/json&#10;import * from dw::core::Strings&#10;---&#10;if (isEmpty(attributes.queryParams.sessionId)) (if (isEmpty(payload.sessionId)) uuid() else payload.sessionId) else attributes.queryParams.sessionId]" doc:name="Set sessionId with sessionID header" doc:id="d6d0e0bc-e3a2-4c68-9ec7-092beff280c2" variableName="sessionId"/>
 		<set-variable value="#[(payload as Object).prompt as String default payload.message.parts[0].text]" doc:name="Set userPrompt with payload.prompt" doc:id="c0dec21e-3afe-41c6-ad9e-3774fad668ee" variableName="userPrompt" />
 		<set-variable value='#[""]' doc:name="Intialise taskHistory" doc:id="fd632a81-a1c5-4d3c-9f1e-6e741863a309" variableName="taskHistory" />
 		<set-variable value="#[[]]" doc:name="Initialise chainsOfThoughts" doc:id="c6f42a73-fe14-4722-8ec7-05b34a2d2127" variableName="chainsOfThoughts" />
