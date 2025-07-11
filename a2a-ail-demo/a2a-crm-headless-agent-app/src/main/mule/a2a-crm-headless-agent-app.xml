@@ -10,61 +10,6 @@ http://www.mulesoft.org/schema/mule/mcp http://www.mulesoft.org/schema/mule/mcp/
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
 http://www.mulesoft.org/schema/mule/mac-inference http://www.mulesoft.org/schema/mule/mac-inference/current/mule-mac-inference.xsd
 http://www.mulesoft.org/schema/mule/a2a http://www.mulesoft.org/schema/mule/a2a/current/mule-a2a.xsd">
-	<flow name="a2a-server-listner" doc:id="54fb25cd-0029-485c-964e-af71580ec3dd">
-		<a2a:task-listener doc:name="Task Listener" doc:id="a6b1f8cc-e7e8-48b1-8fd5-3e0bbd7a9777" config-ref="CRM_Agent_A2A_Server" />
-		<flow-ref doc:name="Setting defaults" doc:id="c92f934a-d6ea-4f76-9ec3-ee474ce596c5" name="set-and-initialise-vars" />
-		<flow-ref doc:name="List MCP Tools" doc:id="29b94522-04e5-48f2-92dd-4f53a55831e0" name="list-mcp-tools" />
-		<flow-ref doc:name="Create a plan" doc:id="eeff7d61-a3f6-45ca-9cd4-12dd87212d1b" name="create-plan" />
-		<ee:transform doc:name="Transform Message" doc:id="d3fa7c3f-eadc-4362-901a-d833bfb0e415">
-			<ee:message>
-				<ee:set-payload><![CDATA[%dw 2.0
-output application/json
----
-if (payload.tools?)
-    (payload update {
-        case .tools -> "not used"
-    }) ++ { plan: "General Knowledge" } ++ "chainsOfThoughts": vars.chainsOfThoughts
-else
-    payload ++ { tools: "used" } ++ vars.multiTools ++ "chainsOfThoughts": vars.chainsOfThoughts ]]></ee:set-payload>
-			</ee:message>
-		</ee:transform>
-		<ee:transform doc:name="Prepare A2A Server Response" doc:id="6437a75a-68b0-4d80-8ad6-ed3d096ad2b1">
-			<ee:message>
-				<ee:set-payload><![CDATA[%dw 2.0
-output application/json
----
-{
-    "id": vars.task_id,
-    "sessionId": vars.session_id,
-    "status": {
-      "state": "completed",
-      "message": {
-        "role": "agent",
-        "parts": [
-          {
-            "type": "text",
-            "text": payload.response
-          }
-        ]
-      },
-      "timestamp": (now() >> 'UTC') as String {format: "yyyy-MM-dd'T'HH:mm:ss'Z'"}
-    },
-    "artifacts": [
-      {
-        "name": "Answer",
-        "index": 0,
-        "parts": [
-          {
-            "type": "text",
-            "text": payload.response
-          }
-        ]
-      }
-    ]
-  }]]></ee:set-payload>
-			</ee:message>
-		</ee:transform>
-	</flow>
 	<sub-flow name="set-and-initialise-vars" doc:id="ddd5bf4b-9235-4b7e-9386-e400e5cd8410">
 		<set-variable value='#[payload.message.parts[0].text default ""]' doc:name="Set task user prompt" doc:id="b1456931-b8a7-4677-b174-065899b1cb23" variableName="userPrompt" />
 		<logger level="INFO" doc:name="❓Log user prompt ❓" doc:id="d29e63bf-0d97-48eb-bcff-5b600ac0986a" message='#[%dw 2.0&#10;output text&#10;---&#10;"\n\n" ++&#10;"❓❓❓❓❓️️ --------------------------  User Prompt -------------------------- ❓❓❓❓❓️\n\n" ++&#10;(vars.userPrompt default "") ++ "\n" ++&#10;"\n❓❓❓❓❓️️ ------------------------------------------------------------------ ❓❓❓❓❓️" ++&#10;"\n\n"]' />
@@ -78,6 +23,7 @@ output application/json
 		<set-variable value="#[[]]" doc:name="set toolsUsed" doc:id="fd4e589e-fbe2-4275-baee-34e135b771bf" variableName="toolsUsed" />
 		<set-variable value="#[[]]" doc:name="set COT" doc:id="720be86b-57e8-4fcc-b03f-06749e9d029c" variableName="chainsOfThoughts" />
 		<set-variable value='#[{"tools":  []}]' doc:name="Set Tool Planning" doc:id="96b639fe-f99d-49b2-ae37-65df5d3ee7dd" variableName="planningPayload"/>
+		<flow-ref doc:name="load prompts" doc:id="a0bb3ca0-c067-4c8a-90c6-0e3114612dd3" name="load-prompts"/>
 	</sub-flow>
 	<sub-flow name="list-mcp-tools" doc:id="6e4e0484-ce2d-4c76-a519-b938a768f595" >
 		<mcp:list-tools doc:name="MCP Client - List Tools" doc:id="5c7da6b7-44b0-4a9a-872e-b14d21f36d6f" config-ref="MCP_Client" />
