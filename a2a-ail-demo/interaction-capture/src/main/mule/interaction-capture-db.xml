@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+	<sub-flow name="db-capture" doc:id="c06de173-cd88-4ad0-b3af-9fdde56be92b" >
+		<choice doc:name="Route by Payload Type" doc:id="ec840351-318e-4279-af1b-f6b556112a2b" >
+			<when expression='#[payload."type" == "Agent Task Request"]' >
+				<db:insert doc:name="Insert Agent Request" doc:id="fe8a8aa3-8795-4c68-8dd9-8d03f9c49c37" config-ref="Database_Config" >
+					<db:sql ><![CDATA[INSERT INTO agent_requests (id, create_time, agent, type, session_id, status, message)
+VALUES (:id, :create_time, :agent, :type, :session_id, :status, :message)
+                    ]]></db:sql>
+					<db:input-parameters ><![CDATA[#[{
+	id: payload.id,
+	create_time: (payload.timestamp as DateTime as String {format: "yyyy-MM-dd HH:mm:ss"}) default payload.timestamp,
+    agent: payload.agent,
+    "type": payload."type",
+    session_id: payload.sessionId,
+    status: payload.status,
+    message: payload.message
+}]]]></db:input-parameters>
+				</db:insert>
+				<set-payload value='#[%dw 2.0&#10;output application/json&#10;---&#10;{ status: "success", message: "Payload captured successfully" }]' doc:name="Success Response" doc:id="30ff41b0-ccab-4a2c-a14e-aed3b8ba60da" />
+			</when>
+			<when expression='#[payload."type" == "Agent Task Response"]' >
+				<db:insert doc:name="Insert Agent Response" doc:id="f032b303-0c60-41cc-bc7e-254fbe4be664" config-ref="Database_Config" >
+					<db:sql ><![CDATA[INSERT INTO agent_responses (id, create_time, agent, type, session_id, status, message)
+VALUES (:id, :create_time, :agent, :type, :session_id, :status, :message)
+                    ]]></db:sql>
+					<db:input-parameters ><![CDATA[#[{
+    id: payload.id,
+	create_time: (payload.timestamp as DateTime as String {format: "yyyy-MM-dd HH:mm:ss"}) default payload.timestamp,
+    agent: payload.agent,
+    "type": payload."type",
+    session_id: payload.sessionId,
+    status: payload.status,
+    message: payload.message
+}]]]></db:input-parameters>
+				</db:insert>
+				<set-payload value='#[%dw 2.0&#10;output application/json&#10;---&#10;{ status: "success", message: "Payload captured successfully" }]' doc:name="Success Response" doc:id="380bcf26-7727-4d0d-9072-4a4dc1d58133" />
+			</when>
+			<otherwise >
+				<set-payload value='#[%dw 2.0&#10;output application/json&#10;---&#10;{ error: "Invalid request payload" }]' doc:name="Error Response" doc:id="5e9ffbcd-fcf0-42df-8528-e0a4ebf4a6dd" />
+			</otherwise>
+		</choice>
+	</sub-flow>
+</mule>
