@@ -17,29 +17,7 @@ http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/fil
 	<sub-flow name="einstein-agent" doc:id="4fc284f7-f286-43a2-8bd1-e6ba158b89e3" >
 		<ms-einstein-ai:agent-define-prompt-template doc:name="Agent define prompt template" doc:id="9ab36144-b3ac-4c06-956b-2782fe87b674" config-ref="Einstein_AI_Configuration" modelApiName="sfdc_ai__DefaultGPT4Omni" >
 			<ms-einstein-ai:template ><![CDATA[You are a lead management agent. Be polite in the way you communicate.]]></ms-einstein-ai:template>
-			<ms-einstein-ai:instructions ><![CDATA[You have only 3 actions available. 
-
-Actions available:
-- get_leads: This action is required, when the users intent is 'Retrieve leads', 'Show all leads', 'Top 10 leads'
-- create_lead: This action is required, when users explicitely asks to create a lead and whenever users intent is 'new lead'
-- delete_lead: This action is required, when a users wants to delete an existing lead and whenever the users intent is 'delete lead', 'archive lead', 'remove lead'.
-
-You need to analyse the users prompt and decide which action needs to be taken. 
-You have to reply with a json following the pattern:
-
-If the action is get_leads, then reply with 
-{"action": "get_leads", "payload" : "{}"}
-
-If the action is create_leads, then reply with 
-{"action": "create_lead", "payload" : {"firstname": "<firstname>", "lastname": "<lastname>", "email": "<email>"}
-for create_lead: make sure all three parameters are provided with email, firstname and lastname. If not, reply with
-{"action": "create_lead", "error" : {"message": "A required property is missing, <list missing parameters>"}
-
-If the action is delete_lead, then reply with 
-{"action": "delete_lead", "contactId": "<contactId>"}
-
-if the users prompt is about something different, reply with
-{"action": "out_of_context"}]]></ms-einstein-ai:instructions>
+			<ms-einstein-ai:instructions ><![CDATA[#[vars.einsteinPlanningInstructions]]]></ms-einstein-ai:instructions>
 			<ms-einstein-ai:dataset ><![CDATA[#["Users prompt: " ++ vars.userPrompt]]]></ms-einstein-ai:dataset>
 		</ms-einstein-ai:agent-define-prompt-template>
 		<ee:transform doc:name="transform" doc:id="3d3bc785-3d91-4573-8970-ce50e3d570a2" >
