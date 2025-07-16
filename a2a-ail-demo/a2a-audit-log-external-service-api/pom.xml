@@ -2,18 +2,18 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>f684513f-280e-403a-ac53-80ca62e3de49</groupId>
-	<artifactId>a2a-einstein-ai-headless-agent-app</artifactId>
-	<version>1.0.2</version>
+	<groupId>com.mycompany</groupId>
+	<artifactId>a2a-audit-log-external-service-api</artifactId>
+	<version>1.0.0</version>
 	<packaging>mule-application</packaging>
 
-	<name>a2a-einstein-ai-headless-agent-app</name>
+	<name>a2a-audit-log-external-service-api</name>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-		<app.runtime>4.9.4</app.runtime>
+		<app.runtime>4.9.6</app.runtime>
 		<mule.maven.plugin.version>4.3.0</mule.maven.plugin.version>
 	</properties>
 
@@ -30,6 +30,12 @@
 				<version>${mule.maven.plugin.version}</version>
 				<extensions>true</extensions>
 				<configuration>
+					<sharedLibraries>
+						<sharedLibrary>
+							<groupId>mysql</groupId>
+							<artifactId>mysql-connector-java</artifactId>
+						</sharedLibrary>
+					</sharedLibraries>
 					<classifier>---- select project type ----</classifier>
 				</configuration>
 			</plugin>
@@ -38,33 +44,34 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>org.mule.weave</groupId>
-			<artifactId>http-netty-module</artifactId>
-			<version>2.10.0-20250128</version>
-		</dependency>
-		<dependency>
 			<groupId>org.mule.connectors</groupId>
 			<artifactId>mule-http-connector</artifactId>
-			<version>1.11.0-SNAPSHOT</version>
+			<version>1.10.3</version>
 			<classifier>mule-plugin</classifier>
 		</dependency>
 		<dependency>
-			<groupId>com.mulesoft.connectors</groupId>
-			<artifactId>mule4-a2a-connector</artifactId>
-			<version>0.1.0-BETA</version>
-			<classifier>mule-plugin</classifier>
+			<groupId>f684513f-280e-403a-ac53-80ca62e3de49</groupId>
+			<artifactId>interaction-capture-api</artifactId>
+			<version>1.0.3</version>
+			<classifier>oas</classifier>
+			<type>zip</type>
 		</dependency>
 		<dependency>
-			<groupId>com.mulesoft.connectors</groupId>
-			<artifactId>mule4-einstein-ai-connector</artifactId>
-			<version>1.2.0</version>
+			<groupId>org.mule.modules</groupId>
+			<artifactId>mule-apikit-module</artifactId>
+			<version>1.11.5</version>
 			<classifier>mule-plugin</classifier>
 		</dependency>
 		<dependency>
 			<groupId>org.mule.connectors</groupId>
-			<artifactId>mule-file-connector</artifactId>
-			<version>1.5.3</version>
+			<artifactId>mule-db-connector</artifactId>
+			<version>1.14.16</version>
 			<classifier>mule-plugin</classifier>
+		</dependency>
+		<dependency>
+			<groupId>mysql</groupId>
+			<artifactId>mysql-connector-java</artifactId>
+			<version>8.0.30</version>
 		</dependency>
 	</dependencies>
 

@@ -49,16 +49,16 @@ output application/json
 			<os:default-value ><![CDATA[#[""]]]></os:default-value>
 		</os:retrieve>
 	</sub-flow>
-	<flow name="a2a-server-listner" doc:id="54fb25cd-0029-485c-964e-af71580ec3dd" >
+	<!-- [STUDIO:"a2a-server-listner"]<flow name="a2a-server-listner" doc:id="54fb25cd-0029-485c-964e-af71580ec3dd" >
 		<a2a:task-listener doc:name="Task Listener" doc:id="a6b1f8cc-e7e8-48b1-8fd5-3e0bbd7a9777" config-ref="Agentforce_Agent_A2A_Server"/>
-		<logger level="INFO" doc:name="📞 Log A2A Task Incoming Request 📞" doc:id="6ed4a0b2-8516-4f48-a5e1-04a170e00ed7" message='#[output text&#10;---&#10;"📞📞📞📞📞 ---------- Triggering Agentforce Agent ---------- 📞📞📞📞📞\n\n" ++&#10;&#10;"A2A Task Received:\n" ++&#10;&#10;write(payload, "application/json") ++&#10;&#10;"\n\n📞📞📞📞📞 ------------------------------------------------ 📞📞📞📞📞"]' />
+		<logger level="INFO" doc:name="📞 Log A2A Task Incoming Request 📞" doc:id="6ed4a0b2-8516-4f48-a5e1-04a170e00ed7" message='#[output text&#10;&#45;&#45;-&#10;"📞📞📞📞📞 &#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45; Triggering Agentforce Agent &#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45; 📞📞📞📞📞\n\n" ++&#10;&#10;"A2A Task Received:\n" ++&#10;&#10;write(payload, "application/json") ++&#10;&#10;"\n\n📞📞📞📞📞 &#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45; 📞📞📞📞📞"&#93;' />
 		<flow-ref doc:name="Initialise variables" doc:id="95621933-8bfb-4b26-bd0a-29ad39231c01" name="a2a-agentforce-set-init"/>
 		<flow-ref doc:name="Agentforce agent" doc:id="56c8dc9f-f164-4301-977d-74c8752fbf9e" name="agentforce-agent" />
 		<ee:transform doc:name="Prepare A2A Server Response" doc:id="6437a75a-68b0-4d80-8ad6-ed3d096ad2b1">
 			<ee:message>
 				<ee:set-payload><![CDATA[%dw 2.0
 output application/json
----
+&#45;&#45;-
 {
     "id": vars.taskId,
     "sessionId": vars.sessionId,
@@ -71,7 +71,7 @@ output application/json
             "type": "text",
             "text": payload.response
           }
-        ]
+        &#93;
       },
       "timestamp": (now() >> 'UTC') as String {format: "yyyy-MM-dd'T'HH:mm:ss'Z'"}
     },
@@ -84,11 +84,11 @@ output application/json
             "type": "text",
             "text": payload.response
           }
-        ]
+        &#93;
       }
-    ]
-  }]]></ee:set-payload>
+    &#93;
+  }&#93;&#93;></ee:set-payload>
 			</ee:message>
 		</ee:transform>
-	</flow>
+	</flow> [STUDIO] -->
 </mule>

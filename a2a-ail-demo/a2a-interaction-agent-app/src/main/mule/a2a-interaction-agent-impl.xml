@@ -13,14 +13,7 @@ http://www.mulesoft.org/schema/mule/ms-einstein-ai http://www.mulesoft.org/schem
 http://www.mulesoft.org/schema/mule/websocket http://www.mulesoft.org/schema/mule/websocket/current/mule-websocket.xsd
 http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd">
 	<sub-flow name="answer-prompt-flow" doc:id="4dfc37d6-652e-430c-8ce8-ff8942eec870" >
-		<logger level="INFO" doc:name="❓Log user prompt ❓" doc:id="94db756a-591c-4e6f-9506-4877875eb0c3" message='#[%dw 2.0
-output text
----
-"\n\n" ++
-"❓❓❓❓❓️️ --------------------------  User Prompt -------------------------- ❓❓❓❓❓️\n\n" ++
-(payload.prompt default "") ++ "\n" ++
-"\n❓❓❓❓❓️️ ------------------------------------------------------------------ ❓❓❓❓❓️" ++
-"\n\n"]' />
+		<logger level="INFO" doc:name="❓Log user prompt ❓" doc:id="94db756a-591c-4e6f-9506-4877875eb0c3" message='#[%dw 2.0&#10;output text&#10;---&#10;"\n\n" ++&#10;"❓❓❓❓❓️️ --------------------------  User Prompt -------------------------- ❓❓❓❓❓️\n\n" ++&#10;(payload.prompt default payload.message.parts[0].text) ++ "\n" ++&#10;"\n❓❓❓❓❓️️ ------------------------------------------------------------------ ❓❓❓❓❓️" ++&#10;"\n\n"]' />
 		<flow-ref doc:name="set-and-initialise-vars" doc:id="7a8bd844-f364-4586-8489-1b20c0d42fe3" name="set-and-initialise-vars" />
 		<flow-ref doc:name="get-chat-messages" doc:id="65d320bc-83d6-4b79-90b1-ec762c6b0907" name="get-chat-messages"/>
 		<choice doc:name="🧠 Choose if trust layer should be used for planning and reasoning 🧠" doc:id="a51cd7c6-607c-4645-bd0a-9d689068bff9">
@@ -69,7 +62,28 @@ var toxicityAggregation = toxicityCategories map (cat) -> {
 { reasoning: vars.chainsOfThoughts } ++
 { toxicity: toxicityAggregation default []}]]></ee:set-payload>
 			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="response" ><![CDATA[%dw 2.0
+output application/json
+var toxicityCategories = vars.toxicity[0] map ((item) -> item.categoryName)
+var toxicityAggregation = toxicityCategories map (cat) -> {
+    categoryName: cat,
+    score: 
+        (vars.toxicity map ((arr) -> 
+            (arr filter ((item) -> item.categoryName == cat))[0].score as Number
+        )) reduce ((item, acc=0) -> acc + item)
+}
+---
+(payload default {}) ++ 
+{ sessionId: vars.sessionId} ++
+{ reasoningEngine: if (vars.useTrustLayer default false) "einstein" else "inference" } ++
+{ agents: if (vars.agentUsed default false) "used" else "not used" } ++ 
+{ replanCount: (vars.replanCount default 0)} ++
+{ reasoning: vars.chainsOfThoughts } ++
+{ toxicity: toxicityAggregation default []}]]></ee:set-variable>
+			</ee:variables>
 		</ee:transform>
+		<flow-ref doc:name="capture-event-no-agent-used" doc:id="76854bbe-4134-478a-ae47-74701c534449" target="domain_capture_response" name="capture-domain-agent-no-agent"/>
 		<logger level="INFO" doc:name="❗️Response ❗️" doc:id="554dec17-9dc3-4824-8057-28a380722f99" message='#[%dw 2.0
 output text
 ---
@@ -80,35 +94,19 @@ output text
 "\n\n"]' />
 	</sub-flow>
 	<sub-flow name="set-and-initialise-vars" doc:id="48abd551-7eb5-4b2e-8e63-ba9b7697f603">
-		<set-variable value="#[%dw 2.0
-output application/json
----
-if (attributes.queryParams.&quot;sessionId&quot; == '' or attributes.queryParams.&quot;sessionId&quot; == null) uuid() else attributes.queryParams.&quot;sessionId&quot;]" doc:name="Set sessionId with sessionID header" doc:id="d6d0e0bc-e3a2-4c68-9ec7-092beff280c2" variableName="sessionId"/>
-		<set-variable value="#[(payload as Object).prompt as String]" doc:name="Set userPrompt with payload.prompt" doc:id="c0dec21e-3afe-41c6-ad9e-3774fad668ee" variableName="userPrompt" />
+		<set-variable value="#[%dw 2.0&#10;output application/json&#10;import * from dw::core::Strings&#10;---&#10;if (isEmpty(attributes.queryParams.sessionId)) (if (isEmpty(payload.sessionId)) uuid() else payload.sessionId) else attributes.queryParams.sessionId]" doc:name="Set sessionId with sessionID header" doc:id="d6d0e0bc-e3a2-4c68-9ec7-092beff280c2" variableName="sessionId"/>
+		<set-variable value="#[payload.id default uuid()]" doc:name="Set Task Id" doc:id="77e65b0e-f5df-4944-9196-467ca0adae74" variableName="task_id" />
+		<set-variable value="#[(payload as Object).prompt as String default payload.message.parts[0].text]" doc:name="Set userPrompt with payload.prompt" doc:id="c0dec21e-3afe-41c6-ad9e-3774fad668ee" variableName="userPrompt" />
 		<set-variable value='#[""]' doc:name="Intialise taskHistory" doc:id="fd632a81-a1c5-4d3c-9f1e-6e741863a309" variableName="taskHistory" />
 		<set-variable value="#[[]]" doc:name="Initialise chainsOfThoughts" doc:id="c6f42a73-fe14-4722-8ec7-05b34a2d2127" variableName="chainsOfThoughts" />
 		<set-variable value='#[{"agents":  []}]' doc:name="Intialise selectedAgents" doc:id="eef193c9-c66e-4238-96bf-eb11785baf1c" variableName="selectedAgents" />
 		<set-variable value="#[false]" doc:name="Set agentUsed to false" doc:id="21e2aaae-1956-426b-a00c-4a538cb7ad8d" variableName="agentUsed"/>
 		<set-variable value="0" doc:name="Initialise replanCount to 0" doc:id="f6a15461-02da-493c-8731-500a153fcfbe" variableName="replanCount"/>
-		<set-variable value="#[%dw 2.0
-output application/json
----
-if ((payload as Object).&quot;useTrustLayer&quot; != '' or 
-		(payload as Object).&quot;useTrustLayer&quot; != null) 
-		
-	(payload as Object).&quot;useTrustLayer&quot; as Boolean
-	
-else if (attributes.queryParams.&quot;useTrustLayer&quot; != '' or 
-		attributes.queryParams.&quot;useTrustLayer&quot; != null) 
-		
-	attributes.queryParams.&quot;useTrustLayer&quot; 
-	
-else 
-			
-	false]" doc:name="Set useTrustLayer with useTrustLayer header" doc:id="0791022a-9648-4cf7-8c87-beaf8708c732" variableName="useTrustLayer"/>
+		<set-variable value="#[%dw 2.0&#10;output application/json&#10;---&#10;if ((payload as Object).&quot;useTrustLayer&quot; != '' or &#10;		(payload as Object).&quot;useTrustLayer&quot; != null) &#10;		&#10;	(payload as Object).&quot;useTrustLayer&quot; as Boolean default true&#10;	&#10;else if (attributes.queryParams.&quot;useTrustLayer&quot; != '' or &#10;		attributes.queryParams.&quot;useTrustLayer&quot; != null) &#10;		&#10;	attributes.queryParams.&quot;useTrustLayer&quot; &#10;	&#10;else &#10;			&#10;	false]" doc:name="Set useTrustLayer with useTrustLayer header" doc:id="0791022a-9648-4cf7-8c87-beaf8708c732" variableName="useTrustLayer"/>
 		<set-variable value="#[output json
 ---
 []]" doc:name="Set toxicity" doc:id="04ffe526-f085-4d57-8851-41adf48c8d9f" variableName="toxicity"/>
+		<set-variable value="#[(now() &gt;&gt; 'UTC') as String {format: &quot;yyyy-MM-dd'T'HH:mm:ss'Z'&quot;}]" doc:name="startTime" doc:id="08d9ff71-c6de-4217-aca7-b2c2ad75e320" variableName="startTime" />
 		<flow-ref doc:name="get-a2a-agents-cards" doc:id="1d812b6f-3d27-4c70-a43f-41de336b0366" name="get-a2a-agents-cards" />
 		<flow-ref doc:name="load-prompts" doc:id="97609abe-b733-4aea-badf-0670f198bf99" name="load-prompts"/>
 	</sub-flow>
@@ -573,6 +571,7 @@ write(payload default {}, "application/json") ++ "\n" ++
 "\n📤📤📤📤📤️️ ----------------------------------------------------------------- 📤📤📤📤📤️" ++
 "\n\n"]' />
 		<set-variable value="#[payload]" doc:name="agentTaskRequest" doc:id="ba04a953-36c4-4498-a546-d9c1ec94ae8e" variableName="agentTaskRequest" />
+		<flow-ref doc:name="Capture Request" doc:id="64b06400-cf37-439c-b3e8-a1eb931f5951" name="capture-agent-requests" target="capture_request"/>
 		<try doc:name="Try" doc:id="6cbc4b95-43c1-443d-a18e-3080b331b786">
 			<a2a:send-task doc:name="Send task to {agentToCall} Agent" doc:id="5eac269a-6344-427e-a624-703cb29dabc4" config-ref="A2A_Client" />
 			<try doc:name="Try send update over socket" doc:id="47de575d-ead3-4dd4-9f0e-73e81c1dbb82" >
@@ -623,7 +622,14 @@ output application/json
 	agentTaskResponse: payload
 }]]></ee:set-payload>
 			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="agentTaskResponse" ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-variable>
+			</ee:variables>
 		</ee:transform>
+		<flow-ref doc:name="Capture Response" doc:id="958078f3-3cf4-4578-99cf-518d9aab335f" name="capture-agent-response" target="capture_response" />
 	</sub-flow>
 	<sub-flow name="send-update-over-socket-connection" doc:id="60503e18-94fa-491a-aa65-e6c419ab4740" >
 		<choice doc:name="Send update over socket connection if any" doc:id="0a56cea2-2eec-46d8-be94-593db11a7f0b" >
