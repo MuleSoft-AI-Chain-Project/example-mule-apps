@@ -3,11 +3,11 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>com.mycompany</groupId>
-	<artifactId>interaction-capture</artifactId>
+	<artifactId>a2a-audit-log-external-service-api</artifactId>
 	<version>1.0.0</version>
 	<packaging>mule-application</packaging>
 
-	<name>interaction-capture</name>
+	<name>a2a-audit-log-external-service-api</name>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -52,7 +52,7 @@
 		<dependency>
 			<groupId>f684513f-280e-403a-ac53-80ca62e3de49</groupId>
 			<artifactId>interaction-capture-api</artifactId>
-			<version>1.0.0</version>
+			<version>1.0.3</version>
 			<classifier>oas</classifier>
 			<type>zip</type>
 		</dependency>

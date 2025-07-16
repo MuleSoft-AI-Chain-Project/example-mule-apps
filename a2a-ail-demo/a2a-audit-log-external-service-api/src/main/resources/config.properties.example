@@ -1,0 +1,6 @@
+db.host=cloud-infra.test.company.com
+db.port=99921
+db.user=admin_user
+db.password=admin_password
+db.database=db_name
+

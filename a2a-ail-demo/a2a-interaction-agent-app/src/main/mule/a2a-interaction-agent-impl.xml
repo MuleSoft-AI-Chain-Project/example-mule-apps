@@ -15,7 +15,6 @@ http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/fil
 	<sub-flow name="answer-prompt-flow" doc:id="4dfc37d6-652e-430c-8ce8-ff8942eec870" >
 		<logger level="INFO" doc:name="❓Log user prompt ❓" doc:id="94db756a-591c-4e6f-9506-4877875eb0c3" message='#[%dw 2.0&#10;output text&#10;---&#10;"\n\n" ++&#10;"❓❓❓❓❓️️ --------------------------  User Prompt -------------------------- ❓❓❓❓❓️\n\n" ++&#10;(payload.prompt default payload.message.parts[0].text) ++ "\n" ++&#10;"\n❓❓❓❓❓️️ ------------------------------------------------------------------ ❓❓❓❓❓️" ++&#10;"\n\n"]' />
 		<flow-ref doc:name="set-and-initialise-vars" doc:id="7a8bd844-f364-4586-8489-1b20c0d42fe3" name="set-and-initialise-vars" />
-		<flow-ref doc:name="capture-request-events" doc:id="05f72a35-b6fb-43c7-bc34-1ad2f5a71cf3" name="capture-domain-agent-requests" target="domain_capture_request" />
 		<flow-ref doc:name="get-chat-messages" doc:id="65d320bc-83d6-4b79-90b1-ec762c6b0907" name="get-chat-messages"/>
 		<choice doc:name="🧠 Choose if trust layer should be used for planning and reasoning 🧠" doc:id="a51cd7c6-607c-4645-bd0a-9d689068bff9">
 			<when expression="#[vars.useTrustLayer == true]">
@@ -64,7 +63,7 @@ var toxicityAggregation = toxicityCategories map (cat) -> {
 { toxicity: toxicityAggregation default []}]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
-		<flow-ref doc:name="capture-response-events" doc:id="76854bbe-4134-478a-ae47-74701c534449" target="domain_capture_response" name="capture-domain-agent-response"/>
+		<flow-ref doc:name="capture-event-no-agent-used" doc:id="76854bbe-4134-478a-ae47-74701c534449" target="domain_capture_response" name="capture-domain-agent-no-agent"/>
 		<logger level="INFO" doc:name="❗️Response ❗️" doc:id="554dec17-9dc3-4824-8057-28a380722f99" message='#[%dw 2.0
 output text
 ---
