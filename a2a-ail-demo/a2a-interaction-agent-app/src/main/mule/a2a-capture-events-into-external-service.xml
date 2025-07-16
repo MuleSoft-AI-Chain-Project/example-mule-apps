@@ -71,7 +71,7 @@ output application/json
   "id": vars.task_id,
   "sessionId": vars.sessionId,
   "status": "new",
-  "timestamp": (now() >> 'UTC') as String {format: "yyyy-MM-dd'T'HH:mm:ss'Z'"},
+  "timestamp": vars.startTime,
   "message": vars.userPrompt,
   "knowledge" : "general"
 }]]></ee:set-payload>
@@ -97,6 +97,44 @@ output application/json
 		</ee:transform>
 				<flow-ref doc:name="call-external" doc:id="0f92c225-9f00-45c8-b74d-72585fdfade8" name="call-out-external-service" />
 			</when>
+			<otherwise >
+				<ee:transform doc:name="Agent Request Payload" doc:id="25ad9835-489f-4a17-b573-04d69d502174" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  "agent": p('agent.name'),
+  "type": "Agent Task Request",
+  "id": vars.task_id,
+  "sessionId": vars.sessionId,
+  "status": "new",
+  "timestamp":  vars.startTime,
+  "message": vars.userPrompt,
+  "knowledge" : "specialised"
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<flow-ref doc:name="call-external" doc:id="49b6a232-85c5-4cfa-abf4-c8c0f9ccfd16" name="call-out-external-service" />
+				<ee:transform doc:name="Agent Response Payload" doc:id="f97bb06b-7fa6-487b-98c5-e8433f8de85c" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  "agent": p('agent.name'),
+  "type": "Agent Task Response",
+  "id": vars.task_id,
+  "sessionId": vars.sessionId,
+  "status": "completed",
+  "timestamp": (now() >> 'UTC') as String {format: "yyyy-MM-dd'T'HH:mm:ss'Z'"},
+  "message": vars.response.response,
+  "knowledge" : "specialised"
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<flow-ref doc:name="call-external1" doc:id="1f5616df-6b13-4bca-a71b-78dd30e896db" name="call-out-external-service" />
+			</otherwise>
 		</choice>
 		<error-handler >
 			<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="6914fd5b-a985-4a35-8733-6a1fe4cfb246" type="ANY"/>

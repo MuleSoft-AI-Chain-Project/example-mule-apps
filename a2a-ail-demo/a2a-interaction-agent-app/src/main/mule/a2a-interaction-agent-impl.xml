@@ -106,6 +106,7 @@ output text
 		<set-variable value="#[output json
 ---
 []]" doc:name="Set toxicity" doc:id="04ffe526-f085-4d57-8851-41adf48c8d9f" variableName="toxicity"/>
+		<set-variable value="#[(now() &gt;&gt; 'UTC') as String {format: &quot;yyyy-MM-dd'T'HH:mm:ss'Z'&quot;}]" doc:name="startTime" doc:id="08d9ff71-c6de-4217-aca7-b2c2ad75e320" variableName="startTime" />
 		<flow-ref doc:name="get-a2a-agents-cards" doc:id="1d812b6f-3d27-4c70-a43f-41de336b0366" name="get-a2a-agents-cards" />
 		<flow-ref doc:name="load-prompts" doc:id="97609abe-b733-4aea-badf-0670f198bf99" name="load-prompts"/>
 	</sub-flow>
