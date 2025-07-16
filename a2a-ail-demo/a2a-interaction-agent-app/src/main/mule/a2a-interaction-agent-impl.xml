@@ -62,6 +62,26 @@ var toxicityAggregation = toxicityCategories map (cat) -> {
 { reasoning: vars.chainsOfThoughts } ++
 { toxicity: toxicityAggregation default []}]]></ee:set-payload>
 			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="response" ><![CDATA[%dw 2.0
+output application/json
+var toxicityCategories = vars.toxicity[0] map ((item) -> item.categoryName)
+var toxicityAggregation = toxicityCategories map (cat) -> {
+    categoryName: cat,
+    score: 
+        (vars.toxicity map ((arr) -> 
+            (arr filter ((item) -> item.categoryName == cat))[0].score as Number
+        )) reduce ((item, acc=0) -> acc + item)
+}
+---
+(payload default {}) ++ 
+{ sessionId: vars.sessionId} ++
+{ reasoningEngine: if (vars.useTrustLayer default false) "einstein" else "inference" } ++
+{ agents: if (vars.agentUsed default false) "used" else "not used" } ++ 
+{ replanCount: (vars.replanCount default 0)} ++
+{ reasoning: vars.chainsOfThoughts } ++
+{ toxicity: toxicityAggregation default []}]]></ee:set-variable>
+			</ee:variables>
 		</ee:transform>
 		<flow-ref doc:name="capture-event-no-agent-used" doc:id="76854bbe-4134-478a-ae47-74701c534449" target="domain_capture_response" name="capture-domain-agent-no-agent"/>
 		<logger level="INFO" doc:name="❗️Response ❗️" doc:id="554dec17-9dc3-4824-8057-28a380722f99" message='#[%dw 2.0

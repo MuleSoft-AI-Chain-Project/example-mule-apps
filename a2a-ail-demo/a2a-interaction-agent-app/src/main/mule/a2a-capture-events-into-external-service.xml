@@ -18,7 +18,8 @@ output application/json
   "sessionId": vars.agentTaskRequest.sessionId,
   "status": "new",
   "timestamp": (now() >> 'UTC') as String {format: "yyyy-MM-dd'T'HH:mm:ss'Z'"},
-  "message": vars.agentTaskRequest.message.parts[0].text
+  "message": vars.agentTaskRequest.message.parts[0].text,
+  "knowledge" : "specialised"
 }]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
@@ -40,7 +41,8 @@ output application/json
   "sessionId": vars.agentTaskResponse.sessionId,
   "status": vars.agentTaskResponse.status.state,
   "timestamp": (now() >> 'UTC') as String {format: "yyyy-MM-dd'T'HH:mm:ss'Z'"},
-  "message": vars.agentTaskResponse.artifacts[0].parts[0].text
+  "message": vars.agentTaskResponse.artifacts[0].parts[0].text,
+  "knowledge" : "specialised"
 }]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
@@ -70,7 +72,8 @@ output application/json
   "sessionId": vars.sessionId,
   "status": "new",
   "timestamp": (now() >> 'UTC') as String {format: "yyyy-MM-dd'T'HH:mm:ss'Z'"},
-  "message": vars.userPrompt
+  "message": vars.userPrompt,
+  "knowledge" : "general"
 }]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
@@ -87,7 +90,8 @@ output application/json
   "sessionId": vars.sessionId,
   "status": "completed",
   "timestamp": (now() >> 'UTC') as String {format: "yyyy-MM-dd'T'HH:mm:ss'Z'"},
-  "message": payload.response
+  "message": vars.response.response,
+  "knowledge" : "general"
 }]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
