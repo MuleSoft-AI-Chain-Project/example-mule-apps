@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:a2a="http://www.mulesoft.org/schema/mule/a2a"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/a2a http://www.mulesoft.org/schema/mule/a2a/current/mule-a2a.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<flow name="a2a-server-listner" doc:id="d6d55d9a-dedd-41de-903b-023596af14df" >
+		<a2a:task-listener doc:name="Task Listener" doc:id="ee7527e0-d636-4fab-bd93-9a7d823c99bf" config-ref="CRM_Agent_A2A_Server" />
+		<flow-ref doc:name="Setting defaults" doc:id="11c2c54d-fa6f-4490-9c26-53e0f09cb768" name="set-and-initialise-vars" />
+		<flow-ref doc:name="List MCP Tools" doc:id="f8bd148e-dbb3-46a7-9ea2-10b780b4ab37" name="list-mcp-tools" />
+		<flow-ref doc:name="Create a plan" doc:id="4f2e288c-b178-4749-b622-8f3e37ccdc5d" name="create-plan" />
+		<ee:transform doc:name="Transform Message" doc:id="75727afd-5d40-4a21-a67b-24e7c2a40d87" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+if (payload.tools?)
+    (payload update {
+        case .tools -> "not used"
+    }) ++ { plan: "General Knowledge" } ++ "chainsOfThoughts": vars.chainsOfThoughts
+else
+    payload ++ { tools: "used" } ++ vars.multiTools ++ "chainsOfThoughts": vars.chainsOfThoughts ]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<ee:transform doc:name="Prepare A2A Server Response" doc:id="9ecd2af1-c8d3-44b8-8be4-ead6d60c7623" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "id": vars.task_id,
+    "sessionId": vars.session_id,
+    "status": {
+      "state": "completed",
+      "message": {
+        "role": "agent",
+        "parts": [
+          {
+            "type": "text",
+            "text": payload.response
+          }
+        ]
+      },
+      "timestamp": (now() >> 'UTC') as String {format: "yyyy-MM-dd'T'HH:mm:ss'Z'"}
+    },
+    "artifacts": [
+      {
+        "name": "Answer",
+        "index": 0,
+        "parts": [
+          {
+            "type": "text",
+            "text": payload.response
+          }
+        ]
+      }
+    ]
+  }]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>

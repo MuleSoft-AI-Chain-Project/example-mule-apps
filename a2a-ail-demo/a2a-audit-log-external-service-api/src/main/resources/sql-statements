@@ -1,0 +1,17 @@
+## Create Table SQL Statement
+CREATE TABLE audit_log (
+    session_id VARCHAR(255) NOT NULL,
+    task_id VARCHAR(255) NOT NULL,
+    agent_name VARCHAR(255) NOT NULL,
+    knowledge VARCHAR(100) NOT NULL,
+    requested_at DATETIME,
+    responded_at DATETIME,
+    status VARCHAR(50),
+    request_message TEXT,
+    response_message TEXT
+);
+
+
+# Create Primary Key
+ALTER TABLE audit_log
+ADD PRIMARY KEY (session_id, task_id, agent_name);

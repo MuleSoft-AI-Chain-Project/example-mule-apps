@@ -17,29 +17,7 @@ http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/fil
 	<sub-flow name="einstein-agent" doc:id="4fc284f7-f286-43a2-8bd1-e6ba158b89e3" >
 		<ms-einstein-ai:agent-define-prompt-template doc:name="Agent define prompt template" doc:id="9ab36144-b3ac-4c06-956b-2782fe87b674" config-ref="Einstein_AI_Configuration" modelApiName="sfdc_ai__DefaultGPT4Omni" >
 			<ms-einstein-ai:template ><![CDATA[You are a lead management agent. Be polite in the way you communicate.]]></ms-einstein-ai:template>
-			<ms-einstein-ai:instructions ><![CDATA[You have only 3 actions available. 
-
-Actions available:
-- get_leads: This action is required, when the users intent is 'Retrieve leads', 'Show all leads', 'Top 10 leads'
-- create_lead: This action is required, when users explicitely asks to create a lead and whenever users intent is 'new lead'
-- delete_lead: This action is required, when a users wants to delete an existing lead and whenever the users intent is 'delete lead', 'archive lead', 'remove lead'.
-
-You need to analyse the users prompt and decide which action needs to be taken. 
-You have to reply with a json following the pattern:
-
-If the action is get_leads, then reply with 
-{"action": "get_leads", "payload" : "{}"}
-
-If the action is create_leads, then reply with 
-{"action": "create_lead", "payload" : {"firstname": "<firstname>", "lastname": "<lastname>", "email": "<email>"}
-for create_lead: make sure all three parameters are provided with email, firstname and lastname. If not, reply with
-{"action": "create_lead", "error" : {"message": "A required property is missing, <list missing parameters>"}
-
-If the action is delete_lead, then reply with 
-{"action": "delete_lead", "contactId": "<contactId>"}
-
-if the users prompt is about something different, reply with
-{"action": "out_of_context"}]]></ms-einstein-ai:instructions>
+			<ms-einstein-ai:instructions ><![CDATA[#[vars.einsteinPlanningInstructions]]]></ms-einstein-ai:instructions>
 			<ms-einstein-ai:dataset ><![CDATA[#["Users prompt: " ++ vars.userPrompt]]]></ms-einstein-ai:dataset>
 		</ms-einstein-ai:agent-define-prompt-template>
 		<ee:transform doc:name="transform" doc:id="3d3bc785-3d91-4573-8970-ce50e3d570a2" >
@@ -58,7 +36,7 @@ read(cleanedString, "application/json")]]></ee:set-payload>
 				<set-payload value='#[{"response": "I can only answer questions related to leads stored in the lead management system."}]' doc:name="Set Payload" doc:id="18f701bc-39c7-4dcb-a130-cf1341e692b0" />
 			</when>
 			<otherwise >
-				<flow-ref doc:name="Flow Reference" doc:id="e3f5b390-4e76-4660-b04e-53052f8d723b" name="#[payload.action]" />
+				<flow-ref doc:name="Flow Call" doc:id="e3f5b390-4e76-4660-b04e-53052f8d723b" name="#[payload.action]" />
 			</otherwise>
 		</choice>
 		<logger level="INFO" doc:name="🛠️ Tools Result 🛠️" doc:id="c64f52a8-bbb1-47f3-a753-0009da3041bf" message='#[%dw 2.0&#10;output text&#10;---&#10;"\n\n" ++&#10;"🛠️🛠️🛠️🛠️🛠️️ --------------------------  Tool Result -------------------------- 🛠️🛠️🛠️🛠️🛠️\n" ++&#10;"Tools : \n" ++ &#10;write(payload, "application/json") ++ &#10;"\n 🛠️🛠️🛠️🛠️🛠️️ ---------------------------------------------------------------------- 🛠️🛠️🛠️🛠️🛠️" ++&#10;"\n\n"]' category="🛠️ Tools Result 🛠️" />
@@ -83,51 +61,8 @@ output application/json
 		<set-variable value="#[payload.id]" doc:name="Set Task Id" doc:id="042c5a2f-0e69-4cf5-91d0-d05233be33b4" variableName="task_id" />
 		<set-variable value='#[(payload.sessionId) default ""]' doc:name="Set Session Id" doc:id="770f744a-618e-4864-9422-a565cfc16b98" variableName="session_id" />
 		<logger level="INFO" doc:name="Init" doc:id="8ec6e13b-789a-4acc-baee-50344cb1a042" message="#[attributes.headers.agentforceSession]" />
+		<flow-ref doc:name="load prompts" doc:id="730a1175-c1e3-475a-bfdc-3f0b9b557213" name="load-prompts"/>
 	</sub-flow>
-	<flow name="a2a-server-listner" doc:id="54fb25cd-0029-485c-964e-af71580ec3dd" >
-		<a2a:task-listener doc:name="Task Listener" doc:id="a6b1f8cc-e7e8-48b1-8fd5-3e0bbd7a9777" config-ref="Einstein_Agent_A2A_Server"/>
-		<logger level="INFO" doc:name="❓Log user prompt ❓" doc:id="346dc6c2-2721-4e91-a8ef-fbbbebbadaf7" message='#[%dw 2.0&#10;output text&#10;---&#10;"\n\n" ++&#10;"❓❓❓❓❓️️ --------------------------  User Prompt -------------------------- ❓❓❓❓❓️\n\n" ++&#10;(payload.message.parts[0].text default "") ++ "\n" ++&#10;"\n❓❓❓❓❓️️ ------------------------------------------------------------------ ❓❓❓❓❓️" ++&#10;"\n\n"]' category="❓Log user prompt ❓" />
-		<flow-ref doc:name="Initialise" doc:id="95621933-8bfb-4b26-bd0a-29ad39231c01" name="a2a-einstein-set-init"/>
-		<flow-ref doc:name="Einstein Agent" doc:id="56c8dc9f-f164-4301-977d-74c8752fbf9e" name="einstein-agent" />
-		<logger level="INFO" doc:name="❗️Response ❗️" doc:id="f67aaa03-062b-4a74-afd4-f63d2ac934ea" message='#[%dw 2.0&#10;output text&#10;---&#10;"\n\n" ++&#10;"❗️❗️❗️❗️❗️️ --------------------------  Response -------------------------- ❗️❗️❗️❗️❗️\n\n" ++&#10;(payload.response default "") ++ "\n" ++&#10;"\n❗️❗️❗️❗️❗️️ -------------------------------------------------------------- ❗️❗️❗️❗️❗️" ++&#10;"\n\n"]' category="❗️Response ❗" />
-		<ee:transform doc:name="Prepare A2A Server Response" doc:id="6437a75a-68b0-4d80-8ad6-ed3d096ad2b1">
-			<ee:message>
-				<ee:set-payload><![CDATA[%dw 2.0
-output application/json
----
-{
-    "id": vars.task_id,
-    "sessionId": vars.session_id,
-    "status": {
-      "state": "completed",
-      "message": {
-        "role": "agent",
-        "parts": [
-          {
-            "type": "text",
-            "text": payload.response
-          }
-        ]
-      },
-      "timestamp": (now() >> 'UTC') as String {format: "yyyy-MM-dd'T'HH:mm:ss'Z'"}
-    },
-    "agentforceId": vars.agentforceSession,
-    "artifacts": [
-      {
-        "name": "Answer",
-        "index": 0,
-        "parts": [
-          {
-            "type": "text",
-            "text": payload.response
-          }
-        ]
-      }
-    ]
-  }]]></ee:set-payload>
-			</ee:message>
-		</ee:transform>
-	</flow>
 	<sub-flow name="create_lead" doc:id="c4a079ec-3754-44db-ab48-7e0681fe8a64" >
 		<choice doc:name="Choice" doc:id="8300c736-4a8e-472d-aa1d-af2866c3fdc7" >
 			<when expression="#[payload.error?==true]" >

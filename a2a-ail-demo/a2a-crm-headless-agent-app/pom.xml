@@ -30,7 +30,7 @@
 				<version>${mule.maven.plugin.version}</version>
 				<extensions>true</extensions>
 				<configuration>
-					<classifier>mule-application</classifier>
+					<classifier>---- select project type ----</classifier>
 				</configuration>
 			</plugin>
 		</plugins>
@@ -49,10 +49,10 @@
 			<classifier>mule-plugin</classifier>
 		</dependency>
 		<dependency>
-		   <groupId>io.github.mulesoft-ai-chain-project</groupId>
-		   <artifactId>mule4-inference-connector</artifactId>
-		   <version>0.5.7</version>
-		   <classifier>mule-plugin</classifier>
+			<groupId>io.github.mulesoft-ai-chain-project</groupId>
+			<artifactId>mule4-inference-connector</artifactId>
+			<version>0.5.7</version>
+			<classifier>mule-plugin</classifier>
 		</dependency>
 		<dependency>
 			<groupId>com.mulesoft.connectors</groupId>
@@ -64,6 +64,12 @@
 			<groupId>com.mulesoft.connectors</groupId>
 			<artifactId>mule-mcp-connector</artifactId>
 			<version>1.0.0</version>
+			<classifier>mule-plugin</classifier>
+		</dependency>
+		<dependency>
+			<groupId>org.mule.connectors</groupId>
+			<artifactId>mule-file-connector</artifactId>
+			<version>1.5.3</version>
 			<classifier>mule-plugin</classifier>
 		</dependency>
 	</dependencies>
