@@ -1,6 +1,6 @@
 {
     "OPENAI": {
-        "OPENAI_API_KEY": "your OPENAI_API_KEY"
+        "OPENAI_API_KEY": "Your OPENAI_API_KEY"
     },
     "MISTRAL_AI": {
         "MISTRAL_AI_API_KEY": "YOUR_MISTRALAI_API_KEY"

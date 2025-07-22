@@ -106,7 +106,7 @@ uploadButton.addEventListener('click', async () => {
     };
 
     try {
-        const response = await fetch('https://mac-image-replicator-fjrr5q.5sc6y6-3.usa-e2.cloudhub.io/upload', {
+        const response = await fetch('https://mac-image-replication-app-fjrr5q.5sc6y6-1.usa-e2.cloudhub.io//upload', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

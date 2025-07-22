@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:s3="http://www.mulesoft.org/schema/mule/s3" xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
+	xmlns:oauth="http://www.mulesoft.org/schema/mule/oauth"
+	xmlns:spring="http://www.mulesoft.org/schema/mule/spring" xmlns:ms-vectors="http://www.mulesoft.org/schema/mule/ms-vectors" xmlns:vectors="http://www.mulesoft.org/schema/mule/vectors" xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:mulechain-vectors="http://www.mulesoft.org/schema/mule/mulechain-vectors" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/mulechain-vectors http://www.mulesoft.org/schema/mule/mulechain-vectors/current/mule-mulechain-vectors.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+http://www.mulesoft.org/schema/mule/ms-vectors http://www.mulesoft.org/schema/mule/ms-vectors/current/mule-ms-vectors.xsd
+http://www.mulesoft.org/schema/mule/spring http://www.mulesoft.org/schema/mule/spring/current/mule-spring.xsd
+http://www.mulesoft.org/schema/mule/oauth http://www.mulesoft.org/schema/mule/oauth/current/mule-oauth.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
+http://www.mulesoft.org/schema/mule/s3 http://www.mulesoft.org/schema/mule/s3/current/mule-s3.xsd">
+	
+	
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="92f7fc73-e26f-44f9-a016-6a73ae152b8d" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	
+	
+	<ms-vectors:storage-config name="Storage_Config_Local" doc:name="MuleSoft Vectors Connector Document config" doc:id="93125a24-4fc1-4135-991f-13b59e8cce4c" >
+		<ms-vectors:local-connection workingDir="/Users/jreizevoort" />
+	</ms-vectors:storage-config>
+	
+	<ms-vectors:embedding-config name="Embedding_Config_Vertex_AI" doc:name="MuleSoft Vectors Connector Embedding config" doc:id="33f0549e-809c-42d0-8cd9-a8fae763114d" >
+		<ms-vectors:google-vertex-ai-connection projectId="${vertexai.projectId}" clientId="${vertexai.clientId}" clientEmail="${vertexai.clientEmail}" privateKeyId="${vertexai.privateKeyId}" privateKey="${vertexai.privateKey}" location="${vertexai.location}"/>
+	</ms-vectors:embedding-config>
+	
+
+	<ms-vectors:store-config name="Store_Config_PGVector" doc:name="MuleSoft Vectors Connector Store config" doc:id="87f031e9-f09a-4d1a-80e0-f089d6606892" >
+		<ms-vectors:pg-vector-connection host="${pgvector.host}" port="${pgvector.port}" database="${pgvector.database}" user="${pgvector.user}" password="${pgvector.password}"/>
+	</ms-vectors:store-config>
+	<configuration-properties doc:name="Configuration properties" doc:id="b55e9fe5-9ae2-4269-b75c-a1c59f2006c2" file="config.properties" />
+	<ms-vectors:storage-config name="Store_Config_S3" doc:name="MuleSoft Vectors Connector Storage config" doc:id="9b29afca-5e11-4a4d-bbdc-ff8a164e315b" >
+		<ms-vectors:amazon-s3-connection awsRegion="${s3.region}" awsAccessKeyId="${s3.awsAccessKeyId}" awsSecretAccessKey="${s3.awsSecretAccessKey}" />
+	</ms-vectors:storage-config>
+	<s3:config name="Amazon_S3_Configuration" doc:name="Amazon S3 Configuration" doc:id="3ea54d18-0596-4ba1-b8bb-9955c32cadda" >
+		<s3:connection accessKey="${s3.awsAccessKeyId}" region="${s3.region}" secretKey="${s3.awsSecretAccessKey}"/>
+	</s3:config>
+	
+</mule>

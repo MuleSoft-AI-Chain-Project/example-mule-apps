@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:whisperer="http://www.mulesoft.org/schema/mule/whisperer" xmlns:ms-aichain="http://www.mulesoft.org/schema/mule/ms-aichain"
+	xmlns:mulechain-voice="http://www.mulesoft.org/schema/mule/mulechain-voice"
+	xmlns:tls="http://www.mulesoft.org/schema/mule/tls" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:mulechain="http://www.mulesoft.org/schema/mule/mulechain" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/mulechain http://www.mulesoft.org/schema/mule/mulechain/current/mule-mulechain.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd
+http://www.mulesoft.org/schema/mule/mulechain-voice http://www.mulesoft.org/schema/mule/mulechain-voice/current/mule-mulechain-voice.xsd
+http://www.mulesoft.org/schema/mule/ms-aichain http://www.mulesoft.org/schema/mule/ms-aichain/current/mule-ms-aichain.xsd
+http://www.mulesoft.org/schema/mule/whisperer http://www.mulesoft.org/schema/mule/whisperer/current/mule-whisperer.xsd">
+	<global-property doc:name="Global Property" doc:id="c1e202a0-b9f7-4bfd-b38e-1180ad99a94a" name="env" value="dev" />
+	<configuration-properties doc:name="Configuration properties" doc:id="f715a66f-775d-4c3a-9ce3-19cd4ac5098b" file="${env}-properties.properties" />
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="dc195e98-8d6f-4ee7-864f-11855a834353" >
+		<http:listener-connection host="0.0.0.0" port="${http.port}" />
+		<http:listener-interceptors >
+			<http:cors-interceptor allowCredentials="true" >
+				<http:origins >
+					<http:public-resource />
+				</http:origins>
+			</http:cors-interceptor>
+		</http:listener-interceptors>
+	</http:listener-config>
+	<whisperer:config name="MAC_Whisperer_Config" doc:name="MAC Whisperer Config" doc:id="5154d715-5673-4b6d-901b-5566321c7fc1" apiKey="${open.key}" />
+	<ms-aichain:config name="MuleSoft_AI_Chain_Config" llmType="${llm.type}" configType="Configuration Json" modelName="${llm.model}" doc:name="MuleSoft AI Chain Config" doc:id="ab5c2ca4-193d-4e06-86dc-6e3f0599ac5c" filePath='#[mule.home ++ "/apps/" ++ app.name ++ "/envVars.json"]' />
+</mule>

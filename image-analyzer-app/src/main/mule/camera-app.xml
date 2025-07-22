@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ms-aichain="http://www.mulesoft.org/schema/mule/ms-aichain" xmlns:file="http://www.mulesoft.org/schema/mule/file"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+http://www.mulesoft.org/schema/mule/ms-aichain http://www.mulesoft.org/schema/mule/ms-aichain/current/mule-ms-aichain.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="132685f1-43f6-4b9f-b02f-a7482b89abca" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+		<http:listener-interceptors >
+			<http:cors-interceptor allowCredentials="true" >
+				<http:origins >
+					<http:public-resource />
+				</http:origins>
+			</http:cors-interceptor>
+		</http:listener-interceptors>
+	</http:listener-config>
+	<ms-aichain:config name="GPT4Turbo" llmType="OPENAI" configType="Configuration Json" modelName="gpt-4o" doc:name="MuleSoft AI Chain Config" doc:id="f6348af5-23e8-45f3-955c-3756631064e8" filePath='#[mule.home ++ "/apps/" ++ app.name ++ "/envVars.json"]' maxTokens="1400" />
+	<flow name="camera-appFlow" doc:id="c85bde27-0df7-4a3c-bb65-a7ac95e85c19" >
+		<http:listener doc:name="Listener" doc:id="2153830f-d2d4-43f0-805b-ca0cce5dcb60" config-ref="HTTP_Listener_config" path="/upload"/>
+		<ee:transform doc:name="Prep for File Write" doc:id="6be03d56-07d8-4574-a1da-75a8737deed0">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+import * from dw::core::Binaries
+output multipart/form-data
+---
+{
+    parts:{
+        base64Content:{
+            headers:{
+                "Content-Type":"application/pdf"
+            },
+            content: fromBase64(payload.pdf)
+            },
+        }
+}]]></ee:set-payload>
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="prompt" ><![CDATA[%dw 2.0
+output application/json
+---
+payload.prompt]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<set-payload value="#[payload]" doc:name="Set Payload" doc:id="b9db7853-de53-4c70-869a-6e9170a6d717" mimeType="application/pdf" />
+		<file:write doc:name="Write" doc:id="8ea18ebf-fc12-4897-87ee-ec1c4225be68" path='#[mule.home ++ "/apps/" ++ app.name ++ "/webapp/ingested.pdf"]' />
+		<ms-aichain:image-read-scanned-documents doc:name="Image read scanned documents" doc:id="70f7e7e3-6c97-4626-be9f-1efa6b345091" config-ref="GPT4Turbo" filePath='#[mule.home ++ "/apps/" ++ app.name ++ "/webapp/ingested.pdf"]'>
+					<ms-aichain:data><![CDATA[#[if (isEmpty(vars.prompt) or vars.prompt == null) "What do you see?" else vars.prompt]]]></ms-aichain:data>
+				</ms-aichain:image-read-scanned-documents>
+		<ee:transform doc:name="Transform Message" doc:id="f9727de6-ec7c-4b8b-97b6-a7ece79fecd2" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	response: payload[0].response,
+	tokenUsage: payload[0].tokenUsage
+	
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="load-main-page-Flow" doc:id="573f06b7-48d7-472b-ba4c-cb4753c4917e" >
+		<http:listener doc:name="HTML Listener" doc:id="f20ee44d-e556-490d-a981-8e8278cdc1ad" config-ref="HTTP_Listener_config" path="/web/*" />
+		<http:load-static-resource doc:name="Load main page" doc:id="17ecf615-1b84-4175-a723-d264d2f669f5" resourceBasePath='#[mule.home ++ "/apps/" ++ app.name ++ "/webapp"]' />
+	</flow>
+</mule>
