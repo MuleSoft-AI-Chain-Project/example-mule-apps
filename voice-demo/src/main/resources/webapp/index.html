@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MuleSoft AI Chain Voice Agent</title>
+    <link rel="icon" href="../web/mac-whisper.png" type="image/png">
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+        }
+        h1 {
+            color: #333;
+        }
+        /* Style for the response audio element */
+        #responseAudio {
+            margin-bottom: 20px; /* Add space beneath the responseAudio */
+        }
+        .main-container {
+            display: flex;
+            flex-direction: column; /* Stack children vertically */
+            width: 100%;
+            height: 100%;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        /* Upper part: Chat window and metrics window */
+        .container {
+            display: flex;
+            width: 100%;
+            gap: 20px;
+            flex: 1; /* Allow it to take up available space */
+        }
+
+        /* Chat window takes 85% of the width */
+        .chat-window {
+            width: 85%;  /* Increased chat window width */
+            background-color: #fff;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            overflow-y: auto;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+
+        /* Metrics window takes 15% of the width */
+        .metrics-window {
+            width: 15%;
+            background-color: #fff; /* White background */
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column; /* Stack metric boxes and image vertically */
+            align-items: center;
+        }
+
+        /* Style for each metric box */
+        .metric-box {
+            background-color: #f4f4f4;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: left;
+            font-size: 16px;
+            font-weight: normal;
+            color: #333;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+            width: calc(100% - 20px); /* Ensure the metric boxes are 100% width of the metrics window minus the margin */
+            margin-left: 15px;
+            margin-right: 15px;
+            margin-bottom: 15px;
+        }
+
+        /* Lower part: Controls container holds the AI image and controls */
+        .controls-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px; /* Added gap between elements */
+            align-items: center;
+            background-color: #fff; /* Match background to main container */
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-top: 10px; /* Space between the top and bottom sections */
+            margin-left: 5px; /* Add left margin to match metrics window */
+            margin-right: 5px; /* Add right margin to match metrics window */
+        }
+        .chat-content {
+            padding-bottom: 40px; /* Reserve space for spinner if necessary */
+        }
+        .chat-message {
+            margin-bottom: 10px;
+        }
+        .chat-question {
+            font-weight: bold;
+        }
+        .chat-answer {
+            margin-left: 20px;
+        }
+        .ai-image {
+            width: 121px;
+            height: 150px;
+            background-image: url('../web/mac-whisper.png'); /* Replace with your AI image URL */
+            background-size: cover;
+            background-position: center;
+            margin-bottom: 10px;
+            margin-top: auto; /* Push the image to the bottom */
+            display: block; /* Ensure it behaves like a block element */
+        }
+        /* Controls button and dropdown */
+        .controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .toggle-button {
+            padding: 10px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            background-color: lightblue;
+            color: black;
+            border: none;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        .toggle-button:disabled {
+            background-color: #aaa;
+            cursor: not-allowed;
+        }
+        .dropdown {
+            padding: 10px;
+            font-size: 16px;
+        }
+        /* Style for the response audio player inside the controls container */
+        #responseAudio {
+            margin-top: 10px; /* Space between the dropdown and the audio player */
+        }
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%); /* This will center the spinner */
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+
+</head>
+<body>
+    <h1>MuleSoft AI Chain Voice Agent</h1>
+
+    <div class="main-container">
+        <!-- Upper part: Chat window and metrics window -->
+        <div class="container">
+            <div class="chat-window" id="chatWindow">
+                <div class="chat-content"></div>
+                <div id="spinner" class="spinner" style="display: none;"></div>
+            </div>
+            <div class="metrics-window" id="metrics-window">
+                <div class="metric-box" id="input-tokens">Input tokens</div>
+                <div class="metric-box" id="output-tokens">Output tokens</div>
+                <div class="metric-box" id="total-tokens">Total tokens</div>
+                <div class="metric-box" id="tool-used">Tools used</div>
+                <div class="ai-image"></div>
+            </div>
+        </div>
+    
+        <!-- Lower part: Controls container holds the controls -->
+        <div class="controls-container">
+            <div class="controls">
+                <button id="toggleBtn" class="toggle-button">Start Recording</button>
+                <select id="voiceSelect" class="dropdown">
+                    <option value="alloy">alloy</option>
+                    <option value="echo">echo</option>
+                    <option value="fable">fable</option>
+                    <option value="onyx">onyx</option>
+                    <option value="nova">nova</option>
+                    <option value="shimmer">shimmer</option>
+                </select>
+    
+                <!-- Move responseAudio next to the dropdown -->
+                <audio id="responseAudio" class="hidden" controls></audio>
+            </div>
+        </div>
+    </div>
+
+    <script src="../web/script.js"></script>
+</body>
+</html>

@@ -1,0 +1,38 @@
+[
+    {
+        "action":"Execute POST requests for API endpoints.",
+        "url": "https://sap-ecc-inventory-check-material-api-b2jb0y.1d6nel.usa-e1.cloudhub.io/mmbe",
+        "method": "POST",
+        "headers": "Accept application/json",
+        "example-payload":"{\n \"materialNo\": \"paramValue\"}",
+        "query": ["Check inventory in SAP","Check Stock Overview", "Show product availability", "Check the inventory for MULETEST0"],
+        "description": "Check inventory details for material in SAP by providing the materialNo als input for paramValue. Please use the materialNo and not materialNumber."
+    },
+	{
+        "action":"Execute GET requests for API endpoints.",
+        "url": "https://anypoint.mulesoft.com/mocking/api/v1/sources/exchange/assets/612eb739-4266-4f4c-bf2f-29953c153d80/accounts-api/1.0.1/m/accounts",
+        "method": "GET",
+        "headers": "Accept application/json",
+        "example-payload":"{}",
+        "query": ["Get all accounts","Show accounts"],
+        "description": "Get all accounts from a CRM. "
+    },
+    {
+        "action":"Execute GET requests for API endpoints.",
+        "url": "https://anypoint.mulesoft.com/mocking/api/v1/sources/exchange/assets/7b99cead-a984-497b-9e6c-c16a3b4dcb76/employee-api/1.0.1/m/employees",
+        "method": "GET",
+        "headers": "Accept application/json",
+        "example-payload":"{}",
+        "query": ["Get all employee informations","Show employee for the country Switzerland", "How many employees do we have", "Show a list of all employees"],
+        "description": "Get all informations aboout all employees."
+    },
+    {
+        "action":"Execute GET requests for API endpoints.",
+        "url": "https://anypoint.mulesoft.com/mocking/api/v1/sources/exchange/assets/7b99cead-a984-497b-9e6c-c16a3b4dcb76/leads/1.0.0/m/leads",
+        "method": "GET",
+        "headers": "Accept application/json",
+        "example-payload":"{}",
+        "query": ["Get all leads","Show all leads", "How many leads do we have", "Show a list of all leads"],
+        "description": "Get all informations aboout current leads."
+    }
+]

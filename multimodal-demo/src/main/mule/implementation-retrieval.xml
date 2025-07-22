@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:s3="http://www.mulesoft.org/schema/mule/s3"
+	xmlns:ms-vectors="http://www.mulesoft.org/schema/mule/ms-vectors"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ms-vectors http://www.mulesoft.org/schema/mule/ms-vectors/current/mule-ms-vectors.xsd
+http://www.mulesoft.org/schema/mule/s3 http://www.mulesoft.org/schema/mule/s3/current/mule-s3.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<flow name="query-by-text" doc:id="3d929eed-5794-4952-9c44-410750c4a038" >
+		<http:listener doc:name="Listener" doc:id="10ceee4e-9424-419f-ac16-fa0eccf4ca94" config-ref="HTTP_Listener_config" path="/query-store-by-text" allowedMethods="GET, POST">
+			<http:response statusCode="200">
+				<http:headers ><![CDATA[#[output application/java
+---
+{
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type",
+    "Access-Control-Allow-Credentials": "true"
+}]]]>
+				</http:headers>
+			</http:response>
+			<http:error-response >
+				<http:headers ><![CDATA[#[output application/java
+---
+{
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type",
+    "Access-Control-Allow-Credentials": "true"
+}]]]></http:headers>
+			</http:error-response>
+		</http:listener>
+	    <flow-ref doc:name="set-retrieval-vars" doc:id="158a7519-d359-421f-ac2e-cc1d27f0b547" name="set-retrieval-vars" />
+		<ms-vectors:embedding-generate-from-text embeddingModelName="multimodalembedding" doc:name="[VertexAI] Generate from text" doc:id="c7a5356a-7249-4fa6-aa21-22bebb472483" config-ref="Embedding_Config_Vertex_AI">
+			<ms-vectors:text><![CDATA[#[vars.question]]]></ms-vectors:text>
+		</ms-vectors:embedding-generate-from-text>
+		<ms-vectors:query doc:name="[PGVector] Query" doc:id="69f254cf-058a-4e87-97d5-7f47e77c5677" config-ref="Store_Config_PGVector" storeName="#[vars.storeName]" maxResults="5" minScore="#[vars.minScore]" >
+			<ms-vectors:text-segment-and-embedding ><![CDATA[#[payload]]]></ms-vectors:text-segment-and-embedding>
+		</ms-vectors:query>
+		<logger level="INFO" doc:name="Logger" doc:id="f3007a3f-609e-45a0-b01f-5aa5d92ab92e" />
+	</flow>
+	<flow name="query-by-media" doc:id="9a440288-03b0-47d2-889a-e41b8a612a3b" >
+		<http:listener doc:name="Listener" doc:id="1933ef02-7731-4d3e-906c-cc5101e21123" config-ref="HTTP_Listener_config" path="/query-store-by-media" allowedMethods="GET, POST">
+			<http:response statusCode="200">
+				<http:headers ><![CDATA[#[output application/java
+---
+{
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type",
+    "Access-Control-Allow-Credentials": "true"
+}]]]>
+				</http:headers>
+			</http:response>
+			<http:error-response >
+				<http:headers ><![CDATA[#[output application/java
+---
+{
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type",
+    "Access-Control-Allow-Credentials": "true"
+}]]]></http:headers>
+			</http:error-response>
+		</http:listener>
+		<flow-ref doc:name="set-retrieval-vars" doc:id="8e333733-6223-46b7-814d-d8dcd74e680b" name="set-retrieval-vars" />
+		<ms-vectors:media-load-single doc:name="[S3] [Media] Load single" doc:id="f3e11848-109b-4775-aa0b-93e8a5782019" contextPath="#[vars.contextPath]" config-ref="Store_Config_S3">
+			<ms-vectors:media-processor-parameters >
+				<ms-vectors:image-processor-parameters />
+			</ms-vectors:media-processor-parameters>
+		</ms-vectors:media-load-single>
+		<ms-vectors:embedding-generate-from-media doc:name="[VertexAI] Generate from media and text" doc:id="73fa3c31-9641-44e3-86ba-6fca951e1266" config-ref="Embedding_Config_Vertex_AI" embeddingModelName="multimodalembedding">
+			<ms-vectors:media ><![CDATA[#[payload]]]></ms-vectors:media>
+			<ms-vectors:label ><![CDATA[#[vars.question]]]></ms-vectors:label>
+		</ms-vectors:embedding-generate-from-media>
+		<ms-vectors:query doc:name="[PGVector] Query" doc:id="4516ffb4-a90c-439a-95a4-c7c9684ffeee" config-ref="Store_Config_PGVector" storeName="#[vars.storeName]" maxResults="5" minScore="#[vars.minScore]" >
+			<ms-vectors:text-segment-and-embedding ><![CDATA[#[payload]]]></ms-vectors:text-segment-and-embedding>
+		</ms-vectors:query>
+	</flow>
+	<flow name="query-by-image" doc:id="e37cd3a5-ad70-4e8e-9b29-6c9ceba749dd" >
+		<http:listener doc:name="Listener" doc:id="fb57f5ce-0e24-42ca-9c67-714ac36684f7" config-ref="HTTP_Listener_config" path="/query-store-by-image" allowedMethods="GET, POST">
+			<http:response statusCode="200">
+				<http:headers ><![CDATA[#[output application/java
+---
+{
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type",
+    "Access-Control-Allow-Credentials": "true"
+}]]]>
+				</http:headers>
+			</http:response>
+			<http:error-response >
+				<http:headers ><![CDATA[#[output application/java
+---
+{
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type",
+    "Access-Control-Allow-Credentials": "true"
+}]]]></http:headers>
+			</http:error-response>
+		</http:listener>
+		<set-variable value="#[payload.parts.storeName.content]" doc:name="storeName" doc:id="441791ff-04b2-4ed0-9009-3a52ef5ba60b" variableName="storeName" />
+		<set-variable value="#[%dw 2.0&#10;import toNumber from dw::util::Coercions&#10;output application/json&#10;var contentValue = payload.parts.minScore.content&#10;---&#10;if (contentValue is String) &#10;    toNumber(contentValue)&#10;else &#10;    contentValue]" doc:name="minScore" doc:id="e2a7a4ad-12b3-442a-ab26-1a9d8f5c8743" variableName="minScore" />
+		<ms-vectors:embedding-generate-from-binary doc:name="[VertexAI] Generate from binary" doc:id="ebd5ec82-88dd-47e4-ba1d-de72beea2ce7" config-ref="Embedding_Config_Vertex_AI" embeddingModelName="multimodalembedding">
+			<ms-vectors:binary ><![CDATA[#[payload.parts.image.content]]]></ms-vectors:binary>
+			<ms-vectors:label ><![CDATA[#[payload.parts.question.content]]]></ms-vectors:label>
+			<ms-vectors:media-processor-parameters >
+				<ms-vectors:image-processor-parameters />
+			</ms-vectors:media-processor-parameters>
+		</ms-vectors:embedding-generate-from-binary>
+		<ms-vectors:query doc:name="[PGVector] Query" doc:id="f52a728d-c034-4255-ae49-048383d05e50" config-ref="Store_Config_PGVector" storeName="#[vars.storeName]" maxResults="5" minScore="#[vars.minScore]" >
+			<ms-vectors:text-segment-and-embedding ><![CDATA[#[payload]]]></ms-vectors:text-segment-and-embedding>
+		</ms-vectors:query>
+	</flow>
+	<!-- [STUDIO:"preflight-request"]<flow name="preflight-request" doc:id="32c60526-bfe8-47f3-bbf8-978346e14e09" >
+		<http:listener doc:name="Listener" doc:id="f77c0220-0e6c-4548-b519-97d15df6b757" config-ref="HTTP_Listener_config" path="/*" allowedMethods="OPTIONS">
+			<http:response statusCode="200">
+				<http:headers ><![CDATA[#[output application/java
+&#45;&#45;-
+{
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type",
+    "Access-Control-Allow-Credentials": "true"
+}&#93;&#93;&#93;>
+				</http:headers>
+			</http:response>
+			<http:error-response >
+				<http:headers ><![CDATA[#[output application/java
+&#45;&#45;-
+{
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type",
+    "Access-Control-Allow-Credentials": "true"
+}&#93;&#93;&#93;></http:headers>
+			</http:error-response>
+		</http:listener>
+		<logger level="INFO" doc:name="Preflight request" doc:id="548643c4-30ef-47f5-ad78-c2872efd3ea8" message="Preflight request"/>
+	</flow> [STUDIO] -->
+	<sub-flow name="set-retrieval-vars" doc:id="49746fbf-ea0d-44ad-82d9-cbba02c79786" >
+		<set-variable value='#[(payload as Object).contextPath default ""]' doc:name="contextPath" doc:id="eab7bc61-de5a-41ce-a7c7-3296f32186b3" variableName="contextPath" />
+		<set-variable value='#[(payload as Object).minScore default 0.5]' doc:name="minScore" doc:id="e4e8577d-4063-4693-bff6-c561576c036f" variableName="minScore" />
+		<set-variable value='#[(payload as Object).question default ""]' doc:name="question" doc:id="1548c616-f252-497b-aeeb-cc894ef9d76f" variableName="question" />
+		<set-variable value='#[(payload as Object).storeName default ""]' doc:name="storeName" doc:id="8ed1f854-49bc-4a54-a6d9-9461a90143c8" variableName="storeName" />
+	</sub-flow>
+	<flow name="webAppFlow" doc:id="39a1e1e4-283a-4295-a5e7-185d1184ede9" >
+		<http:listener doc:name="web-app-listener" doc:id="9231a3b8-0e6a-406d-88da-5fb3252b0d53" config-ref="HTTP_Listener_config" path="/webapp/*"/>
+		<http:load-static-resource doc:name="Load static resource" doc:id="c04c5163-f6cc-4c0d-8353-2255ee03fda1" resourceBasePath='#[mule.home ++ "/apps/" ++ app.name ++ "/webapp"]'/>
+	</flow>
+	<flow name="implementation-retrievalFlow" doc:id="553a41b2-de0e-4e11-8605-1aa0b3c266b4" >
+		<ee:transform doc:name="Transform Message" doc:id="285854c3-969f-4279-ab9f-e71acd6b83aa" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	minScore: payload.minScore,
+	question: payload.question,
+	sources: payload.sources map ( source , indexOfSource ) -> {
+		score: source.score,
+		metadata: source.metadata,
+		embeddingId: source.embeddingId,
+		text: source.text,
+		base64Image: "whatever"
+	},
+	response: payload.response,
+	maxResults: payload.maxResults,
+	storeName: payload.storeName
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>

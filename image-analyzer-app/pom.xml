@@ -3,11 +3,11 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>com.mycompany</groupId>
-	<artifactId>image-read-generate-app</artifactId>
+	<artifactId>camera-app</artifactId>
 	<version>1.0.0</version>
 	<packaging>mule-application</packaging>
 
-	<name>image-read-generate-app-1.0.5-mule-application</name>
+	<name>image-analyzer-app-1.0.1-mule-application</name>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -52,7 +52,7 @@
 		<dependency>
 			<groupId>com.mule.mulechain</groupId>
 			<artifactId>mulechain-ai-connector</artifactId>
-			<version>0.2.29-SNAPSHOT</version>
+			<version>0.2.26-SNAPSHOT</version>
 			<classifier>mule-plugin</classifier>
 		</dependency>
 		<dependency>

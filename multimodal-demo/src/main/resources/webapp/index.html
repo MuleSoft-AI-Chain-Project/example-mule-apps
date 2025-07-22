@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" href="../webapp/MuleChainLogo.png" type="image/png">
+    <title>Multimodal Store Playground</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</head>
+
+<body>
+    <div class="container">
+        <div class="banner">
+            <h1 class="d-flex align-items-center">Multimodal Store Playground</h1>
+            <h2 class="d-flex align-items-center">Powered by <img src="https://raw.githubusercontent.com/MuleSoft-AI-Chain-Project/mule-vectors-connector/master/icon/icon.svg" alt="MuleSoft AI Chain Icon" style="height: 30px; vertical-align: middle;"></h2>
+        </div>
+
+        <!-- Search Settings Panel -->
+        <div class="panel panel-default" id="searchSettingsPanel">
+            <div class="panel-heading">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-gear-fill me-2"></i> <!-- Gear icon -->
+                        <h3 class="panel-title mb-0">Settings</h3>
+                    </div>
+                    <button class="collapse-button btn btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#searchSettingsContent" aria-controls="searchSettingsContent" aria-expanded="true" aria-label="Toggle search settings">
+                        <i class="bi bi-chevron-down"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="panel-body collapse" id="searchSettingsContent">
+                <div class="row">
+                    <div class="col-md-6">
+                        <label for="storeName" class="form-label">Store Name</label>
+                        <input type="text" id="storeName" class="form-control" value="image_store">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="minScore" class="form-label">Minimum Score</label>
+                        <input type="number" id="minScore" class="form-control" step="0.1" min="0" max="1" value="0.5">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Search Filters Panel -->
+        <div class="panel panel-default collapse show" id="searchPanel">
+            <div class="panel-heading">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-search me-2"></i> <!-- Magnifier icon -->
+                        <h3 class="panel-title mb-0">Filters</h3>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <button class="collapse-button btn btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#filterContent" aria-controls="filterContent" aria-expanded="true" aria-label="Toggle filters">
+                            <i class="bi bi-chevron-down"></i> <!-- Toggle icon -->
+                        </button>
+                    </div>
+                </div>
+            </div>            
+            <div class="panel-body collapse show" id="filterContent">
+                <div class="row mb-3">
+                    <div class="col-md-2">
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="searchOption" id="textSearchOption" value="text" checked>
+                            <label class="form-check-label" for="textSearchOption">
+                                Text Search
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="searchOption" id="imageSearchOption" value="image">
+                            <label class="form-check-label" for="imageSearchOption">
+                                Image Search
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col-md-8 d-flex justify-content-end">
+                        <button id="searchButton" class="btn btn-primary">Search</button>
+                        <!-- Clear Image Button -->
+                        <button id="clearImageButton" class="btn btn-secondary ms-2">Clear</button>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <input type="text" id="textInput" list="searchHistory" class="form-control" placeholder="Enter your search text">
+                        <datalist id="searchHistory"></datalist>
+                    </div>
+                    <div class="col-md-6">
+                        <input type="file" id="imageInput" class="form-control" accept="image/*" disabled>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="results-panel" class="panel panel-default">
+            <div id="spinner" class="text-center my-4 d-none">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+            <div class="panel-body">
+                <div id="results">
+                    <div class="alert alert-warning text-center" role="alert">
+                        No data to show.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+
+</body>
+
+</html>

@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:custom-metrics="http://www.mulesoft.org/schema/mule/custom-metrics" xmlns:whisperer="http://www.mulesoft.org/schema/mule/whisperer"
+	xmlns:ms-aichain="http://www.mulesoft.org/schema/mule/ms-aichain"
+	xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:mulechain="http://www.mulesoft.org/schema/mule/mulechain" xmlns:mulechain-voice="http://www.mulesoft.org/schema/mule/mulechain-voice" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/mulechain-voice http://www.mulesoft.org/schema/mule/mulechain-voice/current/mule-mulechain-voice.xsd
+http://www.mulesoft.org/schema/mule/mulechain http://www.mulesoft.org/schema/mule/mulechain/current/mule-mulechain.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+http://www.mulesoft.org/schema/mule/ms-aichain http://www.mulesoft.org/schema/mule/ms-aichain/current/mule-ms-aichain.xsd
+http://www.mulesoft.org/schema/mule/whisperer http://www.mulesoft.org/schema/mule/whisperer/current/mule-whisperer.xsd
+http://www.mulesoft.org/schema/mule/custom-metrics http://www.mulesoft.org/schema/mule/custom-metrics/current/mule-custom-metrics.xsd">
+	<flow name="mulechain-voice-connectorFlow" doc:id="7d57d9f4-cb99-42d2-8ab2-09c3318ee859" >
+		<http:listener doc:name="Listener" doc:id="a8d3896f-a708-4d4e-859c-6f0294a00536" config-ref="HTTP_Listener_config" path="/chat"/>
+		<set-variable value="#[payload.voice as String]" doc:name="Set voice Variable" doc:id="bf5295df-299c-4b45-a43d-f9f63a8250c1" variableName="voiceVar" />
+		<ee:transform doc:name="Transform Message" doc:id="086bccfa-aeda-45bc-a2f0-a0dd5fe1187f" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+import * from dw::core::Binaries
+output application/octet-stream
+---
+fromBase64(payload.audio)]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<set-payload value="#[payload]" doc:name="Set Payload MIME type" doc:id="2211395d-35fc-42e0-acab-a1af1719470f" mimeType="video/webm"/>
+		<file:write doc:name="Write" doc:id="592fa58e-383d-4dad-a036-7714458b97ef" path='#[mule.home ++ "/apps/" ++ app.name ++ "/recording.wav"]'/>
+		<whisperer:speech-to-text doc:name="Speech to text" doc:id="12be4d51-903d-4669-9632-f36faa43e4bf" config-ref="MAC_Whisperer_Config" audioFilePath='#[mule.home ++ "/apps/" ++ app.name ++ "/recording.wav"]' language="en"/>
+		<set-variable value="#[payload.text]" doc:name="Set Question Variable" doc:id="33e5c784-593e-4cf9-8d6b-130a18f1b07c" variableName="questionVar"/>
+		<ms-aichain:tools-use-ai-service doc:name="Tools use ai service" doc:id="2cc5190b-de13-4e0f-a491-79bd65a5a5e7" config-ref="MuleSoft_AI_Chain_Config" toolConfig='#[mule.home ++ "/apps/" ++ app.name ++ "/tools-config.json"]'>
+			<ms-aichain:data ><![CDATA[#[payload.text]]]></ms-aichain:data>
+		</ms-aichain:tools-use-ai-service>
+		<async doc:name="Async" doc:id="a6908aee-3c5f-47d5-983b-dcdd25c906b5" >
+			<flow-ref doc:name="Collect LLM metrics" doc:id="73a36c8b-333a-4994-8346-6d8bae98a9f1" name="collect-LLM-metrics" />
+		</async>
+		<ee:transform doc:name="Set Multiple Variables" doc:id="8418332e-0429-4593-bb02-f930f6fe2099" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+{
+}]]></ee:set-payload>
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="toolsUsedVar" ><![CDATA[attributes.additionalAttributes.toolsUsed]]></ee:set-variable>
+				<ee:set-variable variableName="tokenUsageVar" ><![CDATA[attributes.tokenUsage]]></ee:set-variable>
+				<ee:set-variable variableName="answerVar" ><![CDATA[payload.response]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<whisperer:text-to-speech doc:name="Text to speech" doc:id="703f45e8-b89e-4913-9144-054ec7baf422" config-ref="MAC_Whisperer_Config" textToConvert="#[vars.answerVar]" pathToOutputFile='#[mule.home ++ "/apps/" ++ app.name ++ "/webapp/speech.mp3"]' voice="#[vars.voiceVar]"/>
+		<ee:transform doc:name="Create output" doc:id="cdefc0a8-e822-476d-b23b-ae9edc319035" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	question: vars.questionVar,
+	answer: vars.answerVar,
+	tokenUsage: vars.tokenUsageVar,
+	toolsUsed: vars.toolsUsedVar
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="587bf15e-bf33-43d5-8381-40bdf1215013" message="#[payload]"/>
+	</flow>
+	<sub-flow name="collect-LLM-metrics" doc:id="7f23c0c5-3e98-479f-8036-39d3a96ac425" >
+		<set-variable value="#[%dw 2.0&#10;import * from dw::core::Dates&#10;output application/json&#10;---&#10;today() as String]" doc:name="Set dateVar Variable" doc:id="8a7c9c2a-daa1-48ee-9fe3-d73459523480" variableName="dateVar"/>
+		<custom-metrics:send doc:name="Send Custom Metric" doc:id="ed4ffb09-fbbe-4a51-acc0-781aebda4e11" metricName="tokenConsumption">
+			<custom-metrics:dimensions >
+				<custom-metrics:dimension dimensionName="llmProvider" value="${llm.type}" />
+				<custom-metrics:dimension dimensionName="llmModel" value="${llm.model}" />
+				<custom-metrics:dimension dimensionName="date" value="#[vars.dateVar]" />
+			</custom-metrics:dimensions>
+			<custom-metrics:facts >
+				<custom-metrics:fact factName="inputTokenCount" value="#[attributes.tokenUsage.inputCount]" />
+				<custom-metrics:fact factName="outputTokenCount" value="#[attributes.tokenUsage.outputCount]" />
+				<custom-metrics:fact factName="totalTokenCount" value="#[attributes.tokenUsage.totalCount]" />
+			</custom-metrics:facts>
+		</custom-metrics:send>
+	</sub-flow>
+	<flow name="load-webapp-assets-Flow" doc:id="669c3f70-e8c1-4c00-a6a7-eca117ed046b" >
+		<http:listener doc:name="webapp Listener" doc:id="f2e00ca6-2a72-4181-832b-668513631f76" config-ref="HTTP_Listener_config" path="/web/*"/>
+		<http:load-static-resource doc:name="Load webapp asset" doc:id="c5712c97-2e40-4556-8931-d7c8a487ae5c" resourceBasePath='#[mule.home ++ "/apps/" ++ app.name ++ "/webapp"]'/>
+	</flow>
+</mule>
