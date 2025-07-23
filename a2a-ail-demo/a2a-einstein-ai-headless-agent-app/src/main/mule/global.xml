@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:ms-einstein-ai="http://www.mulesoft.org/schema/mule/ms-einstein-ai"
+<mule xmlns:file="http://www.mulesoft.org/schema/mule/file"
+	xmlns:ms-einstein-ai="http://www.mulesoft.org/schema/mule/ms-einstein-ai"
 	xmlns:a2a="http://www.mulesoft.org/schema/mule/a2a" xmlns:http="http://www.mulesoft.org/schema/mule/http"
 	xmlns="http://www.mulesoft.org/schema/mule/core"
 	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd 
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/a2a http://www.mulesoft.org/schema/mule/a2a/current/mule-a2a.xsd
 http://www.mulesoft.org/schema/mule/ms-einstein-ai http://www.mulesoft.org/schema/mule/ms-einstein-ai/current/mule-ms-einstein-ai.xsd">
@@ -40,6 +42,7 @@ http://www.mulesoft.org/schema/mule/ms-einstein-ai http://www.mulesoft.org/schem
 			</a2a:skills>
 		</a2a:card>
 	</a2a:server-config>
+	<file:config name="File_Config" doc:name="File Config" doc:id="4bde4760-bbe2-40ca-9d0f-fb71a20357bd" />
 
 	
 	<ms-einstein-ai:config name="Einstein_AI_Configuration" doc:name="Einstein AI Configuration" doc:id="934a049e-2cd2-496a-9955-ffe83b24c44b" >

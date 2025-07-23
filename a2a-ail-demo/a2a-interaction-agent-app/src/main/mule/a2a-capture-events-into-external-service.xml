@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<flow name="capture-agent-requests" doc:id="56e03a53-9eb5-43e0-b579-b1c9225fc350" >
+		<ee:transform doc:name="Agent Request Payload" doc:id="a34d4d34-391c-44fe-b6a0-42f9fd68648b" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  "agent": vars.agentToCallDisplayName,
+  "type": "Agent Task Request",
+  "id": vars.agentTaskRequest.id,
+  "sessionId": vars.agentTaskRequest.sessionId,
+  "status": "new",
+  "timestamp": (now() >> 'UTC') as String {format: "yyyy-MM-dd'T'HH:mm:ss'Z'"},
+  "message": vars.agentTaskRequest.message.parts[0].text,
+  "knowledge" : "specialised"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<flow-ref doc:name="call-external" doc:id="280cbdff-c9aa-4f94-958d-1f8f88edef8a" name="call-out-external-service" />
+		<error-handler >
+			<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="3ae9d0a0-5ff9-4c08-affd-1cb2b691949c" type="ANY"/>
+		</error-handler>
+	</flow>
+	<flow name="capture-agent-response" doc:id="40d6c1d0-a0e6-4e18-b335-34eed4afcf48" >
+		<ee:transform doc:name="Agent Response Payload" doc:id="f1df5866-d800-46eb-a4fc-f1b332b44715" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  "agent": vars.agentToCallDisplayName,
+  "type": "Agent Task Response",
+  "id": vars.agentTaskResponse.id,
+  "sessionId": vars.agentTaskResponse.sessionId,
+  "status": vars.agentTaskResponse.status.state,
+  "timestamp": (now() >> 'UTC') as String {format: "yyyy-MM-dd'T'HH:mm:ss'Z'"},
+  "message": vars.agentTaskResponse.artifacts[0].parts[0].text,
+  "knowledge" : "specialised"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<flow-ref doc:name="call-external" doc:id="5df78086-1765-430a-832b-49c22b2d6625" name="call-out-external-service"/>
+		<error-handler >
+			<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="56c6daea-1ab4-47e8-beea-1b33a42feea3" type="ANY"/>
+		</error-handler>
+	</flow>
+	<flow name="call-out-external-service" doc:id="31bf34b6-4fcc-4340-b337-46cb8e2906bd" >
+		<http:request method="POST" doc:name="External Service for Capturing Interactions" doc:id="0fd3554f-8748-47e2-89e7-fd9b653dce5b" url="${external.service}"/>
+		<error-handler >
+			<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="76594df5-0471-4ebc-a72c-a952415545b4" type="ANY"/>
+		</error-handler>
+	</flow>
+	<flow name="capture-domain-agent-no-agent" doc:id="ad974bb4-92c3-4864-99e4-6908f83b6a02" >
+		<choice doc:name="Choice" doc:id="8adfb845-18b5-4c97-ae02-8ac0f16dfbc4" >
+			<when expression="#[vars.agentUsed==false default false]">
+				<ee:transform doc:name="Agent Request Payload" doc:id="5b351759-13c9-4ca6-9b76-3643a6b9faff">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  "agent": p('agent.name'),
+  "type": "Agent Task Request",
+  "id": vars.task_id,
+  "sessionId": vars.sessionId,
+  "status": "new",
+  "timestamp": vars.startTime,
+  "message": vars.userPrompt,
+  "knowledge" : "general"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+				<flow-ref doc:name="call-external" doc:id="3535fd77-3bb1-4ff8-a215-f9dc760c9acd" name="call-out-external-service" />
+				<ee:transform doc:name="Agent Response Payload" doc:id="4e7efa3b-89b0-46ec-b33b-e441f0ba8abf">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  "agent": p('agent.name'),
+  "type": "Agent Task Response",
+  "id": vars.task_id,
+  "sessionId": vars.sessionId,
+  "status": "completed",
+  "timestamp": (now() >> 'UTC') as String {format: "yyyy-MM-dd'T'HH:mm:ss'Z'"},
+  "message": vars.response.response,
+  "knowledge" : "general"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+				<flow-ref doc:name="call-external" doc:id="0f92c225-9f00-45c8-b74d-72585fdfade8" name="call-out-external-service" />
+			</when>
+			<otherwise >
+				<ee:transform doc:name="Agent Request Payload" doc:id="25ad9835-489f-4a17-b573-04d69d502174" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  "agent": p('agent.name'),
+  "type": "Agent Task Request",
+  "id": vars.task_id,
+  "sessionId": vars.sessionId,
+  "status": "new",
+  "timestamp":  vars.startTime,
+  "message": vars.userPrompt,
+  "knowledge" : "specialised"
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<flow-ref doc:name="call-external" doc:id="49b6a232-85c5-4cfa-abf4-c8c0f9ccfd16" name="call-out-external-service" />
+				<ee:transform doc:name="Agent Response Payload" doc:id="f97bb06b-7fa6-487b-98c5-e8433f8de85c" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  "agent": p('agent.name'),
+  "type": "Agent Task Response",
+  "id": vars.task_id,
+  "sessionId": vars.sessionId,
+  "status": "completed",
+  "timestamp": (now() >> 'UTC') as String {format: "yyyy-MM-dd'T'HH:mm:ss'Z'"},
+  "message": vars.response.response,
+  "knowledge" : "specialised"
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<flow-ref doc:name="call-external1" doc:id="1f5616df-6b13-4bca-a71b-78dd30e896db" name="call-out-external-service" />
+			</otherwise>
+		</choice>
+		<error-handler >
+			<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="6914fd5b-a985-4a35-8733-6a1fe4cfb246" type="ANY"/>
+		</error-handler>
+	</flow>
+</mule>

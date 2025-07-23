@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:ms-vectors="http://www.mulesoft.org/schema/mule/ms-vectors"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ms-vectors http://www.mulesoft.org/schema/mule/ms-vectors/current/mule-ms-vectors.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<flow name="add-media-to-store" doc:id="396d2631-0359-4560-823b-8b8a617a824c" >
+		<http:listener doc:name="Listener" doc:id="2fcf5c1f-1733-4952-af46-827ec199887c" config-ref="HTTP_Listener_config" path="/add-images-to-store"/>
+		<flow-ref doc:name="set-ingestion-vars" doc:id="4adb008b-48e3-4132-8e34-dc8e67f88f1d" name="set-ingestion-vars" />
+		<ms-vectors:media-load-list doc:name="[S3] [Media] Load list" doc:id="5c9ffaac-2396-4179-8723-520ee2f51dbe" config-ref="Store_Config_S3" contextPath="#[vars.contextPath]">
+			<ms-vectors:media-processor-parameters >
+				<ms-vectors:image-processor-parameters />
+			</ms-vectors:media-processor-parameters>
+		</ms-vectors:media-load-list>
+		<foreach doc:name="For Each" doc:id="970307f8-5f81-4860-b9a2-c5ddd89583b7" >
+			<ms-vectors:embedding-generate-from-media embeddingModelName="multimodalembedding" doc:name="[VertexAI] Generate from media and text" doc:id="abac6e69-3f7c-4332-ae65-51586f993f26" config-ref="Embedding_Config_Vertex_AI">
+				<ms-vectors:media><![CDATA[#[payload]]]></ms-vectors:media>
+				<ms-vectors:label><![CDATA[#[vars.mediaCaption]]]></ms-vectors:label>
+			</ms-vectors:embedding-generate-from-media>
+			<ms-vectors:store-add doc:name="[PGVector] Add" doc:id="c7c77b52-b1dd-44dc-afdb-d14112a3d604" config-ref="Store_Config_PGVector" storeName='#[vars.storeName default ""]'/>
+		</foreach>
+		<set-payload value='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;	"status": "updated"&#10;}]' doc:name="Set Payload" doc:id="b58c3865-4c3d-4656-8359-efee1b564b7e" />
+	</flow>
+	<flow name="implementation-ingestionFlow" doc:id="9b49883e-8b46-4b25-ae14-87ad503dba4a" >
+		<http:listener doc:name="Listener" doc:id="bc7f822c-16ea-4ba1-be53-43990edcd12c" config-ref="HTTP_Listener_config" path="/add-text-to-store"/>
+		<flow-ref doc:name="set-ingestion-vars" doc:id="cd28f46a-96c2-42b8-adb0-d2967c43229a" name="set-ingestion-vars" />
+		<ms-vectors:embedding-generate-from-text doc:name="[VertexAI] Generate from text" doc:id="0a47e467-e325-4a5b-9b26-e3a570d01b96" config-ref="Embedding_Config_Vertex_AI" embeddingModelName="multimodalembedding">
+			<ms-vectors:text><![CDATA[#[vars.text]]]></ms-vectors:text>
+		</ms-vectors:embedding-generate-from-text>
+		<ms-vectors:store-add doc:name="[Store] Add" doc:id="1bb28893-c401-43dd-94e4-ce850c13b84b" config-ref="Store_Config_PGVector" storeName="#[vars.storeName]"/>
+	</flow>
+	<sub-flow name="set-ingestion-vars" doc:id="4d40a097-fae1-4330-b0b1-17cef4781a7d" >
+		<set-variable value='#[(payload as Object).contextPath]' doc:name="contextPath" doc:id="51339879-cb8c-41b2-bf2e-4a9cdb7a1f2f" variableName="contextPath"/>
+		<set-variable value='#[(payload as Object).mediaCaption default ""]' doc:name="mediaCaption" doc:id="953d40d6-4334-4313-814e-99310105369a" variableName="mediaCaption" />
+		<set-variable value='#[(payload as Object).storeName]' doc:name="storeName" doc:id="27134bb2-4ff1-4f10-8402-33e4b9b78fc9" variableName="storeName" />
+		<set-variable value='#[(payload as Object).text default ""]' doc:name="text" doc:id="f71f006c-9262-4147-9b8a-31aa3059e99e" variableName="text" />
+	</sub-flow>
+</mule>
