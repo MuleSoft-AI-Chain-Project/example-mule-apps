@@ -1,0 +1,625 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:whisperer="http://www.mulesoft.org/schema/mule/whisperer"
+	xmlns:s3="http://www.mulesoft.org/schema/mule/s3"
+	xmlns:os="http://www.mulesoft.org/schema/mule/os"
+	xmlns:ms-webcrawler="http://www.mulesoft.org/schema/mule/ms-webcrawler"
+	xmlns:mulechain-voice="http://www.mulesoft.org/schema/mule/mulechain-voice"
+	xmlns:jtokkit="http://www.mulesoft.org/schema/mule/jtokkit"
+	xmlns:anypoint-mq="http://www.mulesoft.org/schema/mule/anypoint-mq" xmlns:mac-web-crawler="http://www.mulesoft.org/schema/mule/mac-web-crawler" xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:ms-aichain="http://www.mulesoft.org/schema/mule/ms-aichain" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ms-aichain http://www.mulesoft.org/schema/mule/ms-aichain/current/mule-ms-aichain.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+http://www.mulesoft.org/schema/mule/mac-web-crawler http://www.mulesoft.org/schema/mule/mac-web-crawler/current/mule-mac-web-crawler.xsd
+http://www.mulesoft.org/schema/mule/anypoint-mq http://www.mulesoft.org/schema/mule/anypoint-mq/current/mule-anypoint-mq.xsd
+http://www.mulesoft.org/schema/mule/jtokkit http://www.mulesoft.org/schema/mule/jtokkit/current/mule-jtokkit.xsd
+http://www.mulesoft.org/schema/mule/mulechain-voice http://www.mulesoft.org/schema/mule/mulechain-voice/current/mule-mulechain-voice.xsd
+http://www.mulesoft.org/schema/mule/ms-webcrawler http://www.mulesoft.org/schema/mule/ms-webcrawler/current/mule-ms-webcrawler.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+http://www.mulesoft.org/schema/mule/s3 http://www.mulesoft.org/schema/mule/s3/current/mule-s3.xsd
+http://www.mulesoft.org/schema/mule/whisperer http://www.mulesoft.org/schema/mule/whisperer/current/mule-whisperer.xsd">
+	<flow name="mac-create-store"
+		doc:id="1649a0d9-8900-48a8-89ed-f75606e5a3a5">
+		<http:listener doc:name="Listener"
+			doc:id="9ab4f323-c658-4fde-b6b2-b2a434a46457"
+			path="/store" allowedMethods="POST" config-ref="HTTP_Listener_config">
+			<http:response>
+				<http:headers><![CDATA[#[output application/java
+---
+{
+                    'Access-Control-Allow-Origin': '*', 
+                    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+                    'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept',
+                    'Access-Control-Allow-Credentials': 'true'
+                }]]]></http:headers>
+			</http:response>
+		</http:listener>
+		<logger level="INFO" doc:name="Logger" doc:id="8896a562-0ab6-458d-9698-b50a9707da64" message='#["START-create-new-store"]' category="aichain.log"/>
+		<ms-aichain:embedding-new-store
+			doc:name="mac-create-new-store"
+			doc:id="f5011c99-2a6e-405c-8ec0-13959cbd0f86"
+			storeName="#[p('stores.dir') ++ &quot;/&quot; ++ payload.storeName]" />
+		<logger level="INFO" doc:name="Logger"
+			doc:id="428a0ff4-a199-4af1-8f7a-92bd68af2146"
+			message="#[%dw 2.0&#10;output application/json&#10;---&#10;payload]" />
+	</flow>
+	<flow name="mac-add-doc-to-store"
+		doc:id="21e50f3e-eb77-4315-b4db-8d66e1acaa68">
+		<http:listener doc:name="Listener"
+			doc:id="cff67f0a-33e7-4998-9a70-c2c03e56616b"
+			path="/doc" allowedMethods="POST" config-ref="HTTP_Listener_config">
+			<http:response>
+				<http:headers><![CDATA[#[output application/java
+---
+{
+                    'Access-Control-Allow-Origin': '*', 
+                    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+                    'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept',
+                    'Access-Control-Allow-Credentials': 'true'
+                }]]]></http:headers>
+			</http:response>
+		</http:listener>
+		<logger level="INFO" doc:name="Logger" doc:id="9b64a0b1-c13b-4b1a-bebf-d62ab7ed3ea3" message='#["START-add-document-to-store"]' category="aichain.log"/>
+		<set-variable value="#[payload.storeName]" doc:name="Set Variable" doc:id="aed8d5be-00f3-40e8-8b07-862158059a60" variableName="storeName"/>
+		<set-variable value="#[payload.base64Data]" doc:name="Set Base64 String" variableName="base64Content" />
+		<set-variable value="#[payload.fileExt]" doc:name="Set File Extension" variableName="fileExtension" />
+		<!-- [STUDIO:"Generate File Name"]<set-variable value="#[uuid()&#93;" doc:name="Generate File Name" variableName="fileName" /> [STUDIO] -->
+		<set-variable value="#[payload.fileName]" doc:name="Set File name" doc:id="08529568-e821-43b8-9fd9-360a38bdb94b" variableName="fileName" />
+		<ee:transform doc:name="Transform Message" doc:id="16b5ea7c-6bfe-4646-bfbb-52cd5d4f8d36">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+import * from dw::core::Binaries
+output multipart/form-data
+---
+{
+    parts:{
+        base64Content:{
+            headers:{
+                "Content-Type":"application/pdf"
+            },
+            content: fromBase64(vars.base64Content)
+            },
+        }
+}
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<set-payload value="#[payload]" mimeType="application/pdf"></set-payload>
+		<logger level="INFO" doc:name="File + Extension" doc:id="1e4c622d-6791-402c-93b1-fe706f1389b4" message='#[vars.fileName ++ "." ++ vars.fileExtension]'/>
+		<file:write doc:name="Write File" doc:id="b06f2b3a-69af-4a6a-92b3-9a132a00e63a" config-ref="File_Config" path="#[mule.home ++ &quot;/apps/&quot; ++ app.name ++ &quot;/&quot; ++ vars.fileName ++ '.' ++ vars.fileExtension]" />
+		<ms-aichain:embedding-add-document-to-store
+			doc:name="Embedding add document to store"
+			doc:id="e8b73dbe-c897-4f77-85d0-aaf59476c408"
+			storeName="#[p('stores.dir') ++ &quot;/&quot; ++ vars.storeName]"
+			contextPath="#[mule.home ++ &quot;/apps/&quot; ++ app.name ++ &quot;/&quot; ++ vars.fileName ++ '.' ++ vars.fileExtension]" fileType="any"
+			maxSegmentSizeInChars="1500" maxOverlapSizeInChars="150" />
+		<file:delete doc:name="Delete" doc:id="a8a355b7-fbc0-4ff4-8ca0-17f35f45b98c" config-ref="File_Config" path="#[mule.home ++ &quot;/apps/&quot; ++ app.name ++ &quot;/&quot; ++ vars.fileName ++ '.' ++ vars.fileExtension]"/>
+		<logger level="INFO" doc:name="Logger"
+			doc:id="82cfe6a3-5dc5-413d-b3a0-6f76987299a9"
+			message="#[%dw 2.0&#10;output application/json&#10;---&#10;payload]" />
+	</flow>
+	<flow name="mac-get-infro-from-store-grounded" doc:id="6d9122ed-601e-4ed1-85ef-99a2c3e4fb04" >
+		<http:listener doc:name="Listener" doc:id="f58a29ac-fcd5-45d6-919a-e5814d20cd91" path="/grounded" config-ref="HTTP_Listener_config"/>
+		<set-variable value="#[%dw 2.0&#10;output application/json&#10;---&#10;((attributes.headers['preDocoration'] default &quot;&quot;) as String) ++ &#10;((payload.prompt default &quot;&quot;) as String) ++ &#10;((attributes.headers['postDecoration'] default &quot;&quot;) as String)]" doc:name="Set Variable" doc:id="de0b4e83-ad33-4e17-89d3-ba3ede487212" variableName="question"/>
+		<ms-aichain:embedding-query-from-store doc:name="Embedding query from store" doc:id="76bffe0c-940c-40be-92a4-f3e10d261630" storeName="#[p('stores.dir') ++ &quot;/&quot; ++ payload.storeName]" maxResults="3" minScore="0.7" getLatest="true">
+			<ms-aichain:question ><![CDATA[#[payload.prompt]]]></ms-aichain:question>
+		</ms-aichain:embedding-query-from-store>
+		<ee:transform doc:name="save values" doc:id="a9f3154a-bdce-4d5c-bad4-73c841b28738" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	dataset: payload.response
+}]]></ee:set-payload>
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="payloadQuery" ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	sources: payload.sources,
+	maxResults: attributes.maxResults,
+	minimumScore: attributes.minScore
+}]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<ms-aichain:agent-define-prompt-template doc:name="Agent define prompt template" doc:id="d3b0fd28-a27d-45de-bdcd-2af1db8bfeab" config-ref="MuleSoft_AI_Chain_Config">
+			<ms-aichain:dataset ><![CDATA[#["context: " ++ payload.dataset]]]></ms-aichain:dataset>
+			<ms-aichain:template ><![CDATA[Answer the question based on the context provided. Articulate your answer with all details, whenever links are provided, include them in your answers. If the context is empty or null, just reply with 'The question couldn't be answered based on my knowlegde'.]]></ms-aichain:template>
+			<ms-aichain:instructions ><![CDATA[#["question: " ++ vars.question]]]></ms-aichain:instructions>
+		</ms-aichain:agent-define-prompt-template>
+		<ee:transform doc:name="final Response" doc:id="3f374782-0375-4904-be07-aaf4883f967e" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	response: payload.response,
+	sources: vars.payloadQuery.sources,
+	minScore: vars.payloadQuery.minimumScore,
+	maxResults: vars.payloadQuery.maxResults
+	
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	
+	
+	<flow name="mac-get-infro-from-store"
+		doc:id="1adc0a89-c886-4d81-bcd6-459e9e1b2e94">
+		<http:listener doc:name="Listener"
+			doc:id="bb7354bc-0643-4a47-9d4a-86e5fbae95e2"
+			path="/query" config-ref="HTTP_Listener_config"/>
+		<logger level="INFO" doc:name="Logger" doc:id="fc35eba0-3226-479b-8c89-45e02a46056e" message='#["START-get-info-from-store"]' category="aichain.log"/>
+		<set-variable value="#[%dw 2.0&#10;output application/java&#10;---&#10;p('stores.dir') ++ &quot;/&quot; ++ payload.storeName default &quot;&quot;]" doc:name="Set storeName" doc:id="bec74d35-c307-4ee7-b0f8-365c594ccdcd" variableName="storeName" />
+		<set-variable value="#[attributes.headers['modelName']]" doc:name="Set model" doc:id="dcbfb6ca-39fa-4288-874c-d856cde6490d" variableName="modelName" />
+		<set-variable value="#[attributes.headers['llmType']]" doc:name="Set llmType" doc:id="0203ae19-5308-4c8e-8cba-02e2ba58ea7a" variableName="llmType" />
+		<set-variable value="#[attributes.headers['preDocoration']]" doc:name="Set preDocoration" doc:id="e8b7248a-74e2-4beb-aa18-7c001820c3ac" variableName="preDocoration" />
+		<set-variable value="#[attributes.headers['postDecoration']]" doc:name="Set postDecoration" doc:id="d0ca020e-8611-490f-b5b9-0cec964e7e1a" variableName="postDecoration" />
+		<set-variable value="#[attributes.headers['grounded']]" doc:name="set grounded" doc:id="32db4447-1e48-4b45-9c00-01bbdd4d2db3" variableName="grounded"/>
+		<set-variable value="#[attributes.headers['maxMessages']]" doc:name="set maxMessages" doc:id="c137fd59-15da-4ba0-a842-8e94f3d807ff" variableName="maxMessages"/>
+		<set-variable value="#[attributes.headers['maxToken']]" doc:name="Set maxToken" doc:id="ad420257-4396-491d-8082-8d1cd9d2a35e" variableName="maxToken" />
+		<set-variable value="#[attributes.headers['inputLimit']]" doc:name="Set inputLimit" doc:id="6ea4725f-dc4b-4ece-8ad2-5c7a959744c8" variableName="inputLimit" />
+		<set-variable value="#[attributes.headers['chatMemory']]" doc:name="Set chatmemory" doc:id="37268642-5fc4-4ac6-8273-1e3e9424cd4b" variableName="chatmemory"/>
+		<set-variable value="#[attributes.headers['toxicityDetection']]" doc:name="save toxicityDetection" doc:id="5d4f103a-0f12-4090-8531-b65651e1d9cc" variableName="toxicityDetection" />
+		<set-variable value="#[attributes.headers['voice']]" doc:name="save voice" doc:id="afb41307-d67a-4f47-9068-9cd8ec929e46" variableName="voice"/>
+		<set-variable value="#[attributes.headers['rag']]" doc:name="save RAG" doc:id="3ac9e3ec-1262-45a9-9b0b-0ea766d25638" variableName="rag"/>
+		<choice doc:name="Choice" doc:id="72894018-c368-4650-8bf9-fc3ca53fe4b7" >
+			<when expression='#[%dw 2.0&#10;import * from dw::util::Coercions&#10;output application/json&#10;---&#10;toBoolean(vars.voice default "false") == true]'>
+				<ee:transform doc:name="Transform Message" doc:id="bead4296-26e7-4a05-a38d-498a6b000707" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+import * from dw::core::Binaries
+output application/octet-stream
+---
+fromBase64(payload.audio)]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<set-payload value="#[payload]" doc:name="Set Payload" doc:id="77a86395-5be2-4eb4-8fd1-d73fe5d0dfcf" mimeType="video/webm" />
+				<file:write doc:name="Write" doc:id="b972e638-54ba-4e36-bdd0-eabea551efd4" path='#[mule.home ++ "/apps/" ++ app.name ++ "/recording.wav"]' />
+				<whisperer:speech-to-text doc:name="Speech to text" doc:id="bba0a3a5-4158-4377-9a35-5bca3d611f2e" config-ref="MAC_Whisperer_Config" audioFilePath='#[mule.home ++ "/apps/" ++ app.name ++ "/recording.wav"]'/>
+				<set-variable value="#[payload.text]" doc:name="save payload" doc:id="a2adce88-ec7b-4705-9bdd-acf1202a5756" variableName="question" />
+			</when>
+			<otherwise >
+				<set-variable value="#[payload.prompt]" doc:name="save payload" doc:id="cc62731b-2e80-48a6-aa25-f126da9f242e" variableName="question" />
+			</otherwise>
+		</choice>
+		<jtokkit:estimate-tokens doc:name="Validate tokens" doc:id="79477a0d-a46f-4da5-a4a2-3b9986434eae" config-ref="JTokkit_Config" prompt="#[vars.question]"/>
+		<choice doc:name="Choice" doc:id="b9c80a0f-d189-4913-a92b-f66196f192aa" >
+			<when expression="#[payload.tokenEstimation &gt; vars.inputLimit]">
+				<ee:transform doc:name="Input token exceeded number of allowed prompt tokens" doc:id="347c4972-5090-47be-93ae-0eb4e5c2bbfa" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	response: "Input token exceed allowed number of prompt tokens"
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<set-variable value="#[{payload: payload}]" doc:name="save response" doc:id="d02ea7d7-8fbc-4077-b946-f27fed5718c7" variableName="response" />
+				<ee:transform doc:name="Set Toxicity to False" doc:id="824b481a-4b69-4e8e-82e1-8f0bb6ce032e" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+{
+    "response": {
+        "results": [
+            {
+                "flagged": false,
+            }
+        ]
+    }
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</when>
+			<otherwise >
+				<choice doc:name="Choice" doc:id="08f245f0-5099-4b4d-bc97-b9f4c7a7f5bc">
+					<when expression='#[%dw 2.0&#10;import * from dw::util::Coercions&#10;output application/json&#10;---&#10;toBoolean(vars.toxicityDetection default "false") == true]'>
+						<ms-aichain:toxicity-detection doc:name="Toxicity detection" doc:id="4c5da403-e2f9-4b70-afd9-74fae21feecb" config-ref="Toxicitydetection" input="#[vars.question]" />
+					</when>
+					<otherwise >
+						<ee:transform doc:name="Set Toxicity to False" doc:id="d2d7482b-153d-47ab-bbdc-7fd89ccf1b67" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+{
+    "response": {
+        "results": [
+            {
+                "flagged": false,
+            }
+        ]
+    }
+}]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+					</otherwise>
+				</choice>
+				<ee:transform doc:name="extract Toxicity Flag" doc:id="2f61926c-c605-4772-937f-3a618053facc">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/java
+---
+{
+	toxicityDetection : payload.response.results[0].flagged
+	
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<choice doc:name="Choice" doc:id="cf2fe054-7372-44ad-a46b-e539ff14d128">
+					<when expression="#[payload.toxicityDetection]">
+						<ee:transform doc:name="Reply with toxicity detected" doc:id="97ea368d-5bb0-4cca-881f-c7786d11e3c0" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	response: "Toxic input detected, LLM interaction cancelled."
+}]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+						<set-variable value="#[{payload: payload}]" doc:name="save response" doc:id="f365aa15-38eb-474d-9598-95a2548eb39c" variableName="response" />
+						<ee:transform doc:name="Set Toxicity to False" doc:id="1bf690d0-ec57-4184-9a6e-f623c4ade30c" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+{
+    "response": {
+        "results": [
+            {
+                "flagged": false,
+            }
+        ]
+    }
+}]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+					</when>
+					<otherwise >
+						<set-payload value='#[%dw 2.0&#10;output application/json&#10;---&#10;((vars.preDocoration default "") as String) ++ ". "++ &#10;((vars.question default "") as String) ++ ". "++  &#10;((vars.postDecoration default "") as String)]' doc:name="Prompt decoration" doc:id="e38155ef-3c47-4337-bf22-aa2f31a1a5b7" />
+						<choice doc:name="Choice" doc:id="788a29dd-8265-4dad-b3af-a387f8428dde">
+							<when expression='#[%dw 2.0&#10;import * from dw::util::Coercions&#10;output application/json&#10;---&#10;toBoolean(vars.chatmemory default "false") == true]'>
+								<flow-ref doc:name="Retrieve Memory" doc:id="e08f1364-a3d2-4a92-a3c3-0bbe5f7ea505" name="mac-vector-store-chat-memory-retrieve" />
+								<set-payload value='#[%dw 2.0&#10;output application/json&#10;---&#10;((vars.chat_history default "") as String) ++ ". " ++&#10;((vars.preDocoration default "") as String) ++ ". "++ &#10;((vars.question default "") as String) ++ ". "++  &#10;((vars.postDecoration default "") as String)]' doc:name="Set Payload" doc:id="de829b4b-58b0-444a-9c6f-f16ad5534076" />
+							</when>
+						</choice>
+						<scatter-gather doc:name="Scatter-Gather" doc:id="00ce8ad4-cc30-4abf-a161-319143eea0a8">
+			<route>
+				<logger level="INFO" doc:name="Logger" doc:id="e9de2a1e-efc0-4e6b-9fa2-5f8cc8492f99" />
+				<ms-aichain:tools-use-ai-service doc:name="Tools use ai service" doc:id="26158de3-b134-4d12-9a1d-9131f0074712" config-ref="MuleSoft_AI_Chain_Config" toolConfig='#[mule.home ++ "/apps/" ++ app.name ++ "/tools.config.json"]'>
+				</ms-aichain:tools-use-ai-service>
+			</route>
+			<route>
+				<choice doc:name="Choice" doc:id="8b91ab85-188f-4255-960a-7e0eb8af93b9">
+			<when expression='#[%dw 2.0&#10;import * from dw::util::Coercions&#10;output application/json&#10;---&#10;toBoolean(vars.rag default "false") == true and toBoolean(vars.grounded default "false") == true]'>
+				<set-variable value="#[payload]" doc:name="Set Variable" doc:id="ad3e6b6a-936f-4013-a8e8-ee489638ab0f" variableName="question" />
+						<ms-aichain:embedding-query-from-store doc:name="Embedding query from store" doc:id="c5177409-15ff-4a9c-b36f-94bb847f87bf" storeName="#[vars.storeName]" maxResults="3" minScore="0.7" getLatest="true">
+				</ms-aichain:embedding-query-from-store>
+						<choice doc:name="Choice" doc:id="ac039d22-88dc-4c8d-a3a1-83c388d3ca89">
+											<when expression="#[isEmpty(payload.sources)==false]">
+												<ee:transform doc:name="save values" doc:id="724ba18f-6b58-4532-99b1-f1f886eec02a">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	dataset: payload.response
+}]]></ee:set-payload>
+					</ee:message>
+					<ee:variables>
+						<ee:set-variable variableName="payloadQuery"><![CDATA[%dw 2.0
+output application/json
+---
+{
+	sources: payload.sources,
+	maxResults: attributes.maxResults,
+	minimumScore: attributes.minScore
+}]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+												<ms-aichain:agent-define-prompt-template doc:name="Agent define prompt template" doc:id="2ad0262f-c86c-4db8-a0c1-a1d5260d1390" config-ref="MuleSoft_AI_Chain_Config">
+					<ms-aichain:dataset><![CDATA[#["context: " ++ payload.dataset as String default ""]]]></ms-aichain:dataset>
+					<ms-aichain:template><![CDATA[Answer the question based on the context provided. Articulate your answer with all details, whenever links are provided, include them in your answers. If the context is empty or null, just reply with 'The question couldn't be answered based on my knowledge'.]]></ms-aichain:template>
+					<ms-aichain:instructions><![CDATA[#[vars.question]]]></ms-aichain:instructions>
+				</ms-aichain:agent-define-prompt-template>
+												<ee:transform doc:name="final Response" doc:id="4265ef61-3669-4277-852b-93feece3b786">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	response: payload.response,
+	sources: vars.payloadQuery.sources,
+	minScore: vars.payloadQuery.minimumScore,
+	maxResults: vars.payloadQuery.maxResults
+	
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+											</when>
+											<otherwise >
+												<ee:transform doc:name="final Response" doc:id="3337ee98-e661-43cb-bbb7-b17ade7a4f09" >
+													<ee:message >
+														<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	response: "The question couldn't be answered based on my knowledge",
+	sources: [],
+	minScore: attributes.minScore,
+	maxResults: attributes.maxResults
+	
+}]]></ee:set-payload>
+													</ee:message>
+												</ee:transform>
+											</otherwise>
+										</choice>
+			</when>
+									<when expression='#[%dw 2.0&#10;import * from dw::util::Coercions&#10;output application/json&#10;---&#10;toBoolean(vars.rag default "false") == true and toBoolean(vars.grounded default "false") == false]'>
+										<ms-aichain:embedding-get-info-from-store doc:name="Embedding get info from store" doc:id="913ed660-0b4a-488a-8931-26c599e859b5" config-ref="MuleSoft_AI_Chain_Config" storeName="#[vars.storeName]" getLatest="true">
+		</ms-aichain:embedding-get-info-from-store>
+									</when>
+									<otherwise>
+										<ms-aichain:chat-answer-prompt doc:name="Chat answer prompt" doc:id="af0981ad-47d3-48ea-8ea7-1e83537e28bc" config-ref="MuleSoft_AI_Chain_Config"/>
+			</otherwise>
+		</choice>
+			</route>
+		</scatter-gather>
+						<choice doc:name="Choice" doc:id="ae5f57b9-5f54-4aab-b8d0-abc59eff0075">
+			<when expression='#[payload."0".attributes.additionalAttributes.toolsUsed]'>
+				<ee:transform doc:name="Transform Message" doc:id="2a87f4b6-8113-45a4-87fb-340fc1b79037">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{ payload: payload."0".payload, attributes: payload."0".attributes}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</when>
+			<otherwise>
+				<ee:transform doc:name="Transform Message" doc:id="04eb65f7-20e6-4775-b106-d79d0659c4db">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{ payload: payload."1".payload, attributes: payload."1".attributes}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</otherwise>
+		</choice>
+						<set-variable value="#[payload]" doc:name="save response" doc:id="b0473671-c47d-4e2c-83e0-c3997cd93319" variableName="response"/>
+						<choice doc:name="Choice" doc:id="9aeb340a-dc94-42e3-832f-d0434b02d86d">
+							<when expression='#[%dw 2.0&#10;import * from dw::util::Coercions&#10;output application/json&#10;---&#10;toBoolean(vars.chatmemory default "false") == true]'>
+								<flow-ref doc:name="Update Memory" doc:id="085963c6-54e7-4aa0-a1d8-f6cdc420adfc" name="mac-vector-store-chat-memory-update" />
+								<set-payload value="#[vars.response]" doc:name="Set Payload" doc:id="eebeb923-3a47-4689-9a3f-5adf22fb53fc" />
+							</when>
+						</choice>
+						<logger level="INFO" doc:name="Logger" doc:id="1ac149cc-b801-4079-be48-342bd58f9493" message="#[%dw 2.0&#10;output application/json&#10;---&#10;payload]" />
+						<choice doc:name="Choice" doc:id="096bbfc6-ed40-4884-b152-417146a4a160" >
+							<when expression='#[%dw 2.0&#10;import * from dw::util::Coercions&#10;output application/json&#10;---&#10;toBoolean(vars.toxicityDetection default "false") == true]'>
+								<ms-aichain:toxicity-detection doc:name="Toxicity detection" doc:id="3228c5fa-44e0-4e28-9ba4-d989d560d100" config-ref="Toxicitydetection" input="#[payload.payload.response]" />
+							</when>
+							<otherwise >
+								<ee:transform doc:name="Set Toxicity to False" doc:id="64d7cc01-ab14-47b7-a8eb-00248dfc66c8" >
+									<ee:message >
+										<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+{
+    "response": {
+        "results": [
+            {
+                "flagged": false,
+            }
+        ]
+    }
+}]]></ee:set-payload>
+									</ee:message>
+								</ee:transform>
+							</otherwise>
+						</choice>
+					</otherwise>
+				</choice>
+			</otherwise>
+		</choice>
+		<ee:transform doc:name="Transform Message" doc:id="bcf533c6-8176-4095-afbc-43eb9e1b6710" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+if ((!isEmpty(payload.response.results))) 
+    vars.response default {} ++ { toxicity: payload }
+else 
+    vars.response default {}
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<set-variable value="#[payload]" doc:name="Save Payload" doc:id="928045f7-813a-4ed3-83d2-b467f170bf25" variableName="payload"/>
+		<choice doc:name="Choice" doc:id="c507d2e5-e987-463f-8d1f-1e2d851438bc" >
+			<when expression='#[%dw 2.0&#10;import * from dw::util::Coercions&#10;output application/json&#10;---&#10;toBoolean(vars.voice default "false") == true]'>
+				<whisperer:text-to-speech doc:name="Text to speech" doc:id="93343cb5-6ea5-48d9-9ae9-0942b61deed4" config-ref="MAC_Whisperer_Config" textToConvert="#[payload.payload.response]" pathToOutputFile='#[mule.home ++ "/apps/" ++ app.name ++ "/speech.mp3"]'/>
+				<file:read doc:name="Read" doc:id="3dda6422-378b-4f34-847b-47bd1d3b2438" path='#[mule.home ++ "/apps/" ++ app.name ++ "/speech.mp3"]'/>
+				<ee:transform doc:name="add base64String" doc:id="1f4c42db-c1be-4ac4-9509-333e697131d7" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+import toBase64 from dw::core::Binaries
+---
+{audio: toBase64(payload), question: vars.question} ++ vars.payload]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</when>
+			<otherwise >
+				<ee:transform doc:name="return payload" doc:id="41c54b25-f2d8-418d-98ee-2903e3051256" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+vars.payload
+
+ ]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</otherwise>
+		</choice>
+	</flow>
+	<flow name="mac-list-stores" doc:id="67a05135-6afe-41fd-acce-55acd0b83df0" >
+		<http:listener doc:name="Listener" doc:id="0218b6d7-847d-4401-909d-c7a44e16dfac" path="/getstores" config-ref="HTTP_Listener_config"/>
+		<try doc:name="Try" doc:id="bbdca992-a933-4be7-bc36-4a19d8ad43f7" >
+			<file:create-directory doc:name="Create stores directory" doc:id="042021f9-e049-4a79-bd97-2f4485814e72" directoryPath="#[p('stores.dir')]"/>
+			<error-handler >
+				<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="dbb2624d-8af1-480e-9735-c57c34ef4b0b" />
+			</error-handler>
+		</try>
+		<file:list doc:name="List" doc:id="22cdf007-92ee-4081-a90e-096a8f8476f2" directoryPath="#[p('stores.dir')]">
+			<file:matcher symLinks="EXCLUDE"/>
+		</file:list>
+		<ee:transform doc:name="Keep only fileNames" doc:id="3fa323f9-f4a9-444b-bff0-5c6bf40966dd" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload map ((file) -> file.attributes.fileName)]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<ee:transform doc:name="Remove DS_Store" doc:id="53b4ca77-27c3-4962-964c-60f029616e2d" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload filter ((filename) -> filename != ".DS_Store")]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<ee:transform doc:name="Sort alphabetically" doc:id="b1862e84-5899-40b3-b456-26c23199b69b" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload orderBy $]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+
+	</flow>
+	<flow name="mac-crawl-website" doc:id="0a8c272f-f668-4fc5-ba22-a8600b2acf1a" >
+		<http:listener doc:name="Listener" doc:id="fc0b6fef-d759-4a02-87e7-e7bee46abd6c" path="/crawl" config-ref="HTTP_Listener_config"/>
+		<set-variable value="#[payload.storeName]" doc:name="Set storeName Variable" doc:id="672b8870-1a19-4ac2-b5e3-3f36f328396b" variableName="storeName"/>
+		<set-variable value="#[p('pagecontent.dir')]" doc:name="Set DownloadPath Variable" doc:id="c0dd7158-59c4-42b4-afd8-e0f3d300cbbb" variableName="downloadPath"/>
+		<try doc:name="Try" doc:id="c03d32b7-8dd4-4b8a-82ae-6c666d4314f0" >
+			<file:delete doc:name="Delete download directory" doc:id="c1bc9d49-85d7-4530-9eed-7faea37f6f16" path="#[vars.downloadPath]" />
+			<error-handler >
+				<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="c05dc735-4c29-4e18-b189-63663a00320c" />
+			</error-handler>
+		</try>
+		<file:create-directory doc:name="Create download directory" doc:id="d627febd-6ee3-4e81-b173-b16feaf7e672" directoryPath="#[vars.downloadPath]"/>
+		<ms-webcrawler:crawl-website-full-scan doc:name="[Crawl] Website (Full Scan)" doc:id="1ef2ea73-1ef1-4a6c-a80a-7ee5ce2d12d4" url="#[payload.websiteUrl]" maxDepth="#[payload.depth]" outputFormat="MARKDOWN" downloadPath="#[vars.downloadPath]"/>
+		<file:list doc:name="List" doc:id="c3ba6637-3e2a-47d6-8bce-36f68cd4e3a8" directoryPath="#[vars.downloadPath]">
+			<file:matcher filenamePattern="*.json" />
+		</file:list>
+		<foreach doc:name="For Each" doc:id="0fbee5cb-90b5-4b41-8e4b-91e0b5e0a4ba" >
+			<logger level="INFO" doc:name="Logger" doc:id="00434ad0-7f7a-45e6-a266-71c44c18d84f" message="#[attributes.path]"/>
+			<ee:transform doc:name="Transform Message" doc:id="f0e34fa1-3560-4276-ab62-4c1053e4ec8f" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"storeName" : vars.storeName,
+	"filePath" : attributes.path,
+	"fileType" : "text"
+	
+}]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+			<http:request method="POST" doc:name="Add document to store" doc:id="46609ae8-26e9-4b86-a5f1-51e14be39803" path="/docUrl" config-ref="HTTP_Request_configuration"/>
+		</foreach>
+		<ee:transform doc:name="Transform Message" doc:id="8136ba36-3e06-420d-8cea-0b1cec21d7e7" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="update-tools-config" doc:id="19929d21-61dd-40fa-9f65-5b422440ddf7" >
+		<http:listener doc:name="Listener" doc:id="85692be0-ef48-437b-8303-654f3c447ed8" path="/tools" allowedMethods="POST" config-ref="HTTP_Listener_config"/>
+		<set-variable value="#[payload]" doc:name="Set Variable" doc:id="242d61c2-2645-466a-9f1e-8ed35e87f815" variableName="newEntry" />
+		<file:read doc:name="Read" doc:id="68516997-39dc-487a-bbf9-91d19fa86a3e" path='#[mule.home ++ "/apps/" ++ app.name ++ "/tools.config.json"]' />
+		<ee:transform doc:name="Transform Message" doc:id="ab31450c-9b6f-4895-a08f-5dacf0deac74" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<ee:transform doc:name="Transform Message1" doc:id="524cbca7-9f1e-464c-80ce-e5a98cef5edc" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+var newEntry = vars.newEntry
+var existingEntries = payload as Array<Object>
+---
+if ((existingEntries filter (e) -> e.name == newEntry.name) != []) existingEntries else existingEntries ++ [newEntry]
+
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<file:write doc:name="Write" doc:id="1be70f0c-f414-4cca-a750-428ed5bef98f" path='#[mule.home ++ "/apps/" ++ app.name ++ "/tools.config.json"]' />
+		<logger level="INFO" doc:name="Logger" doc:id="85946955-964a-49b6-a0d7-1651943264bc" message='#[mule.home ++ "/apps/" ++ app.name ++ "/tools.config.json"]' />
+	</flow>
+	<flow name="retrieve-tools" doc:id="4696b57d-1f6a-46ce-8e16-8a1712c410aa" >
+		<http:listener doc:name="Listener" doc:id="070147b8-6033-4152-8dfd-24f49f2bd86d" path="/tools" allowedMethods="GET" config-ref="HTTP_Listener_config"/>
+		<file:read doc:name="Read" doc:id="febbea71-116c-4888-8c3a-b302dd186508" path='#[mule.home ++ "/apps/" ++ app.name ++ "/tools.config.json"]' />
+		<ee:transform doc:name="Transform Message" doc:id="96d4e964-e336-4917-b167-5c9a733740b9" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<sub-flow name="mac-vector-store-chat-memory-retrieve" doc:id="883323f4-19c5-4fe1-a952-c7a79aef9ac1" >
+		<set-variable value="#[payload]" doc:name="Store User Prompt" doc:id="b8160220-8660-4263-97bb-57bcecfe0f6f" variableName="user_prompt" />
+		<os:retrieve doc:id="b8c3e6cb-6c82-4560-af27-e2d4b709e89f" key='#["user-1"]' target="memory" doc:name="Load Memory">
+			<os:default-value ><![CDATA[#[output application/json
+---
+{
+	chat_history: []
+}]]]></os:default-value>
+		</os:retrieve>
+		<set-variable value='#[%dw 2.0&#10;output application/json&#10;var maxMessages = vars.maxMessages default 0&#10;var totalMessages = sizeOf(vars.memory.chat_history) default 0&#10;var difference = totalMessages - maxMessages&#10;---&#10;{&#10;  chat_history: if (difference &gt; 0) vars.memory.chat_history[difference to -1] else vars.memory.chat_history,&#10;}]' doc:name="set Memory" doc:id="b1aeda3f-c77d-4f25-b293-763e9ab864a8" variableName="memory"/>
+		<set-variable value='#[%dw 2.0&#10;output text/plain&#10;var history_prefix = "====== BEGIN CHAT HISTORY ======\n"&#10;var history_suffix = "====== END CHAT HISTORY ======\n\n"&#10;---&#10;vars.memory.chat_history reduce ((msg, acc=history_prefix) -&gt;&#10;    acc ++ "role: $(msg.role)\ntext: $(msg.text default "")\n"&#10;) ++ history_suffix]' doc:name="Build Chat History" doc:id="479e4f02-4bb9-4175-9d2a-ad2ab320300e" variableName="chat_history" />
+	</sub-flow>
+	<sub-flow name="mac-vector-store-chat-memory-update" doc:id="5394fd5b-b8ef-44ef-aa6e-0843f6486ccd" >
+		<set-variable value='#[output application/json&#10;---&#10;vars.memory update {&#10;	case history at .chat_history -&gt; history ++ [&#10;		{&#10;			role: "user",&#10;			text: vars.question&#10;		},&#10;		{&#10;			role: "assistant",&#10;			text: payload.payload.response default ""&#10;		}&#10;	]&#10;}]' doc:name="Update Chat History" doc:id="8e841a8c-5a5a-442e-afa6-27379035da8e" variableName="memory" />
+		<os:store doc:id="0e1ef269-2495-45cf-b292-70ed78874f87" key='#["user-1"]' doc:name="Update Memory">
+			<os:value ><![CDATA[#[vars.memory]]]></os:value>
+		</os:store>
+	</sub-flow>
+	<flow name="mac-add-doc-to-store-url" doc:id="06182606-bd5b-47d1-bfbc-8ee4a21c2c35" >
+		<http:listener doc:name="Listener" doc:id="7a6747a2-7501-4f4e-ac53-005a3057fc49" config-ref="HTTP_Listener_config" path="/docUrl" allowedMethods="POST" >
+			<http:response >
+				<http:headers ><![CDATA[#[output application/java
+---
+{
+                    'Access-Control-Allow-Origin': '*', 
+                    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+                    'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept',
+                    'Access-Control-Allow-Credentials': 'true'
+                }]]]></http:headers>
+			</http:response>
+		</http:listener>
+		<logger level="INFO" doc:name="Logger" doc:id="ac9506de-9041-4491-af50-ed6a4324c9ca" message='#["START-add-document-to-store"]' category="aichain.log" />
+		<ms-aichain:embedding-add-document-to-store doc:name="Embedding add document to store" doc:id="6b20ec1e-954c-4502-8bf0-91bb69045242" storeName="#[p('stores.dir') ++ &quot;/&quot; ++ payload.storeName]" contextPath="#[payload.filePath]" maxSegmentSizeInChars="1500" maxOverlapSizeInChars="150" fileType="any" />
+		<logger level="INFO" doc:name="Logger1" doc:id="f3a421c3-c3a0-4eed-b339-1007ec598931" message="#[%dw 2.0&#10;output application/json&#10;---&#10;payload]" />
+	</flow>
+</mule>
