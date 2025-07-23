@@ -37,3 +37,17 @@ Update the API Keys in the following files:
 - `dev-properties.properties`
 - `prd-properties.properties`
 - `config.json`
+
+## Advanced UI Setup
+
+To run the advanced UI locally:
+
+1. Rename the .env.example file to .env.
+2. Start the Mule app locally using Anypoint Studio (it should run on port 8081).
+3. In the `advanced-ui` directory, run the command:
+    ```
+    pnpm run dev
+    ```
+4. Open your browser and go to http://localhost:3000.
+
+This will connect the UI to your locally running Mule app
