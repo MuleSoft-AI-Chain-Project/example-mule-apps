@@ -83,15 +83,6 @@ This demo demonstrates a multi-agent architecture where:
 - **AI Engine**: Salesforce Agentforce
 - **Endpoint**: `/agentforce-agent`
 
-#### 5. **a2a-agentforce-headless-account-agent-app**
-- **Purpose**: Account management using Agentforce
-- **AI Engine**: Salesforce Agentforce
-- **Endpoint**: `/agentforce-agent`
-
-#### 6. **a2a-agentforce-headless-sales-and-distribution-app**
-- **Purpose**: Sales and distribution operations
-- **AI Engine**: Salesforce Agentforce
-
 ### 🎯 Domain Orchestration Agent
 
 #### **a2a-interaction-agent-app**
