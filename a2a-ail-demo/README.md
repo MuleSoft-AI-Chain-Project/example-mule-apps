@@ -6,6 +6,7 @@ The **A2A AIL Demo** (Agent-to-Agent Integration and Learning Demonstration) is 
 
 ## 📋 Table of Contents
 
+- [🎥 Video Tutorial](#-tutorial)
 - [🏗️ Architecture](#️-architecture)
 - [📁 Applications](#-applications)
   - [🤖 Specialized Agents](#-specialized-agents)
@@ -30,6 +31,9 @@ The **A2A AIL Demo** (Agent-to-Agent Integration and Learning Demonstration) is 
 - [📝 License](#-license)
 - [🙋‍♀️ Support](#️-support)
 
+## Video Tutorial
+[Link to the video tutorial](https://www.youtube.com/watch?v=pL5IZ9HsJAM)
+
 ## 🏗️ Architecture
 
 This demo demonstrates a multi-agent architecture where:
@@ -38,6 +42,8 @@ This demo demonstrates a multi-agent architecture where:
 - **AI engines** (OpenAI, Einstein AI, Agentforce) power intelligent decision-making
 - **MCP servers** provide standardized tool access for agents
 - **Audit services** track all agent interactions for compliance and monitoring
+
+![Demo Architecture](services/img/demo-architecture.png "Demo Archtecture")
 
 ## 📁 Applications
 
@@ -92,6 +98,8 @@ This demo demonstrates a multi-agent architecture where:
 - **Skills**: Submit Reservation
 - **AI Engine**: Salesforce Agentforce
 - **Endpoint**: `/agentforce-agent`
+
+![Specialised Agents](services/img/Specialised_agents.png "Specialised Agents")
 
 ### 🎯 Domain Orchestration Agent
 
@@ -149,6 +157,7 @@ This demo demonstrates a multi-agent architecture where:
   - Provides audit trail for compliance
 - **Database Schema**: Sessions, tasks, agents, timestamps, messages
 - **API**: REST API for capturing audit events
+- **Specification**: The API Specification is provided under 'a2a-audit-log-external-service-api/api-spec/interaction-capture-api-1.0.3-fat-oas.zip' to be uploaded into Exchange.
 
 #### **toxic-a2a-interaction-agent-app**
 - **Purpose**: Testing/development variant of the interaction agent
