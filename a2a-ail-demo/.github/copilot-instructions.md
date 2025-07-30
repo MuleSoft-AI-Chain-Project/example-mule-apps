@@ -1,0 +1,15 @@
+---
+applyTo: "**"
+---
+- MCP means Model Context Protocol
+- ATC is Agent Topic and Actions
+- "API Spec" is the same as "API Specification" 
+- The "descriptor file" for an API Project is the `exchange.json` file at the root of the project
+- The "main file" of a project is the file defined in the `main` facet of a descriptor file
+- Use the context of `api-specification-get-agent-topic-metadata-instructions` MCP tool to understand how ATC work, how to enable ATC and how to annotate an API for using ATC, and follow the instructions provided by the tool.
+- ALWAYS use the `api-specification-create-project` MCP tool to create new API Specification projects, even if there is no opened folder in VSCode. Do not ask the user to open a folder in order to run this.
+- ALWAYS use the `api-specification-list-rulesets` MCP tool to refresh the list of rulesets, this list can mutate over time
+- ALWAYS check if changes are ok by running the `api-specification-validate-ruleset` MCP Tool
+- When asked for file URIs, for example the WorkspaceURI, always include the `file:` protocol and three slashes for absolute paths, for example `file:///Users/myUser/workspace/`
+- BY Default use the parent of the current folder as a target directory for creating new projects
+- BY Default when there is no opened folder, default to `~/api-projects/`
