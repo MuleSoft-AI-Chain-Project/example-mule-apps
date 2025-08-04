@@ -1,24 +1,34 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:a2a="http://www.mulesoft.org/schema/mule/a2a"
-	xmlns:mac-inference="http://www.mulesoft.org/schema/mule/mac-inference" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
-	xmlns:tls="http://www.mulesoft.org/schema/mule/tls"
-	xmlns:mcp="http://www.mulesoft.org/schema/mule/mcp" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+<mule xmlns:ms-inference="http://www.mulesoft.org/schema/mule/ms-inference"
+	xmlns:a2a="http://www.mulesoft.org/schema/mule/a2a" xmlns:mac-inference="http://www.mulesoft.org/schema/mule/mac-inference"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:tls="http://www.mulesoft.org/schema/mule/tls" xmlns:mcp="http://www.mulesoft.org/schema/mule/mcp" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
 http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
 http://www.mulesoft.org/schema/mule/mcp http://www.mulesoft.org/schema/mule/mcp/current/mule-mcp.xsd
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
 http://www.mulesoft.org/schema/mule/mac-inference http://www.mulesoft.org/schema/mule/mac-inference/current/mule-mac-inference.xsd
-http://www.mulesoft.org/schema/mule/a2a http://www.mulesoft.org/schema/mule/a2a/current/mule-a2a.xsd">
+http://www.mulesoft.org/schema/mule/a2a http://www.mulesoft.org/schema/mule/a2a/current/mule-a2a.xsd
+http://www.mulesoft.org/schema/mule/ms-inference http://www.mulesoft.org/schema/mule/ms-inference/current/mule-ms-inference.xsd">
 	<sub-flow name="set-and-initialise-vars" doc:id="ddd5bf4b-9235-4b7e-9386-e400e5cd8410">
 		<set-variable value='#[payload.message.parts[0].text default ""]' doc:name="Set task user prompt" doc:id="b1456931-b8a7-4677-b174-065899b1cb23" variableName="userPrompt" />
-		<logger level="INFO" doc:name="❓Log user prompt ❓" doc:id="d29e63bf-0d97-48eb-bcff-5b600ac0986a" message='#[%dw 2.0&#10;output text&#10;---&#10;"\n\n" ++&#10;"❓❓❓❓❓️️ --------------------------  User Prompt -------------------------- ❓❓❓❓❓️\n\n" ++&#10;(vars.userPrompt default "") ++ "\n" ++&#10;"\n❓❓❓❓❓️️ ------------------------------------------------------------------ ❓❓❓❓❓️" ++&#10;"\n\n"]' />
+		<logger level="INFO" doc:name="❓Log user prompt ❓" doc:id="d29e63bf-0d97-48eb-bcff-5b600ac0986a" message='#[%dw 2.0
+output text
+---
+"\n\n" ++
+"❓❓❓❓❓️️ --------------------------  User Prompt -------------------------- ❓❓❓❓❓️\n\n" ++
+(vars.userPrompt default "") ++ "\n" ++
+"\n❓❓❓❓❓️️ ------------------------------------------------------------------ ❓❓❓❓❓️" ++
+"\n\n"]' />
 		<set-variable value="#[payload.id default uuid()]" doc:name="Set Task Id" doc:id="09dcca44-77ae-4647-becc-52969251f04d" variableName="task_id" />
 		<set-variable value='#[(payload.sessionId) default ""]' doc:name="Set Session Id" doc:id="4ed0a3b7-ea19-40cf-ac20-714c9c008afc" variableName="session_id" />
 		<set-variable value='#["OPENAI"]' doc:name="inferenceType" doc:id="7ce22fd1-8ef5-4f88-afb1-b6f6b9ba99f6" variableName="inferenceType"/>
 		<set-variable value='${openai.apikey}' doc:name="apiKey" doc:id="028ca50e-98f4-4ae4-bbea-2e19d9edf32e" variableName="apiKey"/>
 		<set-variable value='#["gpt-4o-mini"]' doc:name="model" doc:id="cc39205e-575d-4436-b049-717c0e25b49a" variableName="model"/>
-		<set-variable value="#[{&#10;  'CRM MCP Server': p('mcpserver.crm.url')&#10;}]" doc:name="mcpservers" doc:id="3b60dd9c-fadb-4b7a-a438-3abf1f4a5063" variableName="mcpservers"/>
+		<set-variable value="#[{
+  'CRM MCP Server': p('mcpserver.crm.url')
+}]" doc:name="mcpservers" doc:id="3b60dd9c-fadb-4b7a-a438-3abf1f4a5063" variableName="mcpservers"/>
 		<set-variable value='#["Tool results: "]' doc:name="set multiTools results" doc:id="2242b8da-a134-4b72-9ffd-93b87f69b91d" variableName="multiToolsResult" />
 		<set-variable value="#[[]]" doc:name="set toolsUsed" doc:id="fd4e589e-fbe2-4275-baee-34e135b771bf" variableName="toolsUsed" />
 		<set-variable value="#[[]]" doc:name="set COT" doc:id="720be86b-57e8-4fcc-b03f-06749e9d029c" variableName="chainsOfThoughts" />
@@ -27,7 +37,13 @@ http://www.mulesoft.org/schema/mule/a2a http://www.mulesoft.org/schema/mule/a2a/
 	</sub-flow>
 	<sub-flow name="list-mcp-tools" doc:id="6e4e0484-ce2d-4c76-a519-b938a768f595" >
 		<mcp:list-tools doc:name="MCP Client - List Tools" doc:id="5c7da6b7-44b0-4a9a-872e-b14d21f36d6f" config-ref="MCP_Client" />
-		<logger level="DEBUG" doc:name="🛠️Available  MCP Tools 🛠️" doc:id="deef7e59-bea4-476e-8158-91e025796cae" message='#[output text&#10;---&#10;"🛠️🛠️🛠️🛠️🛠️ ------------------- MCP Avaialble Tools ------------------- 🛠️🛠️🛠️🛠️🛠\n\n" ++&#10;&#10;write(payload, "application/json") ++ "\n\n" ++&#10;&#10;"🛠️🛠️🛠️🛠️🛠️ ------------------- MCP Avaialble Tools ------------------- 🛠️🛠️🛠️🛠️🛠\n\n"]' />
+		<logger level="DEBUG" doc:name="🛠️Available  MCP Tools 🛠️" doc:id="deef7e59-bea4-476e-8158-91e025796cae" message='#[output text
+---
+"🛠️🛠️🛠️🛠️🛠️ ------------------- MCP Avaialble Tools ------------------- 🛠️🛠️🛠️🛠️🛠\n\n" ++
+
+write(payload, "application/json") ++ "\n\n" ++
+
+"🛠️🛠️🛠️🛠️🛠️ ------------------- MCP Avaialble Tools ------------------- 🛠️🛠️🛠️🛠️🛠\n\n"]' />
 		<ee:transform doc:name="Save all available tools into the right format into variable tools" doc:id="1faecb5d-6ed9-44c5-839f-c0a1573245fa">
 			<ee:message />
 			<ee:variables>
@@ -49,14 +65,20 @@ payload map (item) -> {
 ]]></ee:set-variable>
 			</ee:variables>
 		</ee:transform>
-		<logger level="DEBUG" doc:name="🛠️Converted  MCP Tools 🛠️" doc:id="67177898-a781-446c-8a41-e8f2accdbf6c" message='#[output text&#10;---&#10;"🛠️🛠️🛠️🛠️🛠️ ------------------- Converted MCP Tools ------------------- 🛠️🛠️🛠️🛠️🛠\n\n" ++&#10;&#10;write(vars.tools, "application/json") ++ "\n\n" ++&#10;&#10;"🛠️🛠️🛠️🛠️🛠️ ------------------- MCP Avaialble Tools ------------------- 🛠️🛠️🛠️🛠️🛠\n\n"]' />
+		<logger level="DEBUG" doc:name="🛠️Converted  MCP Tools 🛠️" doc:id="67177898-a781-446c-8a41-e8f2accdbf6c" message='#[output text
+---
+"🛠️🛠️🛠️🛠️🛠️ ------------------- Converted MCP Tools ------------------- 🛠️🛠️🛠️🛠️🛠\n\n" ++
+
+write(vars.tools, "application/json") ++ "\n\n" ++
+
+"🛠️🛠️🛠️🛠️🛠️ ------------------- MCP Avaialble Tools ------------------- 🛠️🛠️🛠️🛠️🛠\n\n"]' />
 	</sub-flow>
 	<sub-flow name="create-plan" doc:id="ef9c2d20-7967-4d7c-b56a-ddd9af66c363" >
 		<scatter-gather doc:name="Scatter-Gather" doc:id="4411dda8-14f0-4ad2-adbd-38d12f69f73f" >
 			<route >
-				<mac-inference:agent-define-prompt-template doc:name="Create Plan" doc:id="96651109-b214-4a94-bd3b-6d6ac17fb2e2" config-ref="GENERAL">
-					<mac-inference:template ><![CDATA[You are a crm agent. You answer general question based on your knowledge. Things you know of without making up things.]]></mac-inference:template>
-					<mac-inference:instructions ><![CDATA[Objective:
+				<ms-inference:agent-define-prompt-template doc:name="Create Plan" doc:id="96651109-b214-4a94-bd3b-6d6ac17fb2e2" config-ref="GENERAL">
+					<ms-inference:template ><![CDATA[You are a crm agent. You answer general question based on your knowledge. Things you know of without making up things.]]></ms-inference:template>
+					<ms-inference:instructions ><![CDATA[Objective:
 Identify the tools required to fulfill the user query and define a plan with sequenced steps for tool execution, ensuring each tool is executed only once.
 
 (1) Task:
@@ -105,18 +127,31 @@ Identify the tools required to fulfill the user query and define a plan with seq
 (3) Output Guidelines:
 - Ensure the plan is clear and formatted with steps and sub-steps as bullet points.
 - Maintain the context of the user query without altering its intent.
-- Do not execute tools; only provide the plan for their execution.]]></mac-inference:instructions>
-					<mac-inference:data ><![CDATA[#["Users query: " ++ (vars.userPrompt as String) ++ 
+- Do not execute tools; only provide the plan for their execution.]]></ms-inference:instructions>
+					<ms-inference:data ><![CDATA[#["Users query: " ++ (vars.userPrompt as String) ++ 
 ", Current Observation through called tools: " ++ (vars.multiToolsResult as String) ++ 
-", already executed tools: " ++ (write(vars.toolsUsed default {}, "application/json") as String)]]]></mac-inference:data>
-				</mac-inference:agent-define-prompt-template>
-				<set-variable value='#[%dw 2.0&#10;output application/json&#10;var jsonString = payload.response as String&#10;var cleanedString = jsonString replace /^```json\n/ with "" replace /```$/ with ""&#10;---&#10;read(cleanedString, "application/json")]' doc:name="Set multiTools" doc:id="0706208a-5c3c-490e-aed5-f29226042e44" variableName="multiTools" />
-				<logger level="INFO" doc:name="🔎 Plan 🔎" doc:id="5fe2228f-2707-40ba-a393-3ec1c61d726d" message='#[%dw 2.0&#10;output text&#10;---&#10;"\n\n" ++&#10;"🔎🔎🔎🔎🔎️️ --------------------------  Execution Plan ----------------------- 🔎🔎🔎🔎🔎️\n" ++&#10;"Plan : \n" ++ &#10;write(vars.multiTools, "application/json") ++ &#10;"\n 🔎🔎🔎🔎🔎️️ ---------------------------------------------------------------------- 🔎🔎🔎🔎🔎️" ++&#10;"\n\n"]' />
+", already executed tools: " ++ (write(vars.toolsUsed default {}, "application/json") as String)]]]></ms-inference:data>
+				</ms-inference:agent-define-prompt-template>
+				<set-variable value='#[%dw 2.0
+output application/json
+var jsonString = payload.response as String
+var cleanedString = jsonString replace /^```json\n/ with "" replace /```$/ with ""
+---
+read(cleanedString, "application/json")]' doc:name="Set multiTools" doc:id="0706208a-5c3c-490e-aed5-f29226042e44" variableName="multiTools" />
+				<logger level="INFO" doc:name="🔎 Plan 🔎" doc:id="5fe2228f-2707-40ba-a393-3ec1c61d726d" message='#[%dw 2.0
+output text
+---
+"\n\n" ++
+"🔎🔎🔎🔎🔎️️ --------------------------  Execution Plan ----------------------- 🔎🔎🔎🔎🔎️\n" ++
+"Plan : \n" ++ 
+write(vars.multiTools, "application/json") ++ 
+"\n 🔎🔎🔎🔎🔎️️ ---------------------------------------------------------------------- 🔎🔎🔎🔎🔎️" ++
+"\n\n"]' />
 			</route>
 			<route >
-				<mac-inference:tools-native-template doc:name="Use MCP Tools" doc:id="d470b02b-bff8-406d-8954-18a3cf095159" config-ref="GENERAL" target="planningPayload">
-					<mac-inference:template><![CDATA[You are a crm agent. You execute tools against a CRM or answer question around CRM data. Things you know of without making up things.]]></mac-inference:template>
-					<mac-inference:instructions><![CDATA[Your Goals:
+				<ms-inference:tools-native-template doc:name="Use MCP Tools" doc:id="d470b02b-bff8-406d-8954-18a3cf095159" config-ref="GENERAL" target="planningPayload">
+					<ms-inference:template><![CDATA[You are a crm agent. You execute tools against a CRM or answer question around CRM data. Things you know of without making up things.]]></ms-inference:template>
+					<ms-inference:instructions><![CDATA[Your Goals:
 - Provide a polite, accurate, and concise response to the user's request, utilizing available tools and memory as appropriate.
 - Ensure responses align with the user's intent while maintaining efficiency and relevance.
 
@@ -129,40 +164,70 @@ Your Guardrails:
 - Do not suggest or execute tools already used, as specified in the 'already executed tools' section in the data.
 - Avoid redundant tool usage by cross-referencing the user's query, current observation, and last tools used before suggesting any tools.
 - Don't make up things
-]]></mac-inference:instructions>
-					<mac-inference:data><![CDATA[#["Users query: " ++ (vars.userPrompt as String) ++ 
+]]></ms-inference:instructions>
+					<ms-inference:data><![CDATA[#["Users query: " ++ (vars.userPrompt as String) ++ 
 ", Current Observation through called tools: " ++ (vars.multiToolsResult as String) ++ 
-", already executed tools: " ++ (write(vars.toolsUsed default {}, "application/json") as String)]]]></mac-inference:data>
-					<mac-inference:tools><![CDATA[#[vars.tools]]]></mac-inference:tools>
-				</mac-inference:tools-native-template>
-				<logger level="INFO" doc:name="🛠️ Tools reasoning 🛠️" doc:id="fab75895-7f8b-45c7-974d-d5f3851fe6a8" message='#[%dw 2.0&#10;output text&#10;---&#10;"\n\n" ++&#10;"🛠️🛠️🛠️🛠️🛠️️ --------------------------  Tools Reasoning -------------------------- 🛠️🛠️🛠️🛠️🛠️\n" ++&#10;"Tools : \n" ++ &#10;write(vars.planningPayload, "application/json") ++ &#10;"\n 🛠️🛠️🛠️🛠️🛠️️ ---------------------------------------------------------------------- 🛠️🛠️🛠️🛠️🛠️" ++&#10;"\n\n"]' />
+", already executed tools: " ++ (write(vars.toolsUsed default {}, "application/json") as String)]]]></ms-inference:data>
+					<ms-inference:tools><![CDATA[#[vars.tools]]]></ms-inference:tools>
+				</ms-inference:tools-native-template>
+				<logger level="INFO" doc:name="🛠️ Tools reasoning 🛠️" doc:id="fab75895-7f8b-45c7-974d-d5f3851fe6a8" message='#[%dw 2.0
+output text
+---
+"\n\n" ++
+"🛠️🛠️🛠️🛠️🛠️️ --------------------------  Tools Reasoning -------------------------- 🛠️🛠️🛠️🛠️🛠️\n" ++
+"Tools : \n" ++ 
+write(vars.planningPayload, "application/json") ++ 
+"\n 🛠️🛠️🛠️🛠️🛠️️ ---------------------------------------------------------------------- 🛠️🛠️🛠️🛠️🛠️" ++
+"\n\n"]' />
 			</route>
 		</scatter-gather>
-		<set-variable value="#[%dw 2.0&#10;output application/json&#10;---&#10;(vars.chainsOfThoughts default []) ++ [{&#10;    &quot;cotId&quot;: now() as String {format: &quot;yyyy-MM-dd'T'HH:mm:ss.SSSZ&quot;},&#10;    &quot;plan&quot;: vars.multiTools.plan default &quot;&quot;,&#10;    &quot;multiTools&quot;: vars.multiTools.multiTools default true,&#10;    &quot;final&quot;: vars.multiTools.final default false,&#10;    &quot;toolsToCall&quot;: vars.planningPayload default &quot;&quot;&#10;}]]" doc:name="Set COT" doc:id="c9add113-0568-4ad1-8bac-5f17b02b5e8b" variableName="chainsOfThoughts" />
+		<set-variable value="#[%dw 2.0
+output application/json
+---
+(vars.chainsOfThoughts default []) ++ [{
+    &quot;cotId&quot;: now() as String {format: &quot;yyyy-MM-dd'T'HH:mm:ss.SSSZ&quot;},
+    &quot;plan&quot;: vars.multiTools.plan default &quot;&quot;,
+    &quot;multiTools&quot;: vars.multiTools.multiTools default true,
+    &quot;final&quot;: vars.multiTools.final default false,
+    &quot;toolsToCall&quot;: vars.planningPayload default &quot;&quot;
+}]]" doc:name="Set COT" doc:id="c9add113-0568-4ad1-8bac-5f17b02b5e8b" variableName="chainsOfThoughts" />
 		<flow-ref doc:name="Assess and execute" doc:id="4b3e7994-d7fa-4461-aab1-08594f6f41ec" name="assess-and-execute"/>
-		<logger level="INFO" doc:name="❗️Response ❗️" doc:id="57bb5ce1-16e1-4f00-88d8-487c134b7301" message='#[%dw 2.0&#10;output text&#10;---&#10;"\n\n" ++&#10;"❗️❗️❗️❗️❗️️ --------------------------  Response -------------------------- ❗️❗️❗️❗️❗️\n\n" ++&#10;(payload.response default "") ++ "\n" ++&#10;"\n❗️❗️❗️❗️❗️️ -------------------------------------------------------------- ❗️❗️❗️❗️❗️" ++&#10;"\n\n"]' />
+		<logger level="INFO" doc:name="❗️Response ❗️" doc:id="57bb5ce1-16e1-4f00-88d8-487c134b7301" message='#[%dw 2.0
+output text
+---
+"\n\n" ++
+"❗️❗️❗️❗️❗️️ --------------------------  Response -------------------------- ❗️❗️❗️❗️❗️\n\n" ++
+(payload.response default "") ++ "\n" ++
+"\n❗️❗️❗️❗️❗️️ -------------------------------------------------------------- ❗️❗️❗️❗️❗️" ++
+"\n\n"]' />
 	</sub-flow>
 	<sub-flow name="assess-and-execute" doc:id="76d7a961-764e-43d6-ab34-95ca7968d3bb" >
 		<choice doc:name="Choice" doc:id="13e33c57-5e5b-409f-a824-8f9b8a370cfe" >
 			<when expression="#[(sizeOf(vars.planningPayload.tools default []) &gt; 0)]" >
-				<set-variable value='#[%dw 2.0 &#10;output application/json &#10;--- &#10;(vars.toolsUsed default {}) ++ (vars.planningPayload.tools default {})]' doc:name="Set Variable" doc:id="c61b8fe9-8b71-456c-99bc-a7d6b78f33f6" variableName="toolsUsed"/>
+				<set-variable value='#[%dw 2.0 
+output application/json 
+--- 
+(vars.toolsUsed default {}) ++ (vars.planningPayload.tools default {})]' doc:name="Set Variable" doc:id="c61b8fe9-8b71-456c-99bc-a7d6b78f33f6" variableName="toolsUsed"/>
 				<foreach doc:name="For Each" doc:id="21454eed-82c9-46ac-91f6-c70a14777ead" collection="#[vars.planningPayload.tools]">
 					<mcp:call-tool doc:name="MCP Client - Call Tool" doc:id="450b2165-1b89-42cc-b72f-e0bd86b8d35c" config-ref="MCP_Client" toolName="#[(payload as Object).function.name as String default null]">
 						<mcp:arguments ><![CDATA[#[(payload as Object).function.arguments]]]></mcp:arguments>
 					</mcp:call-tool>
 					<logger level="DEBUG" doc:name="Logger payload after 🛠️ tool call" doc:id="aab0abb0-166e-4a46-aa5c-138412496c71" message="#[payload]" />
-					<set-variable value='#[%dw 2.0 &#10;output text/plain &#10;--- &#10;(vars.multiToolsResult default "Tool results: ") ++ "\n" ++ (vars.counter as String) ++ " - " ++ write(payload, "application/json")]' doc:name="multiToolsResult" doc:id="16a9f958-4b10-4457-96b6-a13058376df1" variableName="multiToolsResult" />
+					<set-variable value='#[%dw 2.0 
+output text/plain 
+--- 
+(vars.multiToolsResult default "Tool results: ") ++ "\n" ++ (vars.counter as String) ++ " - " ++ write(payload, "application/json")]' doc:name="multiToolsResult" doc:id="16a9f958-4b10-4457-96b6-a13058376df1" variableName="multiToolsResult" />
 				</foreach>
 				<choice doc:name="Choice" doc:id="7c217439-6bf7-4ba0-a4a6-7f1b1b942cbe" >
 					<when expression="#[(vars.multiTools.multiTools == true)]">
 						<flow-ref doc:name="Replanning" doc:id="2ff30bb8-1e65-4ef0-8357-f718aa0dc8ab" name="create-plan"/>
 					</when>
 				</choice>
-				<mac-inference:agent-define-prompt-template doc:name="Reply to user using tool call" doc:id="c0acde70-2c57-401b-b9bf-a927ccdcecc8" config-ref="GENERAL">
-					<mac-inference:template><![CDATA[ You are a helpful agent. Don't provide instructions to the users.]]></mac-inference:template>
-					<mac-inference:instructions><![CDATA[Please answer the users question based on the tool calls. You have to consider the tool calls, and reply as if you have done the job and offer assistant in future. Dont say things like 'I'm here to help with your question!' or 'I'm here to help!', answer straight ]]></mac-inference:instructions>
-					<mac-inference:data><![CDATA[#["Tool calls: " ++ vars.multiToolsResult as String ++ ", question: " ++ vars.userPrompt as String]]]></mac-inference:data>
-				</mac-inference:agent-define-prompt-template>
+				<ms-inference:agent-define-prompt-template doc:name="Reply to user using tool call" doc:id="c0acde70-2c57-401b-b9bf-a927ccdcecc8" config-ref="GENERAL">
+					<ms-inference:template><![CDATA[ You are a helpful agent. Don't provide instructions to the users.]]></ms-inference:template>
+					<ms-inference:instructions><![CDATA[Please answer the users question based on the tool calls. You have to consider the tool calls, and reply as if you have done the job and offer assistant in future. Dont say things like 'I'm here to help with your question!' or 'I'm here to help!', answer straight ]]></ms-inference:instructions>
+					<ms-inference:data><![CDATA[#["Tool calls: " ++ vars.multiToolsResult as String ++ ", question: " ++ vars.userPrompt as String]]]></ms-inference:data>
+				</ms-inference:agent-define-prompt-template>
 			</when>
 			<otherwise >
 				<set-payload value="#[vars.planningPayload]" doc:name="Set Payload" doc:id="28ce85a6-b882-48a7-a9d4-77c81adf9962" />
