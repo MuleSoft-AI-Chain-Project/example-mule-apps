@@ -6,6 +6,7 @@ The **A2A AIL Demo** (Agent-to-Agent Integration and Learning Demonstration) is 
 
 ## 📋 Table of Contents
 
+- [🎥 Video Tutorial](#-tutorial)
 - [🏗️ Architecture](#️-architecture)
 - [📁 Applications](#-applications)
   - [🤖 Specialized Agents](#-specialized-agents)
@@ -30,62 +31,84 @@ The **A2A AIL Demo** (Agent-to-Agent Integration and Learning Demonstration) is 
 - [📝 License](#-license)
 - [🙋‍♀️ Support](#️-support)
 
+## Video Tutorial
+[Link to the video tutorial](https://www.youtube.com/watch?v=pL5IZ9HsJAM)
+
 ## 🏗️ Architecture
 
 This demo demonstrates a multi-agent architecture where:
-- **Specialized agents** handle specific business domains (CRM, ERP, Reservations)
-- **Domain agents** orchestrate and coordinate multiple specialized agents  
+- **Specialized agents** handle specific areas within dedicated business domains (CRM, ERP, HR, etc.)
+- **Domain agents** orchestrate and coordinate multiple specialized agents within their responsible domain
 - **AI engines** (OpenAI, Einstein AI, Agentforce) power intelligent decision-making
 - **MCP servers** provide standardized tool access for agents
 - **Audit services** track all agent interactions for compliance and monitoring
+
+![Demo Architecture](services/img/demo-architecture.png "Demo Archtecture")
 
 ## 📁 Applications
 
 ### 🤖 Specialized Agents
 
 #### 1. **a2a-crm-headless-agent-app**
+- **Template**: This template can be used for any type of specialised agent. In this example, we are focusing on a CRM agent with account mgmt responsibilities and skills. 
+- **Approach**: The approach within this agent template showcases, how Agent workflows can be implemented using Inference Connector and MCP Connector. 
+- **Agent Category**: Complex - This template can reason & evaluate upon user query and create an execution plan with detailed steps to answer. It also re-evaluates by observing the answer it retrieves from various tool usages.
 - **Purpose**: CRM operations specialist
 - **Capabilities**: 
-  - Account management (CRUD operations)
-  - Lead management
-  - Contact management  
-  - Opportunity management
+  - Account management (CRUD operations) (Used in this example)
 - **Skills**: Get Accounts, Create Accounts, Update Accounts, Delete Accounts
 - **Integration**: Uses MCP connector to communicate with CRM systems
 - **AI Engine**: OpenAI GPT-4o-mini
 - **Endpoint**: `/crm-agent`
 
 #### 2. **a2a-erp-headless-agent-app**
+- **Template**: This template can be used for any type of specialised agent. In this example, we are focusing on a ERP agent with Sales & Distribution Mgmt. responsibilities and skills. 
+- **Approach**: The approach within this agent template showcases, how Agent workflows can be implemented using Inference Connector and its native MCP capabilities. 
+- **Agent Category**: Complex - This template can reason & evaluate upon user query and create an execution plan with detailed steps to answer. It also re-evaluates by observing the answer it retrieves from various tool usages.
 - **Purpose**: ERP operations specialist  
 - **Capabilities**:
   - Inventory management
   - Sales order processing
   - Delivery processing
 - **Skills**: Inventory Check, Sales Order, Process Delivery
+- **Integration**: Uses MCP native integration of the Inference Connector to reason on available tools
 - **AI Engine**: OpenAI GPT-4o-mini  
 - **Endpoint**: `/erp-agent`
 
 #### 3. **a2a-einstein-ai-headless-agent-app**
+- **Template**: This template can be used for any type of specialised agent. In this example, we are focusing on a CRM agent with Lead Mgmt. responsibilities and skills. 
+- **Approach**: The approach within this agent template showcases, how Agent workflows can be implemented using Einstein Connector and making use of Mule Flows as tools. 
+- **Agent Category**: Simple - This template can assess the users query and answers it without re-evaluation.
 - **Purpose**: Lead management specialist using Einstein AI
 - **Capabilities**:
   - Lead retrieval from HubSpot
   - Lead creation  
   - Lead deletion
 - **Skills**: Get Leads, Create Leads, Delete Leads
-- **AI Engine**: Salesforce Einstein AI
+- **AI Engine**: Salesforce Einstein AI (Models API)
 - **Integration**: HubSpot connector
 - **Endpoint**: `/einstein-agent`
 
 #### 4. **a2a-agentforce-headless-reservation-agent-app**
+- **Template**: This template is for Agentforce Agents, which has been created in Agentforce. 
+- **Approach**:  Agentforce Agent headless call.
+- **Agent Category**: Simple - This templates is capable of saving the Agentforce SessionId mapped to the A2A Session Id, so the conversation from the user can refer to the Agentforce Session Id and history can be remembered by the Agent.
 - **Purpose**: Reservation management specialist
 - **Capabilities**: Automated reservation processing
 - **Skills**: Submit Reservation
 - **AI Engine**: Salesforce Agentforce
 - **Endpoint**: `/agentforce-agent`
 
+![Specialised Agents](services/img/Specialised_agents.png "Specialised Agents")
+
 ### 🎯 Domain Orchestration Agent
 
 #### **a2a-interaction-agent-app**
+- **Template**: This template can be used for any type of domain agent. In this example, there is no specific focus on the domain. But you could use this as a domain agent for CRM and add the Account Mgmt, Lead Mgmt and Reservation Agents to it. You can also deploy this template multiple times with a different domain focus and dedicated specialised agents within. 
+- **Approach**: The approach within this agent template showcases, how domain agents can be implemented with MuleSoft. This template has combined 2 approaches to show case the flexibility on how,
+  - **(a)** - to use Inference Connector to be the LLM provider for the reasoning and tooling 
+  - **(b)** - or the Einstein AI Connector (using the Models API) to be the LLM provider for the reasoning and tooling.
+- **Agent Category**: Complex - This template can reason & evaluate upon user query and create an execution plan with detailed steps to answer. It also re-evaluates by observing the answer it retrieves from specialised agents.
 - **Purpose**: Main orchestration hub and domain agent
 - **Capabilities**:
   - Coordinates multiple specialized agents
@@ -99,6 +122,7 @@ This demo demonstrates a multi-agent architecture where:
   - Session management
   - External service integration for audit logging
 - **Skills**: Account Mgmt, Lead Mgmt, Reservation Mgmt, Opportunities, Contacts
+- **AI Engine**: Option between OpenAI GPT-4o-mini (via Inference Connector) or OpenAI GPT-4.1 via Salesforce Einstein AI (Models API)
 - **Endpoint**: `/crm-domain-agent`
 
 ### 🔧 MCP Servers (Model Context Protocol)
@@ -111,6 +135,7 @@ This demo demonstrates a multi-agent architecture where:
   - `update_accounts` - Update existing account information
 - **Protocols**: Both SSE and Streamable HTTP connections
 - **Integration**: Salesforce connector for CRM operations
+- **Approach**: This approach showcases, how to use MCP Tooling by natively creating connectivity to the System of Record (in this case Salesforce) within a single Mule App.
 
 #### **mcp-server-demo-erp**  
 - **Purpose**: Provides standardized tools for ERP operations
@@ -120,6 +145,7 @@ This demo demonstrates a multi-agent architecture where:
   - `submit_delivery` - Process deliveries for existing orders
 - **Protocols**: Both SSE and Streamable HTTP connections
 - **Integration**: SAP ECC system integration
+- **Approach**: This approach showcases, how to use MCP Tooling by reusing existing APIs or external APIs and doing a callout with the HTTP Request Component.
 
 ### 📊 Supporting Services
 
@@ -131,6 +157,7 @@ This demo demonstrates a multi-agent architecture where:
   - Provides audit trail for compliance
 - **Database Schema**: Sessions, tasks, agents, timestamps, messages
 - **API**: REST API for capturing audit events
+- **Specification**: The API Specification is provided under 'a2a-audit-log-external-service-api/api-spec/interaction-capture-api-1.0.3-fat-oas.zip' to be uploaded into Exchange.
 
 #### **toxic-a2a-interaction-agent-app**
 - **Purpose**: Testing/development variant of the interaction agent
