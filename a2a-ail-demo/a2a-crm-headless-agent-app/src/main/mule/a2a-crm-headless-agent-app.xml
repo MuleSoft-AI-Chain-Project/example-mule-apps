@@ -207,10 +207,14 @@ output text
 				<set-variable value='#[%dw 2.0 
 output application/json 
 --- 
-(vars.toolsUsed default {}) ++ (vars.planningPayload.tools default {})]' doc:name="Set Variable" doc:id="c61b8fe9-8b71-456c-99bc-a7d6b78f33f6" variableName="toolsUsed"/>
+(vars.toolsUsed default {}) ++ (vars.planningPayload.tools default {})]' doc:name="toolsUsed" doc:id="c61b8fe9-8b71-456c-99bc-a7d6b78f33f6" variableName="toolsUsed"/>
 				<foreach doc:name="For Each" doc:id="21454eed-82c9-46ac-91f6-c70a14777ead" collection="#[vars.planningPayload.tools]">
-					<mcp:call-tool doc:name="MCP Client - Call Tool" doc:id="450b2165-1b89-42cc-b72f-e0bd86b8d35c" config-ref="MCP_Client" toolName="#[(payload as Object).function.name as String default null]">
-						<mcp:arguments ><![CDATA[#[(payload as Object).function.arguments]]]></mcp:arguments>
+					<mcp:call-tool doc:name="MCP Client - Call Tool" doc:id="450b2165-1b89-42cc-b72f-e0bd86b8d35c" config-ref="MCP_Client" toolName='#[output text/plain
+---
+payload.function.name default "get_accounts"]'>
+						<mcp:arguments ><![CDATA[#[output application/json
+---
+read((payload as Object).function.arguments, "application/json")]]]></mcp:arguments>
 					</mcp:call-tool>
 					<logger level="DEBUG" doc:name="Logger payload after 🛠️ tool call" doc:id="aab0abb0-166e-4a46-aa5c-138412496c71" message="#[payload]" />
 					<set-variable value='#[%dw 2.0 

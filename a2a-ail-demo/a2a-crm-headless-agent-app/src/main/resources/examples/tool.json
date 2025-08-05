@@ -1,0 +1,8 @@
+{
+  "id": "call_Sjuq2rH1nLnpFU7NLrSVHJ3Q",
+  "type": "function",
+  "function": {
+    "name": "salesdistribution",
+    "arguments": "{\"prompt\":\"Check inventory details for material MULETEST0\"}"
+  }
+}
