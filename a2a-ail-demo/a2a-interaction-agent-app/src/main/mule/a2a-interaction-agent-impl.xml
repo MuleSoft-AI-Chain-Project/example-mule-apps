@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:websocket="http://www.mulesoft.org/schema/mule/websocket"
-	xmlns:ms-einstein-ai="http://www.mulesoft.org/schema/mule/ms-einstein-ai"
-	xmlns:mac-inference="http://www.mulesoft.org/schema/mule/mac-inference" xmlns:mcp="http://www.mulesoft.org/schema/mule/mcp" xmlns:os="http://www.mulesoft.org/schema/mule/os" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:a2a="http://www.mulesoft.org/schema/mule/a2a" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+<mule xmlns:ms-inference="http://www.mulesoft.org/schema/mule/ms-inference" xmlns:file="http://www.mulesoft.org/schema/mule/file"
+	xmlns:websocket="http://www.mulesoft.org/schema/mule/websocket"
+	xmlns:ms-einstein-ai="http://www.mulesoft.org/schema/mule/ms-einstein-ai" xmlns:mac-inference="http://www.mulesoft.org/schema/mule/mac-inference" xmlns:mcp="http://www.mulesoft.org/schema/mule/mcp" xmlns:os="http://www.mulesoft.org/schema/mule/os" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:a2a="http://www.mulesoft.org/schema/mule/a2a" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
 http://www.mulesoft.org/schema/mule/a2a http://www.mulesoft.org/schema/mule/a2a/current/mule-a2a.xsd
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
@@ -11,7 +11,8 @@ http://www.mulesoft.org/schema/mule/mcp http://www.mulesoft.org/schema/mule/mcp/
 http://www.mulesoft.org/schema/mule/mac-inference http://www.mulesoft.org/schema/mule/mac-inference/current/mule-mac-inference.xsd
 http://www.mulesoft.org/schema/mule/ms-einstein-ai http://www.mulesoft.org/schema/mule/ms-einstein-ai/current/mule-ms-einstein-ai.xsd
 http://www.mulesoft.org/schema/mule/websocket http://www.mulesoft.org/schema/mule/websocket/current/mule-websocket.xsd
-http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd">
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+http://www.mulesoft.org/schema/mule/ms-inference http://www.mulesoft.org/schema/mule/ms-inference/current/mule-ms-inference.xsd">
 	<sub-flow name="answer-prompt-flow" doc:id="4dfc37d6-652e-430c-8ce8-ff8942eec870" >
 		<logger level="INFO" doc:name="❓Log user prompt ❓" doc:id="94db756a-591c-4e6f-9506-4877875eb0c3" message='#[%dw 2.0&#10;output text&#10;---&#10;"\n\n" ++&#10;"❓❓❓❓❓️️ --------------------------  User Prompt -------------------------- ❓❓❓❓❓️\n\n" ++&#10;(payload.prompt default payload.message.parts[0].text) ++ "\n" ++&#10;"\n❓❓❓❓❓️️ ------------------------------------------------------------------ ❓❓❓❓❓️" ++&#10;"\n\n"]' />
 		<flow-ref doc:name="set-and-initialise-vars" doc:id="7a8bd844-f364-4586-8489-1b20c0d42fe3" name="set-and-initialise-vars" />
@@ -151,10 +152,10 @@ write(vars.chatMessages, "application/json") ++ "\n\n" ++
 	<sub-flow name="process-user-query-with-inference" doc:id="789e2ae7-630e-48ad-9bdb-47dea98d86dd">
 		<scatter-gather doc:name="Scatter-Gather" doc:id="90a5b527-4fd4-4798-9818-6d1e3aa7bcd2" >
 			<route >
-				<mac-inference:agent-define-prompt-template doc:name="Evaluate if agent calls are required." doc:id="136ebd3b-8c96-4cfc-83f5-466481f8fe35" config-ref="MuleSoft_Inference_Text_generation_config">
-			<mac-inference:template><![CDATA[You are a orchestration agent. You anser user queries and if needed you can hand off tasks to specialized agents.]]></mac-inference:template>
-			<mac-inference:instructions><![CDATA[#[vars.inferencePlanningInstructions]]]></mac-inference:instructions>
-			<mac-inference:data><![CDATA[#["### User query\n" ++ 
+				<ms-inference:agent-define-prompt-template doc:name="Evaluate if agent calls are required." doc:id="136ebd3b-8c96-4cfc-83f5-466481f8fe35" config-ref="MuleSoft_Inference_Text_generation_config">
+			<ms-inference:template><![CDATA[You are a orchestration agent. You anser user queries and if needed you can hand off tasks to specialized agents.]]></ms-inference:template>
+			<ms-inference:instructions><![CDATA[#[vars.inferencePlanningInstructions]]]></ms-inference:instructions>
+			<ms-inference:data><![CDATA[#["### User query\n" ++ 
 (vars.userPrompt as String) ++ 
 
 "### Conversation history\n" ++ 
@@ -167,8 +168,8 @@ write(vars.agents.tools, "application/json") ++
 write(vars.selectedAgents.tools, "application/json") ++ 
 
 "### Task executed through called agents\n" ++ 
-(vars.taskHistory as String)]]]></mac-inference:data>
-		</mac-inference:agent-define-prompt-template>
+(vars.taskHistory as String)]]]></ms-inference:data>
+		</ms-inference:agent-define-prompt-template>
 				<set-variable value="#[%dw 2.0
 output application/json
 var raw = payload.response as String
@@ -186,10 +187,10 @@ write(vars.queryAssessment, "application/json") ++
 "\n\n"]' />
 			</route>
 			<route >
-				<mac-inference:tools-native-template doc:name="[Tools] Native Template (Reasoning only)" doc:id="7ea552c0-7068-46da-ac20-31d3eb95a6e6" config-ref="MuleSoft_Inference_Text_generation_config">
-					<mac-inference:template><![CDATA[You are an orchestration agent reasoning on agents to be called.]]></mac-inference:template>
-					<mac-inference:instructions><![CDATA[#[vars.inferenceToolingInstructions]]]></mac-inference:instructions>
-					<mac-inference:data><![CDATA[#["### User query\n" ++ 
+				<ms-inference:tools-native-template doc:name="[Tools] Native Template (Reasoning only)" doc:id="7ea552c0-7068-46da-ac20-31d3eb95a6e6" config-ref="MuleSoft_Inference_Text_generation_config">
+					<ms-inference:template><![CDATA[You are an orchestration agent reasoning on agents to be called.]]></ms-inference:template>
+					<ms-inference:instructions><![CDATA[#[vars.inferenceToolingInstructions]]]></ms-inference:instructions>
+					<ms-inference:data><![CDATA[#["### User query\n" ++ 
 (vars.userPrompt as String) ++ 
 
 "### Task executed through called agents\n" ++ 
@@ -199,9 +200,9 @@ write(vars.queryAssessment, "application/json") ++
 write(vars.agents.tools, "application/json") ++ 
 
 "### Already called agents\n" ++ 
-write(vars.selectedAgents.tools, "application/json")]]]></mac-inference:data>
-					<mac-inference:tools><![CDATA[#[vars.agents.tools]]]></mac-inference:tools>
-				</mac-inference:tools-native-template>
+write(vars.selectedAgents.tools, "application/json")]]]></ms-inference:data>
+					<ms-inference:tools><![CDATA[#[vars.agents.tools]]]></ms-inference:tools>
+				</ms-inference:tools-native-template>
 				<try doc:name="Try" doc:id="c223c450-364a-4174-a411-c216cdf93131" >
 					<set-variable value="#[payload]" doc:name="Set selectedAgents" doc:id="a1fd1796-9242-49e0-81ee-9962b03da5fa" variableName="selectedAgents" />
 					<error-handler >
@@ -279,18 +280,18 @@ else
 				<flow-ref doc:name="process-user-query (replan)" doc:id="a483a0fb-b7a5-4e82-add3-3bea237eeb52" name="process-user-query-with-inference" />
 			</when>
 			<otherwise>
-				<mac-inference:agent-define-prompt-template doc:name="Answer query" doc:id="7a73336d-ddcd-4d76-bd83-46f6a4b6e0f1" config-ref="MuleSoft_Inference_Text_generation_config" >
-					<mac-inference:template ><![CDATA[You are a planner agent.]]></mac-inference:template>
-					<mac-inference:instructions ><![CDATA[You went through maximum number of iterations trying to call agents, please respond to answer the users question based on the agent calls done so far. 
+				<ms-inference:agent-define-prompt-template doc:name="Answer query" doc:id="7a73336d-ddcd-4d76-bd83-46f6a4b6e0f1" config-ref="MuleSoft_Inference_Text_generation_config" >
+					<ms-inference:template ><![CDATA[You are a planner agent.]]></ms-inference:template>
+					<ms-inference:instructions ><![CDATA[You went through maximum number of iterations trying to call agents, please respond to answer the users question based on the agent calls done so far. 
 You have to consider the agent calls, and reply as if you have done the job and offer assistant in future. 
 Base your answer on the task executed with success and not on any ongoing one.
 Let the user know if you faced any error while executing a task, but mention a generic problem nothing to technical.
-Dont say things like 'I'm here to help with your question!' or 'I'm here to help!', answer straight ]]></mac-inference:instructions>
-					<mac-inference:data ><![CDATA[#["User query: " ++ (vars.userPrompt as String) ++ 
+Dont say things like 'I'm here to help with your question!' or 'I'm here to help!', answer straight ]]></ms-inference:instructions>
+					<ms-inference:data ><![CDATA[#["User query: " ++ (vars.userPrompt as String) ++ 
 "Conversation history: " ++ write(vars.chatMessages, "application/json") ++
 ", Already called agents: " ++ write(vars.selectedAgents.tools, "application/json") ++ 
-", Task executed through called agents: " ++ (vars.taskHistory as String)]]]></mac-inference:data>
-				</mac-inference:agent-define-prompt-template>
+", Task executed through called agents: " ++ (vars.taskHistory as String)]]]></ms-inference:data>
+				</ms-inference:agent-define-prompt-template>
 				<ee:transform doc:name="Transform Message" doc:id="0a781826-2147-498f-abb9-9392b45dc809" >
 					<ee:message >
 						<ee:set-payload ><![CDATA[%dw 2.0
@@ -504,10 +505,7 @@ var cleaned = raw replace '```json' with '' replace '```' with ''
 		</choice>
 	</sub-flow>
 	<sub-flow name="send-task-refactored" doc:id="4be1e4ea-9f9d-4c85-b834-6b2ae7e343a8">
-		<set-variable value="#[%dw 2.0
-output text/plain
----
-vars.selectedAgent.function.arguments.prompt]" doc:name="agentPrompt" doc:id="c4e079c8-8a08-4bd4-97e1-ebade15cf212" variableName="agentPrompt" />
+		<set-variable value='#[%dw 2.0&#10;output text/plain&#10;---&#10;(read(vars.selectedAgent.function.arguments default "", "application/json") as Object).prompt]' doc:name="agentPrompt" doc:id="c4e079c8-8a08-4bd4-97e1-ebade15cf212" variableName="agentPrompt" />
 		<set-variable value="#[%dw 2.0
 output text/plain
 ---

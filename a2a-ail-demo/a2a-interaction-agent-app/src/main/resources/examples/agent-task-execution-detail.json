@@ -1,0 +1,45 @@
+{
+  "agentName": "Sales Distribution",
+  "agentAPIName": "salesdistribution",
+  "planNumber": 1,
+  "agentTaskRequest": {
+    "id": "00883cb6-0b60-4efc-884e-a0d96383fa01",
+    "sessionId": "32224cac-ca5f-49f2-b815-d40f0a5818fe",
+    "message": {
+      "parts": [
+        {
+          "text": "Check inventory details for material MULETEST0"
+        }
+      ]
+    }
+  },
+  "agentTaskResponse": {
+    "id": "00883cb6-0b60-4efc-884e-a0d96383fa01",
+    "sessionId": "32224cac-ca5f-49f2-b815-d40f0a5818fe",
+    "status": {
+      "state": "completed",
+      "message": {
+        "role": "agent",
+        "parts": [
+          {
+            "type": "text",
+            "text": "The inventory details for material MULETEST0 indicate that there is an available quantity of 1,650,495 units. If you need any further assistance or information, feel free to ask!"
+          }
+        ]
+      },
+      "timestamp": "2025-08-05T12:05:03Z"
+    },
+    "artifacts": [
+      {
+        "name": "Answer",
+        "index": 0,
+        "parts": [
+          {
+            "type": "text",
+            "text": "The inventory details for material MULETEST0 indicate that there is an available quantity of 1,650,495 units. If you need any further assistance or information, feel free to ask!"
+          }
+        ]
+      }
+    ]
+  }
+}
