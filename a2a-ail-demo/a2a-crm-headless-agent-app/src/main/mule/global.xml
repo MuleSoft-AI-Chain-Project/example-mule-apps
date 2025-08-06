@@ -55,7 +55,7 @@ http://www.mulesoft.org/schema/mule/ms-inference http://www.mulesoft.org/schema/
 					<a2a:description ><![CDATA[${agent.skill.4.description}]]></a2a:description>
 				</a2a:agent-skill>
 			</a2a:skills>
-			<a2a:provider organization="MuleSoft" url="https://www.mulesoft.com/" />
+			<a2a:provider organization="${agent.providerOrganization}" url="${agent.providerUrl}" />
 		</a2a:card>
 	</a2a:server-config>
 	<file:config name="File_Config" doc:name="File Config" doc:id="3bd62a83-7b73-4484-aa54-6873e948e6fd" />
