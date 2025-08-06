@@ -63,7 +63,7 @@
 		<dependency>
 			<groupId>com.mulesoft.connectors</groupId>
 			<artifactId>mule4-a2a-connector</artifactId>
-			<version>0.1.0-BETA</version>
+			<version>0.2.0-BETA</version>
 			<classifier>mule-plugin</classifier>
 		</dependency>
 		<dependency>
