@@ -22,7 +22,7 @@ http://www.mulesoft.org/schema/mule/a2a http://www.mulesoft.org/schema/mule/a2a/
    	</http:listener-config>
 	<a2a:server-config name="Agentforce_Agent_A2A_Server" doc:name="A2A Server" doc:id="4cdfa0c3-37ea-4123-8ff2-3585521c8bd2" >
 		<a2a:connection listenerConfig="A2A_Agent_HTTP_Listener_config" agentPath="/agentforce-agent" />
-		<a2a:card name="${agent.name}" url="${agent.host}/agentforce-agent" version="1.0.0" >
+		<a2a:card name="${agent.name}" url="${agent.host}/agentforce-agent" version="1.0.0" documentationUrl="https://developer.salesforce.com/docs/einstein/genai/overview" iconUrl="https://raw.githubusercontent.com/MuleSoft-AI-Chain-Project/example-mule-apps/refs/heads/master/a2a-ail-demo/a2a-interaction-agent-app/src/main/resources/uiapp/assets/images/agentforceagent.png">
 			<a2a:description ><![CDATA[${agent.description}]]></a2a:description>
 			<a2a:skills >
 				<a2a:agent-skill id="${agent.skill.1.id}" name="${agent.skill.1.name}" >
@@ -32,6 +32,7 @@ http://www.mulesoft.org/schema/mule/a2a http://www.mulesoft.org/schema/mule/a2a/
 					</a2a:tags>
 				</a2a:agent-skill>
 			</a2a:skills>
+			<a2a:provider organization="Salesforce" url="https://www.salesforce.com/agentforce/" />
 		</a2a:card>
 	</a2a:server-config>
 	<ms-agentforce:config name="Agentforce_Configuration" doc:name="Agentforce Configuration" doc:id="222bda12-075f-45b7-81ce-459f092b5853" >
