@@ -24,7 +24,7 @@ http://www.mulesoft.org/schema/mule/ms-einstein-ai http://www.mulesoft.org/schem
    	
 	<a2a:server-config name="Einstein_Agent_A2A_Server" doc:name="A2A Server" doc:id="219f0f39-fb5d-4a85-a734-d81b125ada28" >
 		<a2a:connection listenerConfig="A2A_Agent_HTTP_Listener_config" agentPath="/einstein-agent" />
-		<a2a:card name="${agent.name}" url="${agent.host}/einstein-agent" version="1.0.0" >
+		<a2a:card name="${agent.name}" url="${agent.host}/einstein-agent" version="1.0.0" documentationUrl="${agent.documentationUrl}" iconUrl="${agent.iconUrl}">
 			<a2a:description ><![CDATA[${agent.description}]]></a2a:description>
 			<a2a:skills >
 				<a2a:agent-skill id="${agent.skill.1.id}" name="${agent.skill.1.name}" >
@@ -40,6 +40,7 @@ http://www.mulesoft.org/schema/mule/ms-einstein-ai http://www.mulesoft.org/schem
 					<a2a:description ><![CDATA[${agent.skill.3.description}]]></a2a:description>
 				</a2a:agent-skill>
 			</a2a:skills>
+			<a2a:provider organization="${agent.providerOrganization}" url="${agent.providerUrl}" />
 		</a2a:card>
 	</a2a:server-config>
 	<file:config name="File_Config" doc:name="File Config" doc:id="4bde4760-bbe2-40ca-9d0f-fb71a20357bd" />

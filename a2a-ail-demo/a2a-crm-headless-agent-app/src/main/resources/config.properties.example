@@ -3,6 +3,10 @@ mcpserver.crm.url=
 agent.name=Account Mgmt Agent
 agent.host=
 agent.description=CRM Agent which is responsible for managing accounts. This agent can be called to do CRUD operations (read, insert, update and delete) on accounts.
+agent.iconUrl=https://raw.githubusercontent.com/MuleSoft-AI-Chain-Project/example-mule-apps/refs/heads/master/a2a-ail-demo/a2a-interaction-agent-app/src/main/resources/uiapp/assets/images/muleaichainagent.webp
+agent.documentationUrl=https://github.com/MuleSoft-AI-Chain-Project/example-mule-apps/blob/master/a2a-ail-demo/README.md#1-a2a-crm-headless-agent-app
+agent.providerOrganization=MuleSoft
+agent.providerUrl=https://mac-project.ai/
 
 agent.skill.1.id=1
 agent.skill.1.name=Get Accounts

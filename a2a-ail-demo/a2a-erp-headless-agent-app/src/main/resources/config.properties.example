@@ -3,6 +3,10 @@ mcpserver.erp.url=
 agent.name=Sales Distribution
 agent.host=
 agent.description=ERP Agent which is responsible for inventory check, sales order and delivery.
+agent.iconUrl=https://raw.githubusercontent.com/MuleSoft-AI-Chain-Project/example-mule-apps/refs/heads/master/a2a-ail-demo/a2a-interaction-agent-app/src/main/resources/uiapp/assets/images/muleaichainagent.webp
+agent.documentationUrl=https://github.com/MuleSoft-AI-Chain-Project/example-mule-apps/blob/master/a2a-ail-demo/README.md#2-a2a-erp-headless-agent-app
+agent.providerOrganization=MuleSoft
+agent.providerUrl=https://mac-project.ai/
 
 agent.skill.1.id=1
 agent.skill.1.name=Inventory Check
