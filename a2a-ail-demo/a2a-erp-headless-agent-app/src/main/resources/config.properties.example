@@ -1,4 +1,6 @@
 mcpserver.erp.url=
+mcpserver.erp.clientId=
+mcpserver.erp.clientSecret=
 
 agent.name=Sales Distribution
 agent.host=
