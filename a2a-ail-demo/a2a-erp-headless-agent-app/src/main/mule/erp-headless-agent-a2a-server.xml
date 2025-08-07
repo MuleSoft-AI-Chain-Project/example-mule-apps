@@ -9,6 +9,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 		<a2a:task-listener doc:name="Task Listener" doc:id="5f072bc9-569e-4d84-994b-52cf6be84145" config-ref="ERP_Agent_A2A_Server" />
 		<logger level="INFO" doc:name="❓Log user prompt ❓" doc:id="88e0c5a5-a7b0-46f7-ab60-eff933b04c68" message='#[%dw 2.0&#10;output text&#10;---&#10;"\n\n" ++&#10;"❓❓❓❓❓️️ --------------------------  User Prompt -------------------------- ❓❓❓❓❓️\n\n" ++&#10;(payload.message.parts[0].text default "") ++ "\n" ++&#10;"\n❓❓❓❓❓️️ ------------------------------------------------------------------ ❓❓❓❓❓️" ++&#10;"\n\n"]' category="❓Log user prompt ❓" />
 		<flow-ref doc:name="Setting defaults" doc:id="37c8ec4f-10da-42e3-9cfc-23ce3fa6692a" name="set-and-initialise-vars" />
+		<flow-ref doc:name="List MCP Tools" doc:id="c238eeb4-6eae-495b-826a-3fd3159205fe" name="list-mcp-tools" />
 		<flow-ref doc:name="Create a plan" doc:id="8ce2a3a1-1e0b-4a74-ab3d-e41c725a8388" name="create-plan" />
 		<ee:transform doc:name="Transform Message" doc:id="0d132383-92cb-4e7f-94e1-5dc55c4ef042" >
 			<ee:message >
