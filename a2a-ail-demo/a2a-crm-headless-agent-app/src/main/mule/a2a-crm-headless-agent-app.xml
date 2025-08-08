@@ -68,9 +68,9 @@ write(vars.tools, "application/json") ++ "\n\n" ++
 	<sub-flow name="create-plan" doc:id="ef9c2d20-7967-4d7c-b56a-ddd9af66c363" >
 		<scatter-gather doc:name="Scatter-Gather" doc:id="4411dda8-14f0-4ad2-adbd-38d12f69f73f" >
 			<route >
-				<ms-inference:agent-define-prompt-template doc:name="Create Plan" doc:id="96651109-b214-4a94-bd3b-6d6ac17fb2e2" config-ref="GENERAL">
-					<ms-inference:template ><![CDATA[You are a crm agent. You answer general question based on your knowledge. Things you know of without making up things.]]></ms-inference:template>
-					<ms-inference:instructions ><![CDATA[Objective:
+				<mac-inference:agent-define-prompt-template doc:name="Create Plan" doc:id="96651109-b214-4a94-bd3b-6d6ac17fb2e2" config-ref="GENERAL">
+					<mac-inference:template ><![CDATA[You are a crm agent. You answer general question based on your knowledge. Things you know of without making up things.]]></mac-inference:template>
+					<mac-inference:instructions ><![CDATA[Objective:
 Identify the tools required to fulfill the user query and define a plan with sequenced steps for tool execution, ensuring each tool is executed only once.
 
 (1) Task:
@@ -119,11 +119,11 @@ Identify the tools required to fulfill the user query and define a plan with seq
 (3) Output Guidelines:
 - Ensure the plan is clear and formatted with steps and sub-steps as bullet points.
 - Maintain the context of the user query without altering its intent.
-- Do not execute tools; only provide the plan for their execution.]]></ms-inference:instructions>
-					<ms-inference:data ><![CDATA[#["Users query: " ++ (vars.userPrompt as String) ++ 
+- Do not execute tools; only provide the plan for their execution.]]></mac-inference:instructions>
+					<mac-inference:data ><![CDATA[#["Users query: " ++ (vars.userPrompt as String) ++ 
 ", Current Observation through called tools: " ++ (vars.multiToolsResult as String) ++ 
-", already executed tools: " ++ (write(vars.toolsUsed default {}, "application/json") as String)]]]></ms-inference:data>
-				</ms-inference:agent-define-prompt-template>
+", already executed tools: " ++ (write(vars.toolsUsed default {}, "application/json") as String)]]]></mac-inference:data>
+				</mac-inference:agent-define-prompt-template>
 				<set-variable value='#[%dw 2.0
 output application/json
 var jsonString = payload.response as String
@@ -141,9 +141,9 @@ write(vars.multiTools, "application/json") ++
 "\n\n"]' />
 			</route>
 			<route >
-				<ms-inference:tools-native-template doc:name="Use MCP Tools" doc:id="d470b02b-bff8-406d-8954-18a3cf095159" config-ref="GENERAL" target="planningPayload">
-					<ms-inference:template><![CDATA[You are a crm agent. You execute tools against a CRM or answer question around CRM data. Things you know of without making up things.]]></ms-inference:template>
-					<ms-inference:instructions><![CDATA[Your Goals:
+				<mac-inference:tools-native-template doc:name="Use MCP Tools" doc:id="d470b02b-bff8-406d-8954-18a3cf095159" config-ref="GENERAL" target="planningPayload">
+					<mac-inference:template><![CDATA[You are a crm agent. You execute tools against a CRM or answer question around CRM data. Things you know of without making up things.]]></mac-inference:template>
+					<mac-inference:instructions><![CDATA[Your Goals:
 - Provide a polite, accurate, and concise response to the user's request, utilizing available tools and memory as appropriate.
 - Ensure responses align with the user's intent while maintaining efficiency and relevance.
 
@@ -156,12 +156,12 @@ Your Guardrails:
 - Do not suggest or execute tools already used, as specified in the 'already executed tools' section in the data.
 - Avoid redundant tool usage by cross-referencing the user's query, current observation, and last tools used before suggesting any tools.
 - Don't make up things
-]]></ms-inference:instructions>
-					<ms-inference:data><![CDATA[#["Users query: " ++ (vars.userPrompt as String) ++ 
+]]></mac-inference:instructions>
+					<mac-inference:data><![CDATA[#["Users query: " ++ (vars.userPrompt as String) ++ 
 ", Current Observation through called tools: " ++ (vars.multiToolsResult as String) ++ 
-", already executed tools: " ++ (write(vars.toolsUsed default {}, "application/json") as String)]]]></ms-inference:data>
-					<ms-inference:tools><![CDATA[#[vars.tools]]]></ms-inference:tools>
-				</ms-inference:tools-native-template>
+", already executed tools: " ++ (write(vars.toolsUsed default {}, "application/json") as String)]]]></mac-inference:data>
+					<mac-inference:tools><![CDATA[#[vars.tools]]]></mac-inference:tools>
+				</mac-inference:tools-native-template>
 				<logger level="INFO" doc:name="🛠️ Tools reasoning 🛠️" doc:id="fab75895-7f8b-45c7-974d-d5f3851fe6a8" message='#[%dw 2.0
 output text
 ---
@@ -197,7 +197,8 @@ output application/json
 					<mcp:call-tool doc:name="MCP Client - Call Tool" doc:id="450b2165-1b89-42cc-b72f-e0bd86b8d35c" config-ref="MCP_Client" toolName='#[output text/plain&#10;---&#10;payload.function.name default "get_inventory"]'>
 						<mcp:arguments ><![CDATA[#[output application/json
 ---
-read((payload as Object).function.arguments, "application/json")]]]></mcp:arguments>
+(payload as Object).function.arguments
+//read((payload as Object).function.arguments, "application/json")]]]></mcp:arguments>
 					</mcp:call-tool>
 					<logger level="DEBUG" doc:name="Logger payload after 🛠️ tool call" doc:id="aab0abb0-166e-4a46-aa5c-138412496c71" message="#[payload]" />
 					<set-variable value='#[%dw 2.0 
@@ -210,11 +211,11 @@ output text/plain
 						<flow-ref doc:name="Replanning" doc:id="2ff30bb8-1e65-4ef0-8357-f718aa0dc8ab" name="create-plan"/>
 					</when>
 				</choice>
-				<ms-inference:agent-define-prompt-template doc:name="Reply to user using tool call" doc:id="c0acde70-2c57-401b-b9bf-a927ccdcecc8" config-ref="GENERAL">
-					<ms-inference:template><![CDATA[ You are a helpful agent. Don't provide instructions to the users.]]></ms-inference:template>
-					<ms-inference:instructions><![CDATA[Please answer the users question based on the tool calls. You have to consider the tool calls, and reply as if you have done the job and offer assistant in future. Dont say things like 'I'm here to help with your question!' or 'I'm here to help!', answer straight ]]></ms-inference:instructions>
-					<ms-inference:data><![CDATA[#["Tool calls: " ++ vars.multiToolsResult as String ++ ", question: " ++ vars.userPrompt as String]]]></ms-inference:data>
-				</ms-inference:agent-define-prompt-template>
+				<mac-inference:agent-define-prompt-template doc:name="Reply to user using tool call" doc:id="c0acde70-2c57-401b-b9bf-a927ccdcecc8" config-ref="GENERAL">
+					<mac-inference:template><![CDATA[ You are a helpful agent. Don't provide instructions to the users.]]></mac-inference:template>
+					<mac-inference:instructions><![CDATA[Please answer the users question based on the tool calls. You have to consider the tool calls, and reply as if you have done the job and offer assistant in future. Dont say things like 'I'm here to help with your question!' or 'I'm here to help!', answer straight ]]></mac-inference:instructions>
+					<mac-inference:data><![CDATA[#["Tool calls: " ++ vars.multiToolsResult as String ++ ", question: " ++ vars.userPrompt as String]]]></mac-inference:data>
+				</mac-inference:agent-define-prompt-template>
 			</when>
 			<otherwise >
 				<set-payload value="#[vars.planningPayload]" doc:name="Set Payload" doc:id="28ce85a6-b882-48a7-a9d4-77c81adf9962" />
