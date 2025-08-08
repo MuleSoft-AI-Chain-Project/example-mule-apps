@@ -23,10 +23,11 @@ http://www.mulesoft.org/schema/mule/ms-inference http://www.mulesoft.org/schema/
 		</http:listener-interceptors>
 	</http:listener-config>
 	
-	<ms-inference:text-generation-config name="GENERAL" doc:name="MuleSoft Inference Text generation config" doc:id="c9f137d7-f0fd-4b8f-8bbf-a3f07aff0d0a" >
-		<ms-inference:openai-connection apiKey="${openai.apikey}" maxTokens="${openai.maxToken}" openAIModelName="${openai.model}"/>
-	</ms-inference:text-generation-config>
-
+	<mac-inference:text-generation-config name="GENERAL" doc:name="MuleSoft Inference Text generation config" doc:id="17a5df4f-c2db-430d-8352-478fe0f7d943" >
+<!-- 		<mac-inference:openai-connection apiKey="${openai.apikey}" maxTokens="${openai.maxToken}" openAIModelName="${openai.model}"/> -->
+		<mac-inference:llm-connection inferenceType="OPENAI" modelName="${openai.model}" apiKey="${openai.apikey}" maxTokens="${openai.maxToken}" mcpSseServers="#[vars.mcpservers]"/>
+	</mac-inference:text-generation-config>
+	
 	<configuration-properties doc:name="Configuration properties" doc:id="badfa291-b7da-486d-b4c2-1e381b9e7b11" file="config.properties" />
 	<a2a:server-config name="CRM_Agent_A2A_Server" doc:name="A2A Server" doc:id="179ff933-a0b0-40d4-bc9b-36ee2d897de6" >
 		<a2a:connection listenerConfig="A2A_CRM_Agent_HTTP_Listener_config" agentPath="/crm-agent" />
@@ -61,7 +62,12 @@ http://www.mulesoft.org/schema/mule/ms-inference http://www.mulesoft.org/schema/
 	<file:config name="File_Config" doc:name="File Config" doc:id="3bd62a83-7b73-4484-aa54-6873e948e6fd" />
 
 	<mcp:client-config name="MCP_Client" doc:name="MCP Client" doc:id="82db141b-63f2-4fc9-9147-0d529b179213" clientName="Mule MCP COnnector" clientVersion="1.0.0" >
-		<mcp:streamable-http-client-connection serverUrl="${mcpserver.crm.url}"/>
+		<mcp:streamable-http-client-connection serverUrl="${mcpserver.crm.url}">
+			<mcp:default-request-headers >
+				<mcp:default-request-header key="client_id" value="${mcpserver.crm.clientId}" />
+				<mcp:default-request-header key="client_secret" value="${mcpserver.crm.clientSecret}" />
+			</mcp:default-request-headers>
+		</mcp:streamable-http-client-connection>
 	</mcp:client-config>
 
 </mule>

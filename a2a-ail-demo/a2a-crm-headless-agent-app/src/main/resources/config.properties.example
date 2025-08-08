@@ -1,4 +1,6 @@
 mcpserver.crm.url=
+mcpserver.crm.clientId=
+mcpserver.crm.clientSecret=
 
 agent.name=Account Mgmt Agent
 agent.host=
