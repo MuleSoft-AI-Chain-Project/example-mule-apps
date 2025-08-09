@@ -50,6 +50,7 @@ output application/json
 	"message": {
 		"parts": [
 			{
+                "type": "text",
 				"text": vars.agentPrompt as String
 			}
 		]
