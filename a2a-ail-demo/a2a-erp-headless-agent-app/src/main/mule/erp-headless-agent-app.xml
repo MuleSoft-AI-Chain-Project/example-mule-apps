@@ -18,7 +18,9 @@ http://www.mulesoft.org/schema/mule/ms-inference http://www.mulesoft.org/schema/
 		<set-variable value='#["OPENAI"]' doc:name="inferenceType" doc:id="7ce22fd1-8ef5-4f88-afb1-b6f6b9ba99f6" variableName="inferenceType"/>
 		<set-variable value='${openai.apikey}' doc:name="apiKey" doc:id="028ca50e-98f4-4ae4-bbea-2e19d9edf32e" variableName="apiKey"/>
 		<set-variable value='#["gpt-4o-mini"]' doc:name="model" doc:id="cc39205e-575d-4436-b049-717c0e25b49a" variableName="model"/>
-		<set-variable value="#[{&#10;  'ERP MCP Server': p('mcpserver.erp.url')&#10;}]" doc:name="mcpservers" doc:id="3b60dd9c-fadb-4b7a-a438-3abf1f4a5063" variableName="mcpservers"/>
+		<set-variable value="#[{
+  'ERP MCP Server': p('mcpserver.erp.url')
+}]" doc:name="mcpservers" doc:id="3b60dd9c-fadb-4b7a-a438-3abf1f4a5063" variableName="mcpservers"/>
 		<set-variable value='#["Tool results: "]' doc:name="set multiTools results" doc:id="2242b8da-a134-4b72-9ffd-93b87f69b91d" variableName="multiToolsResult" />
 		<set-variable value="#[[]]" doc:name="set toolsUsed" doc:id="fd4e589e-fbe2-4275-baee-34e135b771bf" variableName="toolsUsed" />
 		<set-variable value="#[[]]" doc:name="set COT" doc:id="720be86b-57e8-4fcc-b03f-06749e9d029c" variableName="chainsOfThoughts" />
@@ -27,7 +29,13 @@ http://www.mulesoft.org/schema/mule/ms-inference http://www.mulesoft.org/schema/
 	</sub-flow>
 	<sub-flow name="list-mcp-tools" doc:id="0873062a-222b-47a9-9b1a-895386e1fdb6">
 		<mcp:list-tools doc:id="15db4396-dcb3-4949-9052-e2370c71413c" doc:name="MCP Client - List Tools" config-ref="MCP_Client"/>
-		<logger level="DEBUG" doc:name="🛠️Available  MCP Tools 🛠️" doc:id="1d9e0f29-0f02-4e06-8878-4d768f70b0af" message='#[output text&#10;---&#10;"🛠️🛠️🛠️🛠️🛠️ ------------------- MCP Avaialble Tools ------------------- 🛠️🛠️🛠️🛠️🛠\n\n" ++&#10;&#10;write(payload, "application/json") ++ "\n\n" ++&#10;&#10;"🛠️🛠️🛠️🛠️🛠️ ------------------- MCP Avaialble Tools ------------------- 🛠️🛠️🛠️🛠️🛠\n\n"]' />
+		<logger level="DEBUG" doc:name="🛠️Available  MCP Tools 🛠️" doc:id="1d9e0f29-0f02-4e06-8878-4d768f70b0af" message='#[output text
+---
+"🛠️🛠️🛠️🛠️🛠️ ------------------- MCP Avaialble Tools ------------------- 🛠️🛠️🛠️🛠️🛠\n\n" ++
+
+write(payload, "application/json") ++ "\n\n" ++
+
+"🛠️🛠️🛠️🛠️🛠️ ------------------- MCP Avaialble Tools ------------------- 🛠️🛠️🛠️🛠️🛠\n\n"]' />
 		<ee:transform doc:name="Save all available tools into the right format into variable tools" doc:id="1bbed898-7e73-4ef9-8f26-9b4ac6c33e53">
 			<ee:message />
 			<ee:variables>
@@ -49,7 +57,13 @@ payload map (item) -> {
 ]]></ee:set-variable>
 			</ee:variables>
 		</ee:transform>
-		<logger level="DEBUG" doc:name="🛠️Converted  MCP Tools 🛠️" doc:id="168e037f-81cb-4ecd-88d8-456610555d95" message='#[output text&#10;---&#10;"🛠️🛠️🛠️🛠️🛠️ ------------------- Converted MCP Tools ------------------- 🛠️🛠️🛠️🛠️🛠\n\n" ++&#10;&#10;write(vars.tools, "application/json") ++ "\n\n" ++&#10;&#10;"🛠️🛠️🛠️🛠️🛠️ ------------------- MCP Avaialble Tools ------------------- 🛠️🛠️🛠️🛠️🛠\n\n"]' />
+		<logger level="DEBUG" doc:name="🛠️Converted  MCP Tools 🛠️" doc:id="168e037f-81cb-4ecd-88d8-456610555d95" message='#[output text
+---
+"🛠️🛠️🛠️🛠️🛠️ ------------------- Converted MCP Tools ------------------- 🛠️🛠️🛠️🛠️🛠\n\n" ++
+
+write(vars.tools, "application/json") ++ "\n\n" ++
+
+"🛠️🛠️🛠️🛠️🛠️ ------------------- MCP Avaialble Tools ------------------- 🛠️🛠️🛠️🛠️🛠\n\n"]' />
 	</sub-flow>
 	<sub-flow name="create-plan" doc:id="ef9c2d20-7967-4d7c-b56a-ddd9af66c363" >
 		<scatter-gather doc:name="Scatter-Gather" doc:id="4411dda8-14f0-4ad2-adbd-38d12f69f73f" >
@@ -61,8 +75,21 @@ payload map (item) -> {
 ", Current Observation through called tools: " ++ (vars.multiToolsResult as String) ++ 
 ", already executed tools: " ++ (write(vars.toolsUsed default {}, "application/json") as String)]]]></ms-inference:data>
 				</ms-inference:agent-define-prompt-template>
-				<set-variable value='#[%dw 2.0&#10;output application/json&#10;var jsonString = payload.response as String&#10;var cleanedString = jsonString replace /^```json\n/ with "" replace /```$/ with ""&#10;---&#10;read(cleanedString, "application/json")]' doc:name="Set multiTools" doc:id="0706208a-5c3c-490e-aed5-f29226042e44" variableName="multiTools" />
-				<logger level="INFO" doc:name="🔎 Query Assessment 🔎" doc:id="35a339fa-99b5-4f8d-993c-05067dc1087a" message='#[%dw 2.0&#10;output text&#10;---&#10;"\n\n" ++&#10;"🔎🔎🔎🔎🔎️️ --------------------------  Query Assessment ----------------------- 🔎🔎🔎🔎🔎️\n" ++&#10;"Tools : \n" ++ &#10;write(vars.multiTools, "application/json") ++ &#10;"\n 🔎🔎🔎🔎🔎️️ ---------------------------------------------------------------------- 🔎🔎🔎🔎🔎️" ++&#10;"\n\n"]' category="🔎 Query Assessment 🔎"/>
+				<set-variable value='#[%dw 2.0
+output application/json
+var jsonString = payload.response as String
+var cleanedString = jsonString replace /^```json\n/ with "" replace /```$/ with ""
+---
+read(cleanedString, "application/json")]' doc:name="Set multiTools" doc:id="0706208a-5c3c-490e-aed5-f29226042e44" variableName="multiTools" />
+				<logger level="INFO" doc:name="🔎 Query Assessment 🔎" doc:id="35a339fa-99b5-4f8d-993c-05067dc1087a" message='#[%dw 2.0
+output text
+---
+"\n\n" ++
+"🔎🔎🔎🔎🔎️️ --------------------------  Query Assessment ----------------------- 🔎🔎🔎🔎🔎️\n" ++
+"Tools : \n" ++ 
+write(vars.multiTools, "application/json") ++ 
+"\n 🔎🔎🔎🔎🔎️️ ---------------------------------------------------------------------- 🔎🔎🔎🔎🔎️" ++
+"\n\n"]' category="🔎 Query Assessment 🔎"/>
 			</route>
 			<route >
 				<ms-inference:tools-native-template doc:name="Use MCP Tools" doc:id="934c43bb-b9cf-4f83-9901-925c0243e76c" config-ref="GENERAL" target="planningPayload">
@@ -86,25 +113,57 @@ Your Guardrails:
 ", already executed tools: " ++ (write(vars.toolsUsed default {}, "application/json") as String)]]]></ms-inference:data>
 					<ms-inference:tools ><![CDATA[#[vars.tools]]]></ms-inference:tools>
 				</ms-inference:tools-native-template>
-				<logger level="INFO" doc:name="🛠️ Tools reasoning 🛠️" doc:id="0b760f14-59e4-4653-9fae-b7a8694ed603" message='#[%dw 2.0&#10;output text&#10;---&#10;"\n\n" ++&#10;"🛠️🛠️🛠️🛠️🛠️️ --------------------------  Tool Reasoning -------------------------- 🛠️🛠️🛠️🛠️🛠️\n" ++&#10;"Tools : \n" ++ &#10;write(vars.planningPayload, "application/json") ++ &#10;"\n 🛠️🛠️🛠️🛠️🛠️️ ---------------------------------------------------------------------- 🛠️🛠️🛠️🛠️🛠️" ++&#10;"\n\n"]' category="🛠️ Tools reasoning 🛠️"/>
+				<logger level="INFO" doc:name="🛠️ Tools reasoning 🛠️" doc:id="0b760f14-59e4-4653-9fae-b7a8694ed603" message='#[%dw 2.0
+output text
+---
+"\n\n" ++
+"🛠️🛠️🛠️🛠️🛠️️ --------------------------  Tool Reasoning -------------------------- 🛠️🛠️🛠️🛠️🛠️\n" ++
+"Tools : \n" ++ 
+write(vars.planningPayload, "application/json") ++ 
+"\n 🛠️🛠️🛠️🛠️🛠️️ ---------------------------------------------------------------------- 🛠️🛠️🛠️🛠️🛠️" ++
+"\n\n"]' category="🛠️ Tools reasoning 🛠️"/>
 			</route>
 		</scatter-gather>
-		<set-variable value="#[%dw 2.0&#10;output application/json&#10;---&#10;(vars.chainsOfThoughts default []) ++ [{&#10;    &quot;cotId&quot;: now() as String {format: &quot;yyyy-MM-dd'T'HH:mm:ss.SSSZ&quot;},&#10;    &quot;plan&quot;: vars.multiTools.plan default &quot;&quot;,&#10;    &quot;multiTools&quot;: vars.multiTools.multiTools default true,&#10;    &quot;final&quot;: vars.multiTools.final default false,&#10;    &quot;toolsToCall&quot;: vars.planningPayload default &quot;&quot;&#10;}]]" doc:name="Set COT" doc:id="c9add113-0568-4ad1-8bac-5f17b02b5e8b" variableName="chainsOfThoughts" />
-		<logger level="INFO" doc:name="⛓️‍💥 Chain of Thoughts ⛓️‍💥" doc:id="60c6b8f7-eb84-4a51-a5d1-d1283c290ebe" message='#[%dw 2.0&#10;output text&#10;---&#10;"\n\n" ++&#10;"⛓️‍💥⛓️‍💥⛓️‍💥⛓️‍💥⛓️‍💥 --------------------------  Chain of Thoughts -------------------------- ⛓️‍💥⛓️‍💥⛓️‍💥⛓️‍💥⛓️‍💥️\n" ++&#10;"Agent " ++ (vars.chainsOfThoughts as String default "") ++ "\n" ++&#10;"\n⛓️‍💥⛓️‍💥⛓️‍💥⛓️‍💥⛓️‍💥️️ ----------------------------------------------------------------- ⛓️‍💥⛓️‍💥⛓️‍💥⛓️‍💥⛓️‍💥️" ++&#10;"\n\n"]' category="⛓️‍💥 Chain of Thoughts ⛓️‍💥"/>
+		<set-variable value="#[%dw 2.0
+output application/json
+---
+(vars.chainsOfThoughts default []) ++ [{
+    &quot;cotId&quot;: now() as String {format: &quot;yyyy-MM-dd'T'HH:mm:ss.SSSZ&quot;},
+    &quot;plan&quot;: vars.multiTools.plan default &quot;&quot;,
+    &quot;multiTools&quot;: vars.multiTools.multiTools default true,
+    &quot;final&quot;: vars.multiTools.final default false,
+    &quot;toolsToCall&quot;: vars.planningPayload default &quot;&quot;
+}]]" doc:name="Set COT" doc:id="c9add113-0568-4ad1-8bac-5f17b02b5e8b" variableName="chainsOfThoughts" />
+		<logger level="INFO" doc:name="⛓️‍💥 Chain of Thoughts ⛓️‍💥" doc:id="60c6b8f7-eb84-4a51-a5d1-d1283c290ebe" message='#[%dw 2.0
+output text
+---
+"\n\n" ++
+"⛓️‍💥⛓️‍💥⛓️‍💥⛓️‍💥⛓️‍💥 --------------------------  Chain of Thoughts -------------------------- ⛓️‍💥⛓️‍💥⛓️‍💥⛓️‍💥⛓️‍💥️\n" ++
+"Agent " ++ (vars.chainsOfThoughts as String default "") ++ "\n" ++
+"\n⛓️‍💥⛓️‍💥⛓️‍💥⛓️‍💥⛓️‍💥️️ ----------------------------------------------------------------- ⛓️‍💥⛓️‍💥⛓️‍💥⛓️‍💥⛓️‍💥️" ++
+"\n\n"]' category="⛓️‍💥 Chain of Thoughts ⛓️‍💥"/>
 		<flow-ref doc:name="Assess and execute" doc:id="4b3e7994-d7fa-4461-aab1-08594f6f41ec" name="assess-and-execute"/>
 	</sub-flow>
 	<sub-flow name="assess-and-execute" doc:id="76d7a961-764e-43d6-ab34-95ca7968d3bb" >
 		<choice doc:name="Choice" doc:id="13e33c57-5e5b-409f-a824-8f9b8a370cfe" >
 			<when expression="#[(sizeOf(vars.planningPayload.tools default []) &gt; 0)]" >
-				<set-variable value='#[%dw 2.0 &#10;output application/json &#10;--- &#10;(vars.toolsUsed default {}) ++ (vars.planningPayload.tools default {})]' doc:name="toolsUsed" doc:id="c61b8fe9-8b71-456c-99bc-a7d6b78f33f6" variableName="toolsUsed"/>
+				<set-variable value='#[%dw 2.0 
+output application/json 
+--- 
+(vars.toolsUsed default {}) ++ (vars.planningPayload.tools default {})]' doc:name="toolsUsed" doc:id="c61b8fe9-8b71-456c-99bc-a7d6b78f33f6" variableName="toolsUsed"/>
 				<foreach doc:name="For Each" doc:id="a9626602-22b3-406d-9112-d80a540234d8" collection="#[vars.planningPayload.tools]">
-					<mcp:call-tool toolName='#[output text/plain&#10;---&#10;payload.function.name default "get_accounts"]' doc:name="MCP Client - Call Tool" doc:id="76b644a6-58c1-48c4-9cc8-f35b8b586096" config-ref="MCP_Client">
+					<mcp:call-tool toolName='#[output text/plain
+---
+payload.function.name default "get_accounts"]' doc:name="MCP Client - Call Tool" doc:id="76b644a6-58c1-48c4-9cc8-f35b8b586096" config-ref="MCP_Client">
 						<mcp:arguments><![CDATA[#[output application/json
 ---
 read((payload as Object).function.arguments, "application/json")]]]></mcp:arguments>
 					</mcp:call-tool>
 					<logger level="DEBUG" doc:name="Logger payload after 🛠️ tool call" doc:id="e47d2e6b-4e12-4349-a00e-c8a4740a33e9" message="#[payload]" />
-					<set-variable value='#[%dw 2.0 &#10;output text/plain &#10;--- &#10;(vars.multiToolsResult default "Tool results: ") ++ "\n" ++ (vars.counter as String) ++ " - " ++ write(payload, "application/json")]' doc:name="multiToolsResult" doc:id="169ca959-7254-4d0e-8cac-f84e0d24675c" variableName="multiToolsResult" />
+					<set-variable value='#[%dw 2.0 
+output text/plain 
+--- 
+(vars.multiToolsResult default "Tool results: ") ++ "\n" ++ (vars.counter as String) ++ " - " ++ write(payload, "application/json")]' doc:name="multiToolsResult" doc:id="169ca959-7254-4d0e-8cac-f84e0d24675c" variableName="multiToolsResult" />
 				</foreach>
 				<choice doc:name="Choice" doc:id="7c217439-6bf7-4ba0-a4a6-7f1b1b942cbe" >
 					<when expression="#[(vars.multiTools.multiTools == true)]">

@@ -51,3 +51,5 @@ target/
 .DS_Store
 velocity.log
 weave/**
+
+.tooling-project
