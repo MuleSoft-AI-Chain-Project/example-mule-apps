@@ -48,6 +48,8 @@ output application/json
 	"id": uuid(),
 	"sessionId": vars.sessionId,
 	"message": {
+		"messageId": uuid(),
+        "role": "user",
 		"parts": [
 			{
                 "type": "text",

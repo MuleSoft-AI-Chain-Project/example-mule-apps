@@ -249,6 +249,9 @@ function getAgentIconHtml(agentUrl) {
 
 // Function to start a chat with a specific agent
 function startChatWithAgent(agentId, agentName) {
+    // Store the currently focused element for later restoration
+    window.lastFocusedElement = document.activeElement;
+    
     // Set current chat agent
     window.currentChatAgent = agentId;
     window.chatMessages = [];
@@ -317,10 +320,19 @@ function startChatWithAgent(agentId, agentName) {
             backdrop.addEventListener('click', function() {
                 const modalEl = document.getElementById('chatModal');
                 if (modalEl) {
+                    // Clear chat history
+                    window.chatMessages = [];
+                    window.currentChatAgent = null;
+                    
                     modalEl.classList.remove('show');
                     modalEl.style.display = 'none';
                     modalEl.setAttribute('inert', '');
                     backdrop.remove();
+                    
+                    // Restore focus
+                    if (window.lastFocusedElement) {
+                        window.lastFocusedElement.focus();
+                    }
                 }
             });
         }
@@ -484,12 +496,38 @@ function initializeModals() {
         var ModalClass = window.bootstrap ? window.bootstrap.Modal : (window.Modal || null);
         if (ModalClass) {
             try {
-                window.addAgentModal = new ModalClass(modalEl);
-                window.skillDescModal = new ModalClass(skillModalEl);
-                window.chatModal = new ModalClass(chatModalEl);
-                console.log('Modals initialized successfully');
-                // Reset retry counter on success
-                window.modalInitRetryCount = 0;
+                        window.addAgentModal = new ModalClass(modalEl);
+        window.skillDescModal = new ModalClass(skillModalEl);
+        window.chatModal = new ModalClass(chatModalEl);
+        
+        // Add event listener for chat modal hidden event
+        chatModalEl.addEventListener('hidden.bs.modal', function() {
+            // Clear chat history when modal is hidden
+            window.chatMessages = [];
+            window.currentChatAgent = null;
+            
+            // Clear chat container
+            const chatContainer = document.getElementById('chatContainer');
+            if (chatContainer) {
+                chatContainer.innerHTML = '';
+            }
+            
+            // Clear input
+            const chatInput = document.getElementById('chatInput');
+            if (chatInput) {
+                chatInput.value = '';
+                chatInput.style.height = 'auto';
+            }
+            
+            // Restore focus
+            if (window.lastFocusedElement) {
+                window.lastFocusedElement.focus();
+            }
+        });
+        
+        console.log('Modals initialized successfully');
+        // Reset retry counter on success
+        window.modalInitRetryCount = 0;
             } catch (error) {
                 console.error('Error initializing modals:', error);
                 // Don't retry on initialization error
@@ -1013,6 +1051,7 @@ window.attachAgentsTab = function() {
             // Add event listeners for modal close buttons (fallback)
             const cancelBtn = document.querySelector('#addAgentModal .btn-secondary');
             const closeBtn = document.querySelector('#addAgentModal .btn-close');
+            const chatModalCloseBtn = document.querySelector('#chatModal .btn-close');
             
             if (cancelBtn) {
                 window.cancelBtnListener = function() {
@@ -1072,6 +1111,36 @@ window.attachAgentsTab = function() {
                 closeBtn.addEventListener('click', window.closeBtnListener);
             }
             
+            if (chatModalCloseBtn) {
+                window.chatModalCloseBtnListener = function() {
+                    // Clear chat history
+                    window.chatMessages = [];
+                    window.currentChatAgent = null;
+                    
+                    if (window.chatModal) {
+                        window.chatModal.hide();
+                    } else {
+                        // Fallback: manually hide the modal
+                        const modalEl = document.getElementById('chatModal');
+                        if (modalEl) {
+                            modalEl.classList.remove('show');
+                            modalEl.style.display = 'none';
+                            modalEl.setAttribute('inert', '');
+                            // Remove backdrop
+                            const backdrop = document.getElementById('chatModalBackdrop');
+                            if (backdrop) {
+                                backdrop.remove();
+                            }
+                        }
+                    }
+                    // Restore focus
+                    if (window.lastFocusedElement) {
+                        window.lastFocusedElement.focus();
+                    }
+                };
+                chatModalCloseBtn.addEventListener('click', window.chatModalCloseBtnListener);
+            }
+            
             // Initialize chat functionality
             initializeChatFunctionality();
         });
@@ -1082,6 +1151,36 @@ function initializeChatFunctionality() {
     const chatInputForm = document.getElementById('chatForm');
     const chatInput = document.getElementById('chatInput');
     const chatSendBtn = document.getElementById('chatSendBtn');
+    
+    // Add keyboard event listener for Escape key to close chat modal
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const chatModal = document.getElementById('chatModal');
+            if (chatModal && chatModal.classList.contains('show')) {
+                // Clear chat history
+                window.chatMessages = [];
+                window.currentChatAgent = null;
+                
+                if (window.chatModal) {
+                    window.chatModal.hide();
+                } else {
+                    // Fallback: manually hide the modal
+                    chatModal.classList.remove('show');
+                    chatModal.style.display = 'none';
+                    chatModal.setAttribute('inert', '');
+                    // Remove backdrop
+                    const backdrop = document.getElementById('chatModalBackdrop');
+                    if (backdrop) {
+                        backdrop.remove();
+                    }
+                }
+                // Restore focus
+                if (window.lastFocusedElement) {
+                    window.lastFocusedElement.focus();
+                }
+            }
+        }
+    });
     
     if (chatInputForm) {
         chatInputForm.addEventListener('submit', function(e) {
