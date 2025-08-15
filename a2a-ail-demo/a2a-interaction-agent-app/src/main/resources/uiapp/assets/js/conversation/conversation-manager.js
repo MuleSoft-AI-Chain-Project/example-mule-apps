@@ -18,6 +18,13 @@ window.ConversationManager = (function() {
     // UTILITY FUNCTIONS
     // ----------------------------------------------------------------------------
 
+
+    // Function to get path for a given webapp context relative path
+	function getPathFor(relativePath) {
+    	const currentPath = window.location.pathname
+    	return ('/' + currentPath.substring(0, currentPath.indexOf("/ui/")) + '/' + relativePath).replaceAll(/\/+/g, '/');
+ 	}    
+
     // Function to add and track event listeners
     function addTrackedEventListener(element, event, handler) {
         if (!element) return;
@@ -60,7 +67,7 @@ window.ConversationManager = (function() {
         
         const userSessionId = getCookie('userSessionId');
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        const wsUrl = new URL('/ws/prompt', window.location.origin.replace(/^https?:/, protocol));
+        const wsUrl = new URL(getPathFor('/ws/prompt'), window.location.origin.replace(/^https?:/, protocol));
         wsUrl.searchParams.set('userSessionId', userSessionId || '');
         wsUrl.searchParams.set('sessionId', sessionId);
         
@@ -551,7 +558,7 @@ window.ConversationManager = (function() {
         }
         if (modal) { modal.remove(); console.log('Removed old modal'); }
         if (window.renderInteractionModal) { delete window.renderInteractionModal; console.log('Deleted old renderInteractionModal'); }
-        fetch('/ui/interaction-modal.html')
+        fetch(getPathFor('/ui/interaction-modal.html'))
             .then(resp => resp.text())
             .then(html => {
                 console.log('Fetched interaction-modal.html');

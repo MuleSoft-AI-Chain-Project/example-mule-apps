@@ -138,6 +138,13 @@ window.AGENT_TYPE_ICONS = {
     "Custom": "fas fa-robot" // Using existing FontAwesome icon
 };
 
+// Function to get path for a given webapp context relative path
+function getPathFor(relativePath) {
+	const currentPath = window.location.pathname
+    return ('/' + currentPath.substring(0, currentPath.indexOf("/ui/")) + '/' + relativePath).replaceAll(/\/+/g, '/');
+}
+
+
 // Flag to track if event listeners have been initialized
 window.agentsTabInitialized = false;
 
@@ -414,7 +421,7 @@ async function sendMessageToAgent(message) {
     }
     
     try {
-        const response = await fetch(`/prompt-agent?agentName=${encodeURIComponent(window.currentChatAgent)}&userSessionId=${getUserSessionId()}`, {
+        const response = await fetch(getPathFor(`/prompt-agent?agentName=${encodeURIComponent(window.currentChatAgent)}&userSessionId=${getUserSessionId()}`), {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -496,38 +503,38 @@ function initializeModals() {
         var ModalClass = window.bootstrap ? window.bootstrap.Modal : (window.Modal || null);
         if (ModalClass) {
             try {
-                        window.addAgentModal = new ModalClass(modalEl);
-        window.skillDescModal = new ModalClass(skillModalEl);
-        window.chatModal = new ModalClass(chatModalEl);
+                window.addAgentModal = new ModalClass(modalEl);
+                window.skillDescModal = new ModalClass(skillModalEl);
+                window.chatModal = new ModalClass(chatModalEl);
+
+                // Add event listener for chat modal hidden event
+                chatModalEl.addEventListener('hidden.bs.modal', function() {
+                // Clear chat history when modal is hidden
+                window.chatMessages = [];
+                window.currentChatAgent = null;
+            
+                // Clear chat container
+                const chatContainer = document.getElementById('chatContainer');
+                if (chatContainer) {
+                    chatContainer.innerHTML = '';
+            	}
+            
+                // Clear input
+                const chatInput = document.getElementById('chatInput');
+                if (chatInput) {
+                    chatInput.value = '';
+                    chatInput.style.height = 'auto';
+                }
+            
+                // Restore focus
+                if (window.lastFocusedElement) {
+                    window.lastFocusedElement.focus();
+                }
+            });
         
-        // Add event listener for chat modal hidden event
-        chatModalEl.addEventListener('hidden.bs.modal', function() {
-            // Clear chat history when modal is hidden
-            window.chatMessages = [];
-            window.currentChatAgent = null;
-            
-            // Clear chat container
-            const chatContainer = document.getElementById('chatContainer');
-            if (chatContainer) {
-                chatContainer.innerHTML = '';
-            }
-            
-            // Clear input
-            const chatInput = document.getElementById('chatInput');
-            if (chatInput) {
-                chatInput.value = '';
-                chatInput.style.height = 'auto';
-            }
-            
-            // Restore focus
-            if (window.lastFocusedElement) {
-                window.lastFocusedElement.focus();
-            }
-        });
-        
-        console.log('Modals initialized successfully');
-        // Reset retry counter on success
-        window.modalInitRetryCount = 0;
+            console.log('Modals initialized successfully');
+            // Reset retry counter on success
+            window.modalInitRetryCount = 0;
             } catch (error) {
                 console.error('Error initializing modals:', error);
                 // Don't retry on initialization error
@@ -583,7 +590,7 @@ window.attachAgentsTab = function() {
     // Render agent tiles
     var grid = document.getElementById('agentsGrid');
     grid.innerHTML = '';
-    fetch(`/agents?userSessionId=${getUserSessionId()}`)
+    fetch(getPathFor(`/agents?userSessionId=${getUserSessionId()}`))
         .then(res => res.json())
         .then(data => {
             const tools = data.tools || [];
@@ -660,7 +667,7 @@ window.attachAgentsTab = function() {
                         const agentId = tile.getAttribute('data-agent-id');
                         
                         // Send DELETE request to remove agent
-                        fetch(`/agents?userSessionId=${getUserSessionId()}`, {
+                        fetch(getPathFor(`/agents?userSessionId=${getUserSessionId()}`), {
                             method: 'DELETE',
                             headers: {
                                 'Content-Type': 'application/json',
@@ -842,7 +849,7 @@ window.attachAgentsTab = function() {
                         
                         // Original add mode logic
                         // Send POST request to add agent
-                        fetch(`/agents?userSessionId=${getUserSessionId()}`, {
+                        fetch(getPathFor(`/agents?userSessionId=${getUserSessionId()}`), {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
@@ -976,7 +983,7 @@ window.attachAgentsTab = function() {
                             }
                             
                             // Send DELETE request to remove all agents
-                            fetch(`/agents?userSessionId=${getUserSessionId()}`, {
+                            fetch(getPathFor(`/agents?userSessionId=${getUserSessionId()}`), {
                                 method: 'DELETE',
                                 headers: {
                                     'Content-Type': 'application/json',
@@ -1017,7 +1024,7 @@ window.attachAgentsTab = function() {
                             });
                             
                             // Send POST request to add all default agents
-                            fetch(`/agents?userSessionId=${getUserSessionId()}`, {
+                            fetch(getPathFor(`/agents?userSessionId=${getUserSessionId()}`), {
                                 method: 'POST',
                                 headers: {
                                     'Content-Type': 'application/json',
