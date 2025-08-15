@@ -16,6 +16,12 @@
 </div>
 <button class="delete-all-btn" id="deleteAllSessionsBtn">Delete All</button>
 <script>
+
+function getPathFor(relativePath) {
+	const currentPath = window.location.pathname
+	return ('/' + currentPath.substring(0, currentPath.indexOf("/ui/")) + '/' + relativePath).replaceAll(/\/+/g, '/');
+}
+
 function renderAgentPills(reasoning) {
     let agentNames = [];
     if (Array.isArray(reasoning)) {
@@ -88,7 +94,7 @@ function ensureSessionModalLoadedForSessions(callback) {
     // Remove any existing modal and function to avoid stale state or wrong container
     if (modal) { modal.remove(); console.log('[Sessions] Removed old modal'); }
     if (window.renderInteractionModal) { delete window.renderInteractionModal; console.log('[Sessions] Deleted old renderInteractionModal'); }
-    fetch('/ui/interaction-modal.html')
+    fetch(getPathFor('/ui/interaction-modal.html'))
         .then(resp => resp.text())
         .then(html => {
             console.log('[Sessions] Fetched interaction-modal.html');
