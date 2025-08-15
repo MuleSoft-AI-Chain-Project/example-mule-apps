@@ -531,10 +531,7 @@ var cleaned = raw replace '```json' with '' replace '```' with ''
 		</choice>
 	</sub-flow>
 	<sub-flow name="send-task-refactored" doc:id="4be1e4ea-9f9d-4c85-b834-6b2ae7e343a8">
-		<set-variable value='#[%dw 2.0
-output text/plain
----
-(read(((vars.selectedAgent as Object).function as Object).arguments as String default "", "application/json") as Object).prompt]' doc:name="agentPrompt" doc:id="c4e079c8-8a08-4bd4-97e1-ebade15cf212" variableName="agentPrompt" />
+		<set-variable value='#[%dw 2.0 &#10;import * from dw::Runtime&#10;output text/plain&#10; --- &#10;try (() -&gt; &#10;    payload.function.arguments.prompt default ""&#10;) orElse (() -&gt; &#10;    read(payload.function.arguments, "application/json").prompt default ""&#10;)]' doc:name="agentPrompt" doc:id="c4e079c8-8a08-4bd4-97e1-ebade15cf212" variableName="agentPrompt" />
 		<set-variable value="#[%dw 2.0
 output text/plain
 ---
