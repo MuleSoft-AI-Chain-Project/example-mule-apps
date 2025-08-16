@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:ms-inference="http://www.mulesoft.org/schema/mule/ms-inference" xmlns:file="http://www.mulesoft.org/schema/mule/file"
-	xmlns:websocket="http://www.mulesoft.org/schema/mule/websocket"
-	xmlns:ms-einstein-ai="http://www.mulesoft.org/schema/mule/ms-einstein-ai" xmlns:mac-inference="http://www.mulesoft.org/schema/mule/mac-inference" xmlns:mcp="http://www.mulesoft.org/schema/mule/mcp" xmlns:os="http://www.mulesoft.org/schema/mule/os" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:a2a="http://www.mulesoft.org/schema/mule/a2a" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+<mule xmlns:oauth="http://www.mulesoft.org/schema/mule/oauth" xmlns:ms-inference="http://www.mulesoft.org/schema/mule/ms-inference"
+	xmlns:file="http://www.mulesoft.org/schema/mule/file"
+	xmlns:websocket="http://www.mulesoft.org/schema/mule/websocket" xmlns:ms-einstein-ai="http://www.mulesoft.org/schema/mule/ms-einstein-ai" xmlns:mac-inference="http://www.mulesoft.org/schema/mule/mac-inference" xmlns:mcp="http://www.mulesoft.org/schema/mule/mcp" xmlns:os="http://www.mulesoft.org/schema/mule/os" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:a2a="http://www.mulesoft.org/schema/mule/a2a" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
 http://www.mulesoft.org/schema/mule/a2a http://www.mulesoft.org/schema/mule/a2a/current/mule-a2a.xsd
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
@@ -12,7 +12,8 @@ http://www.mulesoft.org/schema/mule/mac-inference http://www.mulesoft.org/schema
 http://www.mulesoft.org/schema/mule/ms-einstein-ai http://www.mulesoft.org/schema/mule/ms-einstein-ai/current/mule-ms-einstein-ai.xsd
 http://www.mulesoft.org/schema/mule/websocket http://www.mulesoft.org/schema/mule/websocket/current/mule-websocket.xsd
 http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
-http://www.mulesoft.org/schema/mule/ms-inference http://www.mulesoft.org/schema/mule/ms-inference/current/mule-ms-inference.xsd">
+http://www.mulesoft.org/schema/mule/ms-inference http://www.mulesoft.org/schema/mule/ms-inference/current/mule-ms-inference.xsd
+http://www.mulesoft.org/schema/mule/oauth http://www.mulesoft.org/schema/mule/oauth/current/mule-oauth.xsd">
 	<!-- <a2a:client-config name="A2A_Client_ERP" doc:name="A2A Client" doc:id="6d5d3081-e17e-46f3-8326-b5aa6ed80086" >
 		<a2a:client-connection serverUrl="${agent.erp.url}" requestTimeout="${agent.erp.timeout}"/>
 	</a2a:client-config> -->
@@ -32,7 +33,8 @@ http://www.mulesoft.org/schema/mule/ms-inference http://www.mulesoft.org/schema/
 	</ms-inference:text-generation-config>
 	<configuration-properties doc:name="Configuration properties" doc:id="6d86e7e5-a6b8-4e0a-b7b8-5a053649db54" file="config.properties" />
 	<a2a:client-config name="A2A_Client" doc:name="A2A Client" doc:id="8a9fffe5-1981-4bad-9dc2-2324810b36de" >
-		<a2a:client-connection serverUrl="#[vars.agentUrl]" requestTimeout="${agent.general.timeout}"/>
+		<a2a:client-connection serverUrl="#[vars.agentUrl]" requestTimeout="${agent.general.timeout}">
+		</a2a:client-connection>
 	</a2a:client-config>
 	<ms-einstein-ai:config name="Einstein_AI" doc:name="Einstein AI Configuration" doc:id="a9b3d80c-cc8b-4151-aa75-0e26894f7f0a" >
 		<ms-einstein-ai:oauth-client-credentials-connection >

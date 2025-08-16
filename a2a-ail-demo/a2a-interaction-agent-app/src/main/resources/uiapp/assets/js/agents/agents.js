@@ -566,6 +566,24 @@ window.attachAgentsTab = function() {
     // Initialize modals first
     initializeModals();
     
+    // Add authentication select event listener
+    const authenticationSelect = document.getElementById('authenticationSelect');
+    if (authenticationSelect) {
+        authenticationSelect.addEventListener('change', function() {
+            const clientCredentialsFields = document.getElementById('clientCredentialsFields');
+            if (this.value === 'client-credentials') {
+                clientCredentialsFields.style.display = 'block';
+            } else {
+                clientCredentialsFields.style.display = 'none';
+                // Clear the fields when hiding
+                const clientIdInput = document.getElementById('clientIdInput');
+                const clientSecretInput = document.getElementById('clientSecretInput');
+                if (clientIdInput) clientIdInput.value = '';
+                if (clientSecretInput) clientSecretInput.value = '';
+            }
+        });
+    }
+    
     // Populate datalist with default URLs
     const datalist = document.getElementById('agentUrlOptions');
     if (datalist) {
@@ -787,13 +805,27 @@ window.attachAgentsTab = function() {
                     window.addAgentConfirmBtnListener = function() {
                         const agentUrlInput = document.getElementById('agentUrlInput');
                         const agentTypeSelect = document.getElementById('agentTypeSelect');
+                        const authenticationSelect = document.getElementById('authenticationSelect');
+                        const clientIdInput = document.getElementById('clientIdInput');
+                        const clientSecretInput = document.getElementById('clientSecretInput');
                         
                         const agentUrl = agentUrlInput.value.trim();
                         const agentType = agentTypeSelect.value;
+                        const authenticationType = authenticationSelect.value;
                         
                         if (!agentUrl || !agentType) {
                             alert('Please fill in all required fields');
                             return;
+                        }
+                        
+                        // Validate client credentials if authentication type is client-credentials
+                        if (authenticationType === 'client-credentials') {
+                            const clientId = clientIdInput.value.trim();
+                            const clientSecret = clientSecretInput.value.trim();
+                            if (!clientId || !clientSecret) {
+                                alert('Please fill in Client ID and Client Secret for Client Credentials authentication');
+                                return;
+                            }
                         }
                         
                         // Check if we're in edit mode
@@ -841,6 +873,24 @@ window.attachAgentsTab = function() {
                         }
                         
                         // Original add mode logic
+                        // Build authentication object
+                        const authentication = {
+                            type: authenticationType
+                        };
+                        
+                        // Add client credentials if authentication type is client-credentials
+                        if (authenticationType === 'client-credentials') {
+                            authentication.clientId = clientIdInput.value.trim();
+                            authentication.clientSecret = clientSecretInput.value.trim();
+                        }
+                        
+                        // Build agent object
+                        const agent = {
+                            url: agentUrl,
+                            agentType: agentType,
+                            authentication: authentication
+                        };
+                        
                         // Send POST request to add agent
                         fetch(`/agents?userSessionId=${getUserSessionId()}`, {
                             method: 'POST',
@@ -848,7 +898,7 @@ window.attachAgentsTab = function() {
                                 'Content-Type': 'application/json',
                             },
                             body: JSON.stringify({
-                                urls: [agentUrl]
+                                agents: [agent]
                             })
                         })
                         .then(response => {
@@ -929,6 +979,23 @@ window.attachAgentsTab = function() {
                             // Clear the input fields
                             agentUrlInput.value = '';
                             agentTypeSelect.value = '';
+                            
+                            // Clear authentication fields
+                            if (authenticationSelect) {
+                                authenticationSelect.value = 'none';
+                            }
+                            if (clientIdInput) {
+                                clientIdInput.value = '';
+                            }
+                            if (clientSecretInput) {
+                                clientSecretInput.value = '';
+                            }
+                            
+                            // Hide client credentials fields
+                            const clientCredentialsFields = document.getElementById('clientCredentialsFields');
+                            if (clientCredentialsFields) {
+                                clientCredentialsFields.style.display = 'none';
+                            }
                             // Hide the modal
                             if (window.addAgentModal) {
                                 window.addAgentModal.hide();
@@ -1016,6 +1083,18 @@ window.attachAgentsTab = function() {
                                 addAgentTypeToStorage(agentUrl, agentType);
                             });
                             
+                            // Build agents array with default authentication (none)
+                            const defaultAgents = window.PREDEFINED_AGENT_URL.map(url => {
+                                const agentType = window.DEFAULT_AGENT_TYPES[url] || 'Custom';
+                                return {
+                                    url: url,
+                                    agentType: agentType,
+                                    authentication: {
+                                        type: 'none'
+                                    }
+                                };
+                            });
+                            
                             // Send POST request to add all default agents
                             fetch(`/agents?userSessionId=${getUserSessionId()}`, {
                                 method: 'POST',
@@ -1023,7 +1102,7 @@ window.attachAgentsTab = function() {
                                     'Content-Type': 'application/json',
                                 },
                                 body: JSON.stringify({
-                                    urls: window.PREDEFINED_AGENT_URL
+                                    agents: defaultAgents
                                 })
                             })
                             .then(response => {
@@ -1361,6 +1440,22 @@ function resetModalToAddMode() {
     if (agentTypeSelect) {
         agentTypeSelect.value = '';
     }
+    
+    // Reset authentication fields
+    const authenticationSelect = document.getElementById('authenticationSelect');
+    if (authenticationSelect) {
+        authenticationSelect.value = 'none';
+    }
+    
+    const clientCredentialsFields = document.getElementById('clientCredentialsFields');
+    if (clientCredentialsFields) {
+        clientCredentialsFields.style.display = 'none';
+    }
+    
+    const clientIdInput = document.getElementById('clientIdInput');
+    const clientSecretInput = document.getElementById('clientSecretInput');
+    if (clientIdInput) clientIdInput.value = '';
+    if (clientSecretInput) clientSecretInput.value = '';
     
     // Clear editing references
     window.currentEditingTile = null;

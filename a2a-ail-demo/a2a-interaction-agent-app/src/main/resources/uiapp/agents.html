@@ -42,6 +42,23 @@
                             <option value="Custom">Custom</option>
                         </select>
                     </div>
+                    <div class="mb-3">
+                        <label for="authenticationSelect" class="form-label">Authentication</label>
+                        <select class="form-select" id="authenticationSelect">
+                            <option value="none">None</option>
+                            <option value="client-credentials">Client Credentials</option>
+                        </select>
+                    </div>
+                    <div class="mb-3" id="clientCredentialsFields" style="display: none;">
+                        <div class="mb-3">
+                            <label for="clientIdInput" class="form-label">Client ID</label>
+                            <input type="text" class="form-control" id="clientIdInput" placeholder="Enter Client ID">
+                        </div>
+                        <div class="mb-3">
+                            <label for="clientSecretInput" class="form-label">Client Secret</label>
+                            <input type="password" class="form-control" id="clientSecretInput" placeholder="Enter Client Secret">
+                        </div>
+                    </div>
                 </form>
             </div>
             <div class="modal-footer">

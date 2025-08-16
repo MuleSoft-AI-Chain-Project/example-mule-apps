@@ -15,20 +15,53 @@ http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/cu
 output application/json
 ---
 {
-	urls: [
-		p('agent.agentforce.url'),
-		p('agent.crm.url'),
-		p('agent.einstein.url')
+	agents: [
+		{
+			url: p('agent.agentforce.url'),
+			agentType: &quot;Agentforce&quot;,
+			authentication: {
+			    &quot;type&quot;: &quot;client-credentials&quot;,
+				&quot;clientId&quot;: p('agent.agentforce.clientId'),
+				&quot;clientSecret&quot;: p('agent.agentforce.clientSecret')
+			}
+		},
+		{
+			url: p('agent.crm.url'),
+			agentType: &quot;MuleSoft AI Chain&quot;,
+			authentication: {
+			    &quot;type&quot;: &quot;client-credentials&quot;,
+				&quot;clientId&quot;: p('agent.crm.clientId'),
+				&quot;clientSecret&quot;: p('agent.crm.clientSecret')
+			}
+		},
+		{
+			url: p('agent.erp.url'),
+			agentType: &quot;MuleSoft AI Chain&quot;,
+			authentication: {
+			    &quot;type&quot;: &quot;client-credentials&quot;,
+				&quot;clientId&quot;: p('agent.erp.clientId'),
+				&quot;clientSecret&quot;: p('agent.erp.clientSecret')
+			}
+		},
+		{
+			url: p('agent.einstein.url'),
+			agentType: &quot;Einstein Models&quot;,
+			authentication: {
+			    &quot;type&quot;: &quot;client-credentials&quot;,
+				&quot;clientId&quot;: p('agent.einstein.clientId'),
+				&quot;clientSecret&quot;: p('agent.einstein.clientSecret')
+			}
+		}
 	]
-}]" doc:name="Set  defaults agentUrls" doc:id="fa49d939-0e44-48ad-9201-e0991fbc44a5" variableName="agentUrls" />
+}]" doc:name="Set  defaults agentDetails" doc:id="fa49d939-0e44-48ad-9201-e0991fbc44a5" variableName="agentDetails" />
 			</when>
 			<otherwise >
 				<set-variable value="#[%dw 2.0
 output application/json
 ---
 {
-	urls: []
-}]" doc:name="Set  empty agentUrls" doc:id="645b85a8-3b15-4dda-a4c3-1b0cdfd5d72e" variableName="agentUrls" />
+	agents: []
+}]" doc:name="Set  empty agentDetails" doc:id="645b85a8-3b15-4dda-a4c3-1b0cdfd5d72e" variableName="agentDetails" />
 			</otherwise>
 		</choice>
 		<os:contains doc:name="Contains agents" doc:id="4fbd8850-9204-46ab-8fec-d33f1f5a2821" key='#[(vars.userSessionId default "") ++ "-agents"]' objectStore="AgentObjectStore" />
@@ -60,8 +93,9 @@ write(vars.agents.tools default [], "application/json") ++
 "\n\n"]' />
 	</sub-flow>
 	<sub-flow name="request-a2a-agents-cards" doc:id="2cf996e8-fc6c-4fd8-b6c6-dc4de1bc3e8f" >
-		<parallel-foreach doc:name="Parallel For Each" doc:id="87622453-de62-45ed-a5be-d3a856d07836" collection="#[vars.agentUrls.urls]" maxConcurrency="10" >
-			<set-variable value="#[payload]" doc:name="Set agentUrl" doc:id="d674523a-71b8-4c3f-8625-2af785f7e0cc" variableName="agentUrl"/>
+		<parallel-foreach doc:name="Parallel For Each" doc:id="87622453-de62-45ed-a5be-d3a856d07836" collection="#[vars.agentDetails.agents]" maxConcurrency="10" >
+			<set-variable value="#[payload.url]" doc:name="Set agentUrl" doc:id="d674523a-71b8-4c3f-8625-2af785f7e0cc" variableName="agentUrl"/>
+			<set-variable value="#[payload.authentication]" doc:name="Set agentAuthentication" doc:id="49c830a3-cfef-4f61-b25d-11ed4f16ab34" variableName="agentAuthentication" />
 			<http:request method="GET" doc:name="Request" doc:id="5f2213ce-53dc-49b7-9758-2bbfab3c44c2" config-ref="HTTP_Request_configuration" url='#[(vars.agentUrl default "") as String ++ "/.well-known/agent.json"]' />
 			<set-variable value='#[%dw 2.0
 output text/plain
@@ -70,6 +104,9 @@ var agentName = (payload as Object).name as String
 lower(agentName replace /\s+/ with "")]' doc:name="Set functionName" doc:id="c8a0ea8a-a7c7-4bce-9e13-56dfc0faa47d" variableName="functionName"/>
 			<os:store doc:name="Store pair agent name/url" doc:id="6a7ef8ff-9541-40b3-8dec-c205e3ebef56" key='#[(vars.userSessionId default "") ++ "-agent-url-" ++ (vars.functionName as String)]' objectStore="AgentObjectStore">
 				<os:value ><![CDATA[#[vars.agentUrl]]]></os:value>
+			</os:store>
+			<os:store doc:name="Store pair agent name/authentication" doc:id="0c127ea8-71f5-499a-8226-f7a21593e7d8" key='#[(vars.userSessionId default "") ++ "-agent-auth-" ++ (vars.functionName as String)]' objectStore="AgentObjectStore">
+				<os:value><![CDATA[#[vars.agentAuthentication]]]></os:value>
 			</os:store>
 			<set-payload value='#[%dw 2.0
 output json
@@ -137,8 +174,89 @@ output application/json
 	</flow>
 	<flow name="post-a2a-agents-flow" doc:id="133bd89a-0da9-416e-b322-a13d07ebf62e" >
 		<http:listener doc:name="Listener" doc:id="de80c74c-3479-4cbd-95a1-f6963ab35e0b" config-ref="HTTP_Listener_config" path="/agents" allowedMethods="POST"/>
+		<logger level="INFO" doc:name="🫆Log POST A2A Agents 🫆" doc:id="dd5256a7-804f-400c-913d-758460bfb05b" message='#[%dw 2.0
+output text
+
+fun mask(v) =
+  v match {
+    case is Object -&gt; v mapObject ((value, key) -&gt;
+      {(key): if (key ~= "clientSecret") "****" else mask(value)}
+    )
+    case is Array  -&gt; v map (mask($))
+    else -&gt; v
+  }
+---
+"\n\n" ++
+"🫆🫆🫆🫆🫆️️ --------------------------  POST A2A Agents -------------------------- 🫆🫆🫆🫆🫆️\n" ++
+write(mask(payload), "application/json") ++ 
+"\n 🫆🫆🫆🫆🫆️️ ---------------------------------------------------------- 🫆🫆🫆🫆🫆" ++
+"\n\n"]' />
+		<ee:transform doc:name="Add authentication to default agents" doc:id="b9ea035d-ca56-4794-a033-31ac8f543e9b">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+var agentforceAgent= 
+    {
+        url: p('agent.agentforce.url'),
+        agentType: "Agentforce",
+        authentication: {
+            "type": "client-credentials",
+            "clientId": p('agent.agentforce.clientId'),
+            "clientSecret": p('agent.agentforce.clientSecret')
+        }
+    }
+var einsteinAgent= 
+    {
+        url: p('agent.einstein.url'),
+        agentType: "Einstein Models",
+        authentication: {
+            "type": "client-credentials",
+            "clientId": p('agent.einstein.clientId'),
+            "clientSecret": p('agent.einstein.clientSecret')
+        }
+    }
+var crmAgent= 
+    {
+        url: p('agent.crm.url'),
+        agentType: "MuleSoft AI Chain",
+        authentication: {
+            "type": "client-credentials",
+            "clientId": p('agent.crm.clientId'),
+            "clientSecret": p('agent.crm.clientSecret')
+        }
+    }
+var erpAgent= 
+    {
+        url: p('agent.erp.url'),
+        agentType: "MuleSoft AI Chain",
+        authentication: {
+            "type": "client-credentials",
+            "clientId": p('agent.erp.clientId'),
+            "clientSecret": p('agent.erp.clientSecret')
+        }
+    }
+---
+{
+	agents:
+		payload.agents as Array map ((item, index) -> 
+    		
+    		if(item.url == p('agent.crm.url'))
+    			crmAgent
+     		else if(item.url == p('agent.erp.url'))
+     			erpAgent
+     		else if(item.url == p('agent.agentforce.url'))
+     			agentforceAgent
+     		else if(item.url == p('agent.einstein.url'))
+     			einsteinAgent
+     		else
+    			item
+    			
+    	)
+  }]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
 		<set-variable value='#[attributes.queryParams.userSessionId default ""]' doc:name="Set userSessionId" doc:id="d7018a42-4a75-4fb7-856b-11818ef6bea3" variableName="userSessionId" />
-		<set-variable value="#[payload]" doc:name="Set agentUrls" doc:id="7f00ddec-fb7a-4ba5-86d1-302674a393ed" variableName="agentUrls"/>
+		<set-variable value="#[payload]" doc:name="Set agentDetails" doc:id="7f00ddec-fb7a-4ba5-86d1-302674a393ed" variableName="agentDetails"/>
 		<flow-ref doc:name="request-a2a-agents-cards" doc:id="f63f7fa0-edc4-4f54-9e5a-d799e89b80f2" name="request-a2a-agents-cards" />
 		<set-variable value="#[payload]" doc:name="Set newAgents" doc:id="8c17a574-1307-4532-8624-7630f3a3ffb5" variableName="newAgents" />
 		<os:contains doc:name="Contains agents" doc:id="74832c71-73cf-49b7-9377-9d0b78e685ae" key='#[(vars.userSessionId default "") ++ "-agents"]' objectStore="AgentObjectStore" />

@@ -620,6 +620,11 @@ body {
     border-radius: 0.375rem;
 }
 
+#clientIdInput, #clientSecretInput {
+    padding: 0.4rem 0.75rem;
+    border-radius: 0.375rem;
+}
+
 /* ===== INTERACTION MODAL STYLES ===== */
 #interactionModal .interaction-plan-tile {
     background: #f8f9fa;

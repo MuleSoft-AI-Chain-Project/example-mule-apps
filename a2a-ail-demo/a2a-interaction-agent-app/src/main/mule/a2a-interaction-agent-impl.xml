@@ -568,6 +568,11 @@ output text/plain
 output text
 ---
 payload]" doc:name="agentUrl" doc:id="52bda8cb-caed-4c7f-b06a-83f2743e0b13" variableName="agentUrl" />
+		<os:retrieve doc:name="Retrieve auth by agent name and set vars.agentAuthentication" doc:id="bded5650-a727-4830-8dc7-84a5e1306abc" key='#[(vars.userSessionId default "") ++ "-agent-auth-" ++ (vars.agentToCall as String)]' objectStore="AgentObjectStore" />
+		<set-variable value="#[%dw 2.0
+output json
+---
+payload]" doc:name="agentAuthentication" doc:id="c28de689-1c6c-45c4-9f79-c8042aee457c" variableName="agentAuthentication" />
 		<ee:transform doc:name="Transform Message" doc:id="0f914f47-f198-41b5-bc2d-15cb27670e24">
 			<ee:message>
 				<ee:set-payload><![CDATA[%dw 2.0
