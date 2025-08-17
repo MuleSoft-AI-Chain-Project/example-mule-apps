@@ -259,7 +259,7 @@ write(vars.selectedAgents, "application/json") ++
 				<set-variable value="#[[]]" doc:name="Empty calledAgents" doc:id="9238dbf7-12bf-4f79-9d61-e4001f798e36" variableName="calledAgents" />
 				<parallel-foreach doc:name="Parallel For Each" doc:id="d1855f3b-dc20-4aa7-87b9-6afbcda3fc74" collection="#[vars.selectedAgents.tools]">
 							<set-variable value="#[payload]" doc:name="Set selectedAgent" doc:id="e610d0ac-e77e-48b1-abdc-a78546f13094" variableName="selectedAgent"/>
-					<flow-ref doc:name="send-task" doc:id="1bc962f6-168b-4a5e-9c32-cfa9c3657d65" name="send-task-refactored"/>
+					<flow-ref doc:name="send-task" doc:id="1bc962f6-168b-4a5e-9c32-cfa9c3657d65" name="send-task"/>
 						</parallel-foreach>
 				<set-variable value="#[%dw 2.0
 output application/json
@@ -453,7 +453,7 @@ write(toxicityAggregation, "application/json") ++
 				<set-variable value="#[[]]" doc:name="Empty calledAgents" doc:id="c7acba5f-fca9-400d-a9f8-eb4fc83979eb" variableName="calledAgents" />
 				<parallel-foreach doc:name="Parallel For Each" doc:id="45341d72-ab34-4c11-a49e-f7ed6d0dfc88" collection="#[vars.selectedAgents.tools]" >
 					<set-variable value="#[payload]" doc:name="Set selectedAgent" doc:id="28f1a267-4253-4f02-a8fd-a652f593cb58" variableName="selectedAgent" />
-					<flow-ref doc:name="send-task" doc:id="f79e08b8-68d5-43d4-8cbf-12ded0e3ce92" name="send-task-refactored" />
+					<flow-ref doc:name="send-task" doc:id="f79e08b8-68d5-43d4-8cbf-12ded0e3ce92" name="send-task" />
 				</parallel-foreach>
 				<set-variable value="#[%dw 2.0
 output application/json
@@ -530,11 +530,18 @@ var cleaned = raw replace '```json' with '' replace '```' with ''
 			</otherwise>
 		</choice>
 	</sub-flow>
-	<sub-flow name="send-task-refactored" doc:id="4be1e4ea-9f9d-4c85-b834-6b2ae7e343a8">
-		<set-variable value='#[%dw 2.0
+	<sub-flow name="send-task" doc:id="4be1e4ea-9f9d-4c85-b834-6b2ae7e343a8">
+		<choice doc:name="Choice" doc:id="794eda0e-ed78-4720-aacc-0af6bcb880d3" >
+			<when expression="vars.useTrustLayer == true">
+				<set-variable value='#[%dw 2.0&#10;output text/plain&#10;---&#10;vars.selectedAgent.function.arguments.prompt]' doc:name="agentPrompt" doc:id="f02a7365-e442-4734-b67a-588918ca1588" variableName="agentPrompt" />
+			</when>
+			<otherwise >
+				<set-variable value='#[%dw 2.0
 output text/plain
 ---
 (read(((vars.selectedAgent as Object).function as Object).arguments as String default "", "application/json") as Object).prompt]' doc:name="agentPrompt" doc:id="c4e079c8-8a08-4bd4-97e1-ebade15cf212" variableName="agentPrompt" />
+			</otherwise>
+		</choice>
 		<set-variable value="#[%dw 2.0
 output text/plain
 ---
