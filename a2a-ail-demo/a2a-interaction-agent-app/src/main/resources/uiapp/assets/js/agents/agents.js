@@ -1,17 +1,17 @@
 // Centralized default agent URLs for maintainability
 window.PREDEFINED_AGENT_URL = window.PREDEFINED_AGENT_URL || [
-    "https://mac-managed-fxgw-fjrr5q.zm3ejw.usa-e2.cloudhub.io/a2a-server-erp/erp-agent",
-    "https://mac-managed-fxgw-fjrr5q.zm3ejw.usa-e2.cloudhub.io/a2a-server-crm/crm-agent",
-    "https://mac-managed-fxgw-fjrr5q.zm3ejw.usa-e2.cloudhub.io/a2a-server-agentforce/agentforce-agent",
-    "https://mac-managed-fxgw-fjrr5q.zm3ejw.usa-e2.cloudhub.io/a2a-server-einstein/einstein-agent"
+    "https://mac-managed-fxgw-fjrr5q.zm3ejw.usa-e2.cloudhub.io/erp-agent",
+    "https://mac-managed-fxgw-fjrr5q.zm3ejw.usa-e2.cloudhub.io/crm-agent",
+    "https://mac-managed-fxgw-fjrr5q.zm3ejw.usa-e2.cloudhub.io/agentforce-agent",
+    "https://mac-managed-fxgw-fjrr5q.zm3ejw.usa-e2.cloudhub.io/einstein-agent"
 ];
 
 // Default agent types mapped to URLs
 window.DEFAULT_AGENT_TYPES = {
-    "https://mac-managed-fxgw-fjrr5q.zm3ejw.usa-e2.cloudhub.io/a2a-server-erp/erp-agent": "MuleSoft AI Chain",
-    "https://mac-managed-fxgw-fjrr5q.zm3ejw.usa-e2.cloudhub.io/a2a-server-crm/crm-agent": "MuleSoft AI Chain",
-    "https://mac-managed-fxgw-fjrr5q.zm3ejw.usa-e2.cloudhub.io/a2a-server-agentforce/agentforce-agent": "Agentforce",
-    "https://mac-managed-fxgw-fjrr5q.zm3ejw.usa-e2.cloudhub.io/a2a-server-einstein/einstein-agent": "Einstein Models"
+    "https://mac-managed-fxgw-fjrr5q.zm3ejw.usa-e2.cloudhub.io/erp-agent": "MuleSoft AI Chain",
+    "https://mac-managed-fxgw-fjrr5q.zm3ejw.usa-e2.cloudhub.io/crm-agent": "MuleSoft AI Chain",
+    "https://mac-managed-fxgw-fjrr5q.zm3ejw.usa-e2.cloudhub.io/agentforce-agent": "Agentforce",
+    "https://mac-managed-fxgw-fjrr5q.zm3ejw.usa-e2.cloudhub.io/einstein-agent": "Einstein Models"
 };
 
 // Local storage key for agent function name-type pairs
@@ -123,18 +123,18 @@ function getAgentTypeForUrl(agentUrl) {
 
 // Agent type icons mapping
 window.AGENT_TYPE_ICONS = {
-    "Agentforce": "assets/images/agentforceagent.png",
-    "Amazon Bedrock": "assets/images/bedrockagent.png",
-    "AutoGen": "assets/images/autogenagent.png",
-    "CrewAI": "assets/images/crewaiagent.png",
-    "GoogleADK": "assets/images/adkagent.png",
-    "Einstein Models": "assets/images/einsteinagent.png",
-    "Heroku" : "assets/images/heroku-icon.webp",
-    "LangChain": "assets/images/langchainagent.webp",
-    "LangChain4J": "assets/images/langchain4jagent.png",
-    "LlamaIndex": "assets/images/llamaindexagent.jpeg",
-    "MuleSoft AI Chain": "assets/images/muleaichainagent.webp",
-    "OpenAI Swarm": "assets/images/openaiswarmagent.png",
+    "Agentforce": "/ui/assets/images/agentforceagent.png",
+    "Amazon Bedrock": "/ui/assets/images/bedrockagent.png",
+    "AutoGen": "/ui/assets/images/autogenagent.png",
+    "CrewAI": "/ui/assets/images/crewaiagent.png",
+    "GoogleADK": "/ui/assets/images/adkagent.png",
+    "Einstein Models": "/ui/assets/images/einsteinagent.png",
+    "Heroku" : "/ui/assets/images/heroku-icon.webp",
+    "LangChain": "/ui/assets/images/langchainagent.webp",
+    "LangChain4J": "/ui/assets/images/langchain4jagent.png",
+    "LlamaIndex": "/ui/assets/images/llamaindexagent.jpeg",
+    "MuleSoft AI Chain": "/ui/assets/images/muleaichainagent.webp",
+    "OpenAI Swarm": "/ui/assets/images/openaiswarmagent.png",
     "Custom": "fas fa-robot" // Using existing FontAwesome icon
 };
 

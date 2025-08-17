@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:os="http://www.mulesoft.org/schema/mule/os" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
-	xmlns:http="http://www.mulesoft.org/schema/mule/http"
-	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+<mule xmlns:a2a="http://www.mulesoft.org/schema/mule/a2a" xmlns:os="http://www.mulesoft.org/schema/mule/os"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
-http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd">
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+http://www.mulesoft.org/schema/mule/a2a http://www.mulesoft.org/schema/mule/a2a/current/mule-a2a.xsd">
 	<sub-flow name="get-a2a-agents-cards" doc:id="704df931-576e-4068-9b3a-dfbdcf50266e" >
 		<set-variable value="#[(attributes.queryParams.defaultAgents as Boolean) default false]" doc:name="Set defaultAgents" doc:id="8ed6f2cd-c743-47bb-aceb-ffc606c7c06c" variableName="defaultAgents" />
 		<set-variable value='#[attributes.queryParams.userSessionId default ""]' doc:name="Set userSessionId" doc:id="4b1721ff-321f-43c0-b11a-7c9faf61c44b" variableName="userSessionId"/>
@@ -96,7 +97,7 @@ write(vars.agents.tools default [], "application/json") ++
 		<parallel-foreach doc:name="Parallel For Each" doc:id="87622453-de62-45ed-a5be-d3a856d07836" collection="#[vars.agentDetails.agents]" maxConcurrency="10" >
 			<set-variable value="#[payload.url]" doc:name="Set agentUrl" doc:id="d674523a-71b8-4c3f-8625-2af785f7e0cc" variableName="agentUrl"/>
 			<set-variable value="#[payload.authentication]" doc:name="Set agentAuthentication" doc:id="49c830a3-cfef-4f61-b25d-11ed4f16ab34" variableName="agentAuthentication" />
-			<http:request method="GET" doc:name="Request" doc:id="5f2213ce-53dc-49b7-9758-2bbfab3c44c2" config-ref="HTTP_Request_configuration" url='#[(vars.agentUrl default "") as String ++ "/.well-known/agent.json"]' />
+			<a2a:get-card doc:name="Get card" doc:id="b45a3cd2-5de0-437a-8266-2f6026dd7fab" config-ref="A2A_Client"/>
 			<set-variable value='#[%dw 2.0
 output text/plain
 var agentName = (payload as Object).name as String
