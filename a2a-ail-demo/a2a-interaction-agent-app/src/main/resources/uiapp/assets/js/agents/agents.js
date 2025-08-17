@@ -123,18 +123,18 @@ function getAgentTypeForUrl(agentUrl) {
 
 // Agent type icons mapping
 window.AGENT_TYPE_ICONS = {
-    "Agentforce": "/ui/assets/images/agentforceagent.png",
-    "Amazon Bedrock": "/ui/assets/images/bedrockagent.png",
-    "AutoGen": "/ui/assets/images/autogenagent.png",
-    "CrewAI": "/ui/assets/images/crewaiagent.png",
-    "GoogleADK": "/ui/assets/images/adkagent.png",
-    "Einstein Models": "/ui/assets/images/einsteinagent.png",
-    "Heroku" : "/ui/assets/images/heroku-icon.webp",
-    "LangChain": "/ui/assets/images/langchainagent.webp",
-    "LangChain4J": "/ui/assets/images/langchain4jagent.png",
-    "LlamaIndex": "/ui/assets/images/llamaindexagent.jpeg",
-    "MuleSoft AI Chain": "/ui/assets/images/muleaichainagent.webp",
-    "OpenAI Swarm": "/ui/assets/images/openaiswarmagent.png",
+    "Agentforce": "assets/images/agentforceagent.png",
+    "Amazon Bedrock": "assets/images/bedrockagent.png",
+    "AutoGen": "assets/images/autogenagent.png",
+    "CrewAI": "assets/images/crewaiagent.png",
+    "GoogleADK": "assets/images/adkagent.png",
+    "Einstein Models": "assets/images/einsteinagent.png",
+    "Heroku" : "assets/images/heroku-icon.webp",
+    "LangChain": "assets/images/langchainagent.webp",
+    "LangChain4J": "assets/images/langchain4jagent.png",
+    "LlamaIndex": "assets/images/llamaindexagent.jpeg",
+    "MuleSoft AI Chain": "assets/images/muleaichainagent.webp",
+    "OpenAI Swarm": "assets/images/openaiswarmagent.png",
     "Custom": "fas fa-robot" // Using existing FontAwesome icon
 };
 
@@ -414,7 +414,7 @@ async function sendMessageToAgent(message) {
     }
     
     try {
-        const response = await fetch(`/prompt-agent?agentName=${encodeURIComponent(window.currentChatAgent)}&userSessionId=${getUserSessionId()}`, {
+        const response = await fetch(`../prompt-agent?agentName=${encodeURIComponent(window.currentChatAgent)}&userSessionId=${getUserSessionId()}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -601,7 +601,7 @@ window.attachAgentsTab = function() {
     // Render agent tiles
     var grid = document.getElementById('agentsGrid');
     grid.innerHTML = '';
-    fetch(`/agents?userSessionId=${getUserSessionId()}`)
+    fetch(`../agents?userSessionId=${getUserSessionId()}`)
         .then(res => res.json())
         .then(data => {
             const tools = data.tools || [];
@@ -678,7 +678,7 @@ window.attachAgentsTab = function() {
                         const agentId = tile.getAttribute('data-agent-id');
                         
                         // Send DELETE request to remove agent
-                        fetch(`/agents?userSessionId=${getUserSessionId()}`, {
+                        fetch(`../agents?userSessionId=${getUserSessionId()}`, {
                             method: 'DELETE',
                             headers: {
                                 'Content-Type': 'application/json',
@@ -892,7 +892,7 @@ window.attachAgentsTab = function() {
                         };
                         
                         // Send POST request to add agent
-                        fetch(`/agents?userSessionId=${getUserSessionId()}`, {
+                        fetch(`../agents?userSessionId=${getUserSessionId()}`, {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
@@ -1043,7 +1043,7 @@ window.attachAgentsTab = function() {
                             }
                             
                             // Send DELETE request to remove all agents
-                            fetch(`/agents?userSessionId=${getUserSessionId()}`, {
+                            fetch(`../agents?userSessionId=${getUserSessionId()}`, {
                                 method: 'DELETE',
                                 headers: {
                                     'Content-Type': 'application/json',
@@ -1096,7 +1096,7 @@ window.attachAgentsTab = function() {
                             });
                             
                             // Send POST request to add all default agents
-                            fetch(`/agents?userSessionId=${getUserSessionId()}`, {
+                            fetch(`../agents?userSessionId=${getUserSessionId()}`, {
                                 method: 'POST',
                                 headers: {
                                     'Content-Type': 'application/json',
