@@ -663,7 +663,7 @@ body {
     border-radius: 0.375rem;
 }
 
-#clientIdInput, #clientSecretInput {
+#clientIdInput, #clientSecretInput, #tokenUrlInput {
     padding: 0.4rem 0.75rem;
     border-radius: 0.375rem;
 }
