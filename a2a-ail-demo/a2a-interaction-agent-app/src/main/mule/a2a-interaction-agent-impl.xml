@@ -533,7 +533,10 @@ var cleaned = raw replace '```json' with '' replace '```' with ''
 	<sub-flow name="send-task" doc:id="4be1e4ea-9f9d-4c85-b834-6b2ae7e343a8">
 		<choice doc:name="Choice" doc:id="794eda0e-ed78-4720-aacc-0af6bcb880d3" >
 			<when expression="vars.useTrustLayer == true">
-				<set-variable value='#[%dw 2.0&#10;output text/plain&#10;---&#10;vars.selectedAgent.function.arguments.prompt]' doc:name="agentPrompt" doc:id="f02a7365-e442-4734-b67a-588918ca1588" variableName="agentPrompt" />
+				<set-variable value='#[%dw 2.0
+output text/plain
+---
+vars.selectedAgent.function.arguments.prompt]' doc:name="agentPrompt" doc:id="f02a7365-e442-4734-b67a-588918ca1588" variableName="agentPrompt" />
 			</when>
 			<otherwise >
 				<set-variable value='#[%dw 2.0
@@ -615,7 +618,14 @@ write(payload default {}, "application/json") ++ "\n" ++
 		<set-variable value="#[payload]" doc:name="agentTaskRequest" doc:id="ba04a953-36c4-4498-a546-d9c1ec94ae8e" variableName="agentTaskRequest" />
 		<flow-ref doc:name="Capture Request" doc:id="64b06400-cf37-439c-b3e8-a1eb931f5951" name="capture-agent-requests" target="capture_request"/>
 		<try doc:name="Try" doc:id="6cbc4b95-43c1-443d-a18e-3080b331b786">
-			<a2a:send-task doc:name="Send task to {agentToCall} Agent" doc:id="5eac269a-6344-427e-a624-703cb29dabc4" config-ref="A2A_Client" />
+			<choice doc:name='Route based on the Authentication Type (Default "none")' doc:id="8ea54aa7-6bc3-45f0-be54-af3ec6ee2328">
+				<when expression='#[vars.agentAuthentication."type" == "client-credentials"]'>
+					<a2a:send-task doc:name="Send task to {agentToCall} Agent with ClientCredentials Grant Type" doc:id="a5a87d33-ccd3-4118-810c-06096a0b12a4" config-ref="A2A_Client_Auth_client-credentials" />
+				</when>
+				<otherwise>
+					<a2a:send-task doc:name="Send task to {agentToCall} Agent with NO AUTH" doc:id="0ebe3564-206f-4052-aaaf-bbd130267156" config-ref="A2A_Client_Auth_none" />
+				</otherwise>
+			</choice>
 			<try doc:name="Try send update over socket" doc:id="47de575d-ead3-4dd4-9f0e-73e81c1dbb82" >
 				<set-variable value='#[output text
 ---

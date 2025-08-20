@@ -12,49 +12,7 @@ http://www.mulesoft.org/schema/mule/a2a http://www.mulesoft.org/schema/mule/a2a/
 		<set-variable value='#[attributes.queryParams.userSessionId default ""]' doc:name="Set userSessionId" doc:id="4b1721ff-321f-43c0-b11a-7c9faf61c44b" variableName="userSessionId"/>
 		<choice doc:name="Choice" doc:id="e061eba7-a625-4f2e-92a0-6054be03745b" >
 			<when expression='#[vars.defaultAgents == true or vars.userSessionId == ""]'>
-				<set-variable value="#[%dw 2.0
-output application/json
----
-{
-	agents: [
-		{
-			url: p('agent.agentforce.url'),
-			agentType: &quot;Agentforce&quot;,
-			authentication: {
-			    &quot;type&quot;: &quot;client-credentials&quot;,
-				&quot;clientId&quot;: p('agent.agentforce.clientId'),
-				&quot;clientSecret&quot;: p('agent.agentforce.clientSecret')
-			}
-		},
-		{
-			url: p('agent.crm.url'),
-			agentType: &quot;MuleSoft AI Chain&quot;,
-			authentication: {
-			    &quot;type&quot;: &quot;client-credentials&quot;,
-				&quot;clientId&quot;: p('agent.crm.clientId'),
-				&quot;clientSecret&quot;: p('agent.crm.clientSecret')
-			}
-		},
-		{
-			url: p('agent.erp.url'),
-			agentType: &quot;MuleSoft AI Chain&quot;,
-			authentication: {
-			    &quot;type&quot;: &quot;client-credentials&quot;,
-				&quot;clientId&quot;: p('agent.erp.clientId'),
-				&quot;clientSecret&quot;: p('agent.erp.clientSecret')
-			}
-		},
-		{
-			url: p('agent.einstein.url'),
-			agentType: &quot;Einstein Models&quot;,
-			authentication: {
-			    &quot;type&quot;: &quot;client-credentials&quot;,
-				&quot;clientId&quot;: p('agent.einstein.clientId'),
-				&quot;clientSecret&quot;: p('agent.einstein.clientSecret')
-			}
-		}
-	]
-}]" doc:name="Set  defaults agentDetails" doc:id="fa49d939-0e44-48ad-9201-e0991fbc44a5" variableName="agentDetails" />
+				<set-variable value="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;	agents: [&#10;		{&#10;			url: p('agent.agentforce.url'),&#10;			agentType: &quot;Agentforce&quot;,&#10;			authentication: {&#10;			    &quot;type&quot;: &quot;client-credentials&quot;,&#10;			    &quot;tokenUrl&quot;: p('agent.agentforce.tokenUrl'),&#10;				&quot;clientId&quot;: p('agent.agentforce.clientId'),&#10;				&quot;clientSecret&quot;: p('agent.agentforce.clientSecret')&#10;			}&#10;		},&#10;		{&#10;			url: p('agent.crm.url'),&#10;			agentType: &quot;MuleSoft AI Chain&quot;,&#10;			authentication: {&#10;			    &quot;type&quot;: &quot;client-credentials&quot;,&#10;			    &quot;tokenUrl&quot;: p('agent.crm.tokenUrl'),&#10;				&quot;clientId&quot;: p('agent.crm.clientId'),&#10;				&quot;clientSecret&quot;: p('agent.crm.clientSecret')&#10;			}&#10;		},&#10;		{&#10;			url: p('agent.erp.url'),&#10;			agentType: &quot;MuleSoft AI Chain&quot;,&#10;			authentication: {&#10;			    &quot;type&quot;: &quot;client-credentials&quot;,&#10;			    &quot;tokenUrl&quot;: p('agent.erp.tokenUrl'),&#10;				&quot;clientId&quot;: p('agent.erp.clientId'),&#10;				&quot;clientSecret&quot;: p('agent.erp.clientSecret')&#10;			}&#10;		},&#10;		{&#10;			url: p('agent.einstein.url'),&#10;			agentType: &quot;Einstein Models&quot;,&#10;			authentication: {&#10;			    &quot;type&quot;: &quot;client-credentials&quot;,&#10;			    &quot;tokenUrl&quot;: p('agent.einstein.tokenUrl'),&#10;				&quot;clientId&quot;: p('agent.einstein.clientId'),&#10;				&quot;clientSecret&quot;: p('agent.einstein.clientSecret')&#10;			}&#10;		}&#10;	]&#10;}]" doc:name="Set  defaults agentDetails" doc:id="fa49d939-0e44-48ad-9201-e0991fbc44a5" variableName="agentDetails" />
 			</when>
 			<otherwise >
 				<set-variable value="#[%dw 2.0
@@ -97,7 +55,14 @@ write(vars.agents.tools default [], "application/json") ++
 		<parallel-foreach doc:name="Parallel For Each" doc:id="87622453-de62-45ed-a5be-d3a856d07836" collection="#[vars.agentDetails.agents]" maxConcurrency="10" >
 			<set-variable value="#[payload.url]" doc:name="Set agentUrl" doc:id="d674523a-71b8-4c3f-8625-2af785f7e0cc" variableName="agentUrl"/>
 			<set-variable value="#[payload.authentication]" doc:name="Set agentAuthentication" doc:id="49c830a3-cfef-4f61-b25d-11ed4f16ab34" variableName="agentAuthentication" />
-			<a2a:get-card doc:name="Get card" doc:id="b45a3cd2-5de0-437a-8266-2f6026dd7fab" config-ref="A2A_Client"/>
+			<choice doc:name='Route based on the Authentication Type (Default "none")' doc:id="e48fcb36-2d05-4218-87dc-d873fdcf0bcf">
+				<when expression='#[vars.agentAuthentication."type" == "client-credentials"]'>
+					<a2a:get-card doc:name="Get card from {agentToCall} Agent with ClientCredentials Grant Type" doc:id="b45a3cd2-5de0-437a-8266-2f6026dd7fab" config-ref="A2A_Client_Auth_client-credentials" />
+				</when>
+				<otherwise>
+					<a2a:get-card doc:name="Get card from {agentToCall} Agent with NO AUTH" doc:id="754675c6-ebeb-4e70-976d-9f4c1f9303c6" config-ref="A2A_Client_Auth_none" />
+				</otherwise>
+			</choice>
 			<set-variable value='#[%dw 2.0
 output text/plain
 var agentName = (payload as Object).name as String
@@ -196,12 +161,14 @@ write(mask(payload), "application/json") ++
 			<ee:message>
 				<ee:set-payload><![CDATA[%dw 2.0
 output application/json
+
 var agentforceAgent= 
     {
         url: p('agent.agentforce.url'),
         agentType: "Agentforce",
         authentication: {
             "type": "client-credentials",
+		    "tokenUrl": p('agent.agentforce.tokenUrl'),
             "clientId": p('agent.agentforce.clientId'),
             "clientSecret": p('agent.agentforce.clientSecret')
         }
@@ -212,6 +179,7 @@ var einsteinAgent=
         agentType: "Einstein Models",
         authentication: {
             "type": "client-credentials",
+		    "tokenUrl": p('agent.einstein.tokenUrl'),
             "clientId": p('agent.einstein.clientId'),
             "clientSecret": p('agent.einstein.clientSecret')
         }
@@ -222,6 +190,7 @@ var crmAgent=
         agentType: "MuleSoft AI Chain",
         authentication: {
             "type": "client-credentials",
+		    "tokenUrl": p('agent.crm.tokenUrl'),
             "clientId": p('agent.crm.clientId'),
             "clientSecret": p('agent.crm.clientSecret')
         }
@@ -232,6 +201,7 @@ var erpAgent=
         agentType: "MuleSoft AI Chain",
         authentication: {
             "type": "client-credentials",
+		    "tokenUrl": p('agent.erp.tokenUrl'),
             "clientId": p('agent.erp.clientId'),
             "clientSecret": p('agent.erp.clientSecret')
         }

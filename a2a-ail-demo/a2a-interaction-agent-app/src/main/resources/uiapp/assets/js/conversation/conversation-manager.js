@@ -65,7 +65,7 @@ window.ConversationManager = (function() {
         const segments = url.pathname.replace(/\/$/, "").split("/");
         segments.pop();
         const parentPath = segments.join("/") + "/";
-        const wsUrl = new URL(parentPath + 'ws/prompt', window.location.origin.replace(/^https?:/, protocol));
+        const wsUrl = new URL(parentPath + 'ws/prompt', window.location.origin);//window.location.origin.replace(/^https?:/, protocol));
         wsUrl.searchParams.set('userSessionId', userSessionId || '');
         wsUrl.searchParams.set('sessionId', sessionId);
         

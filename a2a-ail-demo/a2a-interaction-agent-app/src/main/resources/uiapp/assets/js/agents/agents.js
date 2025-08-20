@@ -87,6 +87,31 @@ function getAgentTypeForFunction(agentFunctionName) {
     return null;
 }
 
+// Helper function to check if a URL is a predefined agent URL
+function isPredefinedAgentUrl(agentUrl) {
+    if (!agentUrl || agentUrl.trim() === '') return false;
+    const normalizedUrl = agentUrl.trim().replace(/\/$/, ''); // Remove trailing slash
+    return window.PREDEFINED_AGENT_URL.some(url => {
+        const normalizedPredefinedUrl = url.replace(/\/$/, '');
+        return normalizedPredefinedUrl === normalizedUrl;
+    });
+}
+
+// Loading backdrop functions
+function showLoadingBackdrop() {
+    const loadingBackdrop = document.getElementById('loadingBackdrop');
+    if (loadingBackdrop) {
+        loadingBackdrop.style.display = 'flex';
+    }
+}
+
+function hideLoadingBackdrop() {
+    const loadingBackdrop = document.getElementById('loadingBackdrop');
+    if (loadingBackdrop) {
+        loadingBackdrop.style.display = 'none';
+    }
+}
+
 // New function to get agent type by URL
 function getAgentTypeForUrl(agentUrl) {
     console.log('getAgentTypeForUrl called with:', agentUrl);
@@ -578,8 +603,43 @@ window.attachAgentsTab = function() {
                 // Clear the fields when hiding
                 const clientIdInput = document.getElementById('clientIdInput');
                 const clientSecretInput = document.getElementById('clientSecretInput');
+                const tokenUrlInput = document.getElementById('tokenUrlInput');
                 if (clientIdInput) clientIdInput.value = '';
                 if (clientSecretInput) clientSecretInput.value = '';
+                if (tokenUrlInput) tokenUrlInput.value = '';
+            }
+        });
+    }
+    
+    // Add agent URL input event listener to handle authentication section visibility
+    const agentUrlInput = document.getElementById('agentUrlInput');
+    if (agentUrlInput) {
+        agentUrlInput.addEventListener('input', function() {
+            const authenticationSection = document.querySelector('.mb-3:has(#authenticationSelect)');
+            const authenticationLabel = document.querySelector('label[for="authenticationSelect"]');
+            const authenticationHelpText = document.getElementById('authenticationHelpText');
+            
+            if (isPredefinedAgentUrl(this.value.trim())) {
+                // Hide authentication select and show help text for predefined agents
+                if (authenticationSelect) {
+                    authenticationSelect.style.display = 'none';
+                }
+                if (authenticationHelpText) {
+                    authenticationHelpText.style.display = 'block';
+                }
+                // Hide client credentials fields if they were visible
+                const clientCredentialsFields = document.getElementById('clientCredentialsFields');
+                if (clientCredentialsFields) {
+                    clientCredentialsFields.style.display = 'none';
+                }
+            } else {
+                // Show authentication select and hide help text for custom agents
+                if (authenticationSelect) {
+                    authenticationSelect.style.display = 'block';
+                }
+                if (authenticationHelpText) {
+                    authenticationHelpText.style.display = 'none';
+                }
             }
         });
     }
@@ -808,6 +868,7 @@ window.attachAgentsTab = function() {
                         const authenticationSelect = document.getElementById('authenticationSelect');
                         const clientIdInput = document.getElementById('clientIdInput');
                         const clientSecretInput = document.getElementById('clientSecretInput');
+                        const tokenUrlInput = document.getElementById('tokenUrlInput');
                         
                         const agentUrl = agentUrlInput.value.trim();
                         const agentType = agentTypeSelect.value;
@@ -822,8 +883,9 @@ window.attachAgentsTab = function() {
                         if (authenticationType === 'client-credentials') {
                             const clientId = clientIdInput.value.trim();
                             const clientSecret = clientSecretInput.value.trim();
-                            if (!clientId || !clientSecret) {
-                                alert('Please fill in Client ID and Client Secret for Client Credentials authentication');
+                            const tokenUrl = tokenUrlInput.value.trim();
+                            if (!clientId || !clientSecret || !tokenUrl) {
+                                alert('Please fill in Client ID, Client Secret, and Token URL for Client Credentials authentication');
                                 return;
                             }
                         }
@@ -882,6 +944,7 @@ window.attachAgentsTab = function() {
                         if (authenticationType === 'client-credentials') {
                             authentication.clientId = clientIdInput.value.trim();
                             authentication.clientSecret = clientSecretInput.value.trim();
+                            authentication.tokenUrl = tokenUrlInput.value.trim();
                         }
                         
                         // Build agent object
@@ -890,6 +953,9 @@ window.attachAgentsTab = function() {
                             agentType: agentType,
                             authentication: authentication
                         };
+                        
+                        // Show loading backdrop
+                        showLoadingBackdrop();
                         
                         // Send POST request to add agent
                         fetch(`../agents?userSessionId=${getUserSessionId()}`, {
@@ -990,6 +1056,9 @@ window.attachAgentsTab = function() {
                             if (clientSecretInput) {
                                 clientSecretInput.value = '';
                             }
+                            if (tokenUrlInput) {
+                                tokenUrlInput.value = '';
+                            }
                             
                             // Hide client credentials fields
                             const clientCredentialsFields = document.getElementById('clientCredentialsFields');
@@ -1017,12 +1086,17 @@ window.attachAgentsTab = function() {
                             if (window.lastFocusedElement) {
                                 window.lastFocusedElement.focus();
                             }
+                            // Hide loading backdrop
+                            hideLoadingBackdrop();
+                            
                             // Refresh the agents list
                             window.attachAgentsTab();
                         })
                         .catch(error => {
                             console.error('Error adding agent:', error);
                             alert('Failed to add agent. Please try again.');
+                            // Hide loading backdrop on error
+                            hideLoadingBackdrop();
                         });
                     };
                     addAgentConfirmBtn.addEventListener('click', window.addAgentConfirmBtnListener);
@@ -1095,6 +1169,9 @@ window.attachAgentsTab = function() {
                                 };
                             });
                             
+                            // Show loading backdrop
+                            showLoadingBackdrop();
+                            
                             // Send POST request to add all default agents
                             fetch(`../agents?userSessionId=${getUserSessionId()}`, {
                                 method: 'POST',
@@ -1112,12 +1189,17 @@ window.attachAgentsTab = function() {
                                 return response.json();
                             })
                             .then(data => {
+                                // Hide loading backdrop
+                                hideLoadingBackdrop();
+                                
                                 // Refresh the agents list
                                 window.attachAgentsTab();
                             })
                             .catch(error => {
                                 console.error('Error adding default agents:', error);
                                 alert('Failed to add default agents. Please try again.');
+                                // Hide loading backdrop on error
+                                hideLoadingBackdrop();
                             });
                         }
                     };
@@ -1374,6 +1456,29 @@ function openEditAgentModal(agentUrl, agentName, tileElement) {
         console.log('Pre-filled agent type:', currentAgentType);
     }
     
+    // Disable authentication parameters in edit mode
+    const authenticationSelect = document.getElementById('authenticationSelect');
+    const clientIdInput = document.getElementById('clientIdInput');
+    const clientSecretInput = document.getElementById('clientSecretInput');
+    const tokenUrlInput = document.getElementById('tokenUrlInput');
+    
+    if (authenticationSelect) {
+        authenticationSelect.disabled = true;
+        authenticationSelect.style.backgroundColor = '#f8f9fa';
+    }
+    if (clientIdInput) {
+        clientIdInput.disabled = true;
+        clientIdInput.style.backgroundColor = '#f8f9fa';
+    }
+    if (clientSecretInput) {
+        clientSecretInput.disabled = true;
+        clientSecretInput.style.backgroundColor = '#f8f9fa';
+    }
+    if (tokenUrlInput) {
+        tokenUrlInput.disabled = true;
+        tokenUrlInput.style.backgroundColor = '#f8f9fa';
+    }
+    
     // Store reference to the tile element for updating later
     window.currentEditingTile = tileElement;
     window.currentEditingAgentUrl = agentUrl;
@@ -1445,6 +1550,14 @@ function resetModalToAddMode() {
     const authenticationSelect = document.getElementById('authenticationSelect');
     if (authenticationSelect) {
         authenticationSelect.value = 'none';
+        authenticationSelect.style.display = 'block'; // Ensure it's visible
+        authenticationSelect.disabled = false; // Re-enable in add mode
+        authenticationSelect.style.backgroundColor = ''; // Reset background color
+    }
+    
+    const authenticationHelpText = document.getElementById('authenticationHelpText');
+    if (authenticationHelpText) {
+        authenticationHelpText.style.display = 'none'; // Hide help text
     }
     
     const clientCredentialsFields = document.getElementById('clientCredentialsFields');
@@ -1454,8 +1567,22 @@ function resetModalToAddMode() {
     
     const clientIdInput = document.getElementById('clientIdInput');
     const clientSecretInput = document.getElementById('clientSecretInput');
-    if (clientIdInput) clientIdInput.value = '';
-    if (clientSecretInput) clientSecretInput.value = '';
+    const tokenUrlInput = document.getElementById('tokenUrlInput');
+    if (clientIdInput) {
+        clientIdInput.value = '';
+        clientIdInput.disabled = false; // Re-enable in add mode
+        clientIdInput.style.backgroundColor = ''; // Reset background color
+    }
+    if (clientSecretInput) {
+        clientSecretInput.value = '';
+        clientSecretInput.disabled = false; // Re-enable in add mode
+        clientSecretInput.style.backgroundColor = ''; // Reset background color
+    }
+    if (tokenUrlInput) {
+        tokenUrlInput.value = '';
+        tokenUrlInput.disabled = false; // Re-enable in add mode
+        tokenUrlInput.style.backgroundColor = ''; // Reset background color
+    }
     
     // Clear editing references
     window.currentEditingTile = null;

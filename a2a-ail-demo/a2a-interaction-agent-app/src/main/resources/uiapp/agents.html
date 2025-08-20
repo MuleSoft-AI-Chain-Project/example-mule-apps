@@ -46,8 +46,11 @@
                         <label for="authenticationSelect" class="form-label">Authentication</label>
                         <select class="form-select" id="authenticationSelect">
                             <option value="none">None</option>
-                            <option value="client-credentials">Client Credentials</option>
+                            <option value="client-credentials">Client Credentials Grant Type</option>
                         </select>
+                        <div id="authenticationHelpText" class="form-text" style="display: none; color: #6c757d; font-style: italic;">
+                            No need to define authentication for default agents. Default agents are secured using OAuth 2.0 Token Introspection policy.
+                        </div>
                     </div>
                     <div class="mb-3" id="clientCredentialsFields" style="display: none;">
                         <div class="mb-3">
@@ -57,6 +60,10 @@
                         <div class="mb-3">
                             <label for="clientSecretInput" class="form-label">Client Secret</label>
                             <input type="password" class="form-control" id="clientSecretInput" placeholder="Enter Client Secret">
+                        </div>
+                        <div class="mb-3">
+                            <label for="tokenUrlInput" class="form-label">Token URL</label>
+                            <input type="url" class="form-control" id="tokenUrlInput" placeholder="Enter Token URL">
                         </div>
                     </div>
                 </form>
@@ -109,6 +116,14 @@
                 </div>
             </div>
         </div>
+    </div>
+</div>
+
+<!-- Loading Backdrop -->
+<div id="loadingBackdrop" class="loading-backdrop" style="display: none;">
+    <div class="loading-spinner-container">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Processing...</div>
     </div>
 </div>
 
