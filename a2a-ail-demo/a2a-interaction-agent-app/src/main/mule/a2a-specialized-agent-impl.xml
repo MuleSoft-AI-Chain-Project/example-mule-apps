@@ -10,7 +10,11 @@ http://www.mulesoft.org/schema/mule/a2a http://www.mulesoft.org/schema/mule/a2a/
 	<flow name="send-task-directly-to-specialized-agent" doc:id="75a50315-e63a-400f-bfa5-ce6735349b32" >
 		<http:listener doc:name="Listener" doc:id="af4ecada-0d8c-438e-80ab-da2d8f9ef365" config-ref="HTTP_Listener_config" path="/prompt-agent" />
 		<set-variable value='#[attributes.queryParams.userSessionId default ""]' doc:name="Set userSessionId" doc:id="f7878dbf-4914-479a-a757-a9c21741dbc0" variableName="userSessionId" />
-		<set-variable value="#[%dw 2.0&#10;output application/json&#10;import * from dw::core::Strings&#10;---&#10;if (isEmpty(attributes.queryParams.sessionId)) (if (isEmpty(payload.sessionId)) uuid() else payload.sessionId) else attributes.queryParams.sessionId]" doc:name="sessionId" doc:id="0506f1bc-d506-47a7-83b5-864ecd9b03a9" variableName="sessionId" />
+		<set-variable value="#[%dw 2.0
+output application/json
+import * from dw::core::Strings
+---
+if (isEmpty(attributes.queryParams.sessionId)) (if (isEmpty(payload.sessionId)) uuid() else payload.sessionId) else attributes.queryParams.sessionId]" doc:name="sessionId" doc:id="0506f1bc-d506-47a7-83b5-864ecd9b03a9" variableName="sessionId" />
 		<set-variable value="#[%dw 2.0
 output text/plain
 ---
@@ -37,7 +41,10 @@ output text
 ---
 payload]" doc:name="agentUrl" doc:id="b4d3269b-3c04-4af2-b803-0f2d3c19d64a" variableName="agentUrl" />
 		<os:retrieve doc:name="Retrieve auth by agent name and set vars.agentAuthentication" doc:id="1f2bfdbc-93a5-4ffd-86d7-246759781cd6" key='#[(vars.userSessionId default "") ++ "-agent-auth-" ++ (vars.agentToCall as String)]' objectStore="AgentObjectStore" />
-		<set-variable value="#[%dw 2.0&#10;output json&#10;---&#10;payload]" doc:name="agentAuthentication" doc:id="0b1e1c47-61a6-408b-b408-1b56a2750a50" variableName="agentAuthentication" />
+		<set-variable value="#[%dw 2.0
+output json
+---
+payload]" doc:name="agentAuthentication" doc:id="0b1e1c47-61a6-408b-b408-1b56a2750a50" variableName="agentAuthentication" />
 		<ee:transform doc:name="Transform Message" doc:id="e3b17f33-d3e9-494b-8248-7c91225a7e00" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
@@ -86,10 +93,12 @@ write(payload default {}, "application/json") ++ "\n" ++
 output application/json
 ---
 {
+	sessionId: vars.sessionId,
 	status: "error",
 	errorMessage: error.errorMessage,
 	detailedDescription: error.detailedDescription
-}]' doc:name="Set Payload" doc:id="9f82b8cd-ee2d-4fe3-9018-70202bffac40" />
+}]' doc:name="Set Payload" doc:id="6153f211-a3e4-4f5d-aee4-d8822712ea5b" />
+					<logger level="INFO" doc:name="❗️Log error sending A2A Task/Message❗️" doc:id="e7a4654f-cc93-41d8-8f51-d2c3c42cb0e0" message="❗️❗️❗️❗️❗️ Error sending A2A Task/Message ❗️❗️❗️❗️❗️" />
 				</on-error-continue>
 			</error-handler>
 		</try>
