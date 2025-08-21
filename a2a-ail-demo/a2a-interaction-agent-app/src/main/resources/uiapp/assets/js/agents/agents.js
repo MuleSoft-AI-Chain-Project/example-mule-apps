@@ -244,6 +244,15 @@ function getUserSessionId() {
     return getCookie('userSessionId') || '';
 }
 
+// Generate a UUID v4 string
+function generateUUID() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        const r = Math.random() * 16 | 0;
+        const v = c === 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+    });
+}
+
 // Function to get agent icon HTML
 function getAgentIconHtml(agentUrl) {
     console.log('getAgentIconHtml called with agentUrl:', agentUrl);
@@ -280,6 +289,8 @@ function startChatWithAgent(agentId, agentName) {
     // Set current chat agent
     window.currentChatAgent = agentId;
     window.chatMessages = [];
+    // Create a new chat session id for this modal lifecycle
+    window.currentChatSessionId = generateUUID();
     
     // Update modal title
     const chatModalLabel = document.getElementById('chatModalLabel');
@@ -348,6 +359,7 @@ function startChatWithAgent(agentId, agentName) {
                     // Clear chat history
                     window.chatMessages = [];
                     window.currentChatAgent = null;
+                    window.currentChatSessionId = null;
                     
                     modalEl.classList.remove('show');
                     modalEl.style.display = 'none';
@@ -439,7 +451,7 @@ async function sendMessageToAgent(message) {
     }
     
     try {
-        const response = await fetch(`../prompt-agent?agentName=${encodeURIComponent(window.currentChatAgent)}&userSessionId=${getUserSessionId()}`, {
+        const response = await fetch(`../prompt-agent?agentName=${encodeURIComponent(window.currentChatAgent)}&userSessionId=${getUserSessionId()}&sessionId=${encodeURIComponent(window.currentChatSessionId || '')}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -530,6 +542,7 @@ function initializeModals() {
             // Clear chat history when modal is hidden
             window.chatMessages = [];
             window.currentChatAgent = null;
+            window.currentChatSessionId = null;
             
             // Clear chat container
             const chatContainer = document.getElementById('chatContainer');
@@ -1285,6 +1298,7 @@ window.attachAgentsTab = function() {
                     // Clear chat history
                     window.chatMessages = [];
                     window.currentChatAgent = null;
+                    window.currentChatSessionId = null;
                     
                     if (window.chatModal) {
                         window.chatModal.hide();
@@ -1329,6 +1343,7 @@ function initializeChatFunctionality() {
                 // Clear chat history
                 window.chatMessages = [];
                 window.currentChatAgent = null;
+                window.currentChatSessionId = null;
                 
                 if (window.chatModal) {
                     window.chatModal.hide();

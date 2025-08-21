@@ -10,10 +10,7 @@ http://www.mulesoft.org/schema/mule/a2a http://www.mulesoft.org/schema/mule/a2a/
 	<flow name="send-task-directly-to-specialized-agent" doc:id="75a50315-e63a-400f-bfa5-ce6735349b32" >
 		<http:listener doc:name="Listener" doc:id="af4ecada-0d8c-438e-80ab-da2d8f9ef365" config-ref="HTTP_Listener_config" path="/prompt-agent" />
 		<set-variable value='#[attributes.queryParams.userSessionId default ""]' doc:name="Set userSessionId" doc:id="f7878dbf-4914-479a-a757-a9c21741dbc0" variableName="userSessionId" />
-		<set-variable value="#[%dw 2.0
-output application/json
----
-if (attributes.headers.&quot;agentforceSession&quot; == '' or attributes.headers.&quot;agentforceSession&quot; == null) uuid() else attributes.headers.&quot;agentforce-session&quot;]" doc:name="sessionId" doc:id="0506f1bc-d506-47a7-83b5-864ecd9b03a9" variableName="sessionId" />
+		<set-variable value="#[%dw 2.0&#10;output application/json&#10;import * from dw::core::Strings&#10;---&#10;if (isEmpty(attributes.queryParams.sessionId)) (if (isEmpty(payload.sessionId)) uuid() else payload.sessionId) else attributes.queryParams.sessionId]" doc:name="sessionId" doc:id="0506f1bc-d506-47a7-83b5-864ecd9b03a9" variableName="sessionId" />
 		<set-variable value="#[%dw 2.0
 output text/plain
 ---
