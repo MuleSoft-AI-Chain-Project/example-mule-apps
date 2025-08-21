@@ -2,9 +2,24 @@ http.port=8081
 
 # Default agents
 agent.erp.url=
+agent.erp.tokenUrl=
+agent.erp.clientId=
+agent.erp.clientSecret=
+
 agent.crm.url=
+agent.crm.tokenUrl=
+agent.crm.clientId=
+agent.crm.clientSecret=
+
 agent.agentforce.url=
+agent.agentforce.tokenUrl=
+agent.agentforce.clientId=
+agent.agentforce.clientSecret=
+
 agent.einstein.url=
+agent.einstein.tokenUrl=
+agent.einstein.clientId=
+agent.einstein.clientSecret=
 
 agent.general.timeout=60
 

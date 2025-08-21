@@ -90,7 +90,7 @@ function loadConversation(forceReload = false) {
         window.ConversationManager.cleanup();
     }
     
-    fetch('/ui/conversation.html')
+    fetch('conversation.html')
         .then(response => response.text())
         .then(html => {
             conversationContent.innerHTML = html;
@@ -98,7 +98,7 @@ function loadConversation(forceReload = false) {
             // Load the conversation manager script if not already loaded
             if (!window.ConversationManager) {
                 const script = document.createElement('script');
-                script.src = '/ui/assets/js/conversation/conversation-manager.js';
+                script.src = 'assets/js/conversation/conversation-manager.js';
                 script.onload = function() {
                     // Wait a bit for the script to initialize, then call init
                     setTimeout(() => {
@@ -179,7 +179,7 @@ function loadAgents(forceReload = false) {
         }
     }
     
-    fetch('/ui/agents.html')
+    fetch('agents.html')
         .then(response => response.text())
         .then(html => {
             agentsContent.innerHTML = html;
@@ -187,7 +187,7 @@ function loadAgents(forceReload = false) {
             // Load the agents script if not already loaded
             if (!window.attachAgentsTab) {
                 const script = document.createElement('script');
-                script.src = '/ui/assets/js/agents/agents.js';
+                script.src = 'assets/js/agents/agents.js';
                 script.onload = function() {
                     // Wait a bit for the script to initialize, then call attachAgentsTab
                     setTimeout(() => {
@@ -229,7 +229,7 @@ function loadSessions(forceReload = false) {
     
     const sessionsContent = document.getElementById('sessions-content');
     
-    fetch('/ui/sessions.html')
+    fetch('sessions.html')
         .then(response => response.text())
         .then(html => {
             sessionsContent.innerHTML = html;

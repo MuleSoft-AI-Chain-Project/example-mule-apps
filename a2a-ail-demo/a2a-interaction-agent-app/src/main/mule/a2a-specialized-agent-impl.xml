@@ -39,6 +39,8 @@ output text/plain
 output text
 ---
 payload]" doc:name="agentUrl" doc:id="b4d3269b-3c04-4af2-b803-0f2d3c19d64a" variableName="agentUrl" />
+		<os:retrieve doc:name="Retrieve auth by agent name and set vars.agentAuthentication" doc:id="1f2bfdbc-93a5-4ffd-86d7-246759781cd6" key='#[(vars.userSessionId default "") ++ "-agent-auth-" ++ (vars.agentToCall as String)]' objectStore="AgentObjectStore" />
+		<set-variable value="#[%dw 2.0&#10;output json&#10;---&#10;payload]" doc:name="agentAuthentication" doc:id="0b1e1c47-61a6-408b-b408-1b56a2750a50" variableName="agentAuthentication" />
 		<ee:transform doc:name="Transform Message" doc:id="e3b17f33-d3e9-494b-8248-7c91225a7e00" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
@@ -73,7 +75,14 @@ write(payload default {}, "application/json") ++ "\n" ++
 "\n\n"]' />
 		<set-variable value="#[payload]" doc:name="agentTaskRequest" doc:id="26c19ce2-331b-4c91-b7da-07efe50754f0" variableName="agentTaskRequest" />
 		<try doc:name="Try" doc:id="cfe033da-3fbc-48ee-848c-b680f38c6c7d" >
-			<a2a:send-task doc:name="Send task to {agentToCall} Agent" doc:id="fc48742f-a46f-4e63-b860-5013fe0d3c7c" config-ref="A2A_Client" />
+			<choice doc:name='Route based on the Authentication Type (Default "none")' doc:id="a0acf3cb-88f1-4641-b97d-3d6916f59bda" >
+				<when expression='#[vars.agentAuthentication."type" == "client-credentials"]'>
+					<a2a:send-task doc:name="Send task to {agentToCall} Agent with ClientCredentials Grant Type" doc:id="2a320c55-b5ee-4ee7-b8eb-4915d3d430da" config-ref="A2A_Client_Auth_client-credentials" />
+				</when>
+				<otherwise >
+					<a2a:send-task doc:name="Send task to {agentToCall} Agent with NO AUTH" doc:id="fc48742f-a46f-4e63-b860-5013fe0d3c7c" config-ref="A2A_Client_Auth_none" />
+				</otherwise>
+			</choice>
 			<error-handler >
 				<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="c2c8669c-6896-40a4-afbd-66d4d1946639" >
 					<set-payload value='#[%dw 2.0
