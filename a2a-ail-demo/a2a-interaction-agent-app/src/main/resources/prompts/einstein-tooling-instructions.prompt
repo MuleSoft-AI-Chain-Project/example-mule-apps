@@ -39,3 +39,4 @@ Also do not include any formatting, markdown or visual enrichments
 
 - Only select from **Available specialised agents**, don't make up tools. 
 - If the section **Available specialised agents** is empty no tools are available.
+- Consider last agent message from conversation history **ONLY** when the user's query is a short acknowledgment (e.g., ‘ok,’ ‘thanks,’ ‘yes,’ ‘got it’).

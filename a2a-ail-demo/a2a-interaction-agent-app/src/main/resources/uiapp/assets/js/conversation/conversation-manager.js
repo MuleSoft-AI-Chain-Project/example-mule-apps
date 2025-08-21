@@ -116,10 +116,14 @@ window.ConversationManager = (function() {
                     if (chatMessages) {
                         chatMessages.scrollTop = chatMessages.scrollHeight;
                     }
-                } else if (data.response) {
+                } else if ('response' in data) {
+                    const hasContent = typeof data.response === 'string' ? data.response.trim().length > 0 : !!data.response;
+                    const safeResponse = hasContent
+                        ? (typeof data.response === 'string' ? data.response : (() => { try { return JSON.stringify(data.response); } catch(e) { return String(data.response); } })())
+                        : 'No response from agent.';
                     const responseId = generateUUID();
                     responseReasoningMap.set(responseId, [...currentReasoningUpdates]);
-                    addMessage(data.response, false, data, true, responseId);
+                    addMessage(safeResponse, false, data, true, responseId);
                     
                     const sessionHistory = JSON.parse(localStorage.getItem('agent_sessions') || '[]');
                     sessionHistory.push({
