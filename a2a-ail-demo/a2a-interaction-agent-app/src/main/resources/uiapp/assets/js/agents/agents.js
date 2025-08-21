@@ -604,9 +604,11 @@ window.attachAgentsTab = function() {
                 const clientIdInput = document.getElementById('clientIdInput');
                 const clientSecretInput = document.getElementById('clientSecretInput');
                 const tokenUrlInput = document.getElementById('tokenUrlInput');
+                const encodeClientCredentialsInBodySelect = document.getElementById('encodeClientCredentialsInBodySelect');
                 if (clientIdInput) clientIdInput.value = '';
                 if (clientSecretInput) clientSecretInput.value = '';
                 if (tokenUrlInput) tokenUrlInput.value = '';
+                if (encodeClientCredentialsInBodySelect) encodeClientCredentialsInBodySelect.value = 'false';
             }
         });
     }
@@ -869,6 +871,7 @@ window.attachAgentsTab = function() {
                         const clientIdInput = document.getElementById('clientIdInput');
                         const clientSecretInput = document.getElementById('clientSecretInput');
                         const tokenUrlInput = document.getElementById('tokenUrlInput');
+                        const encodeClientCredentialsInBodySelect = document.getElementById('encodeClientCredentialsInBodySelect');
                         
                         const agentUrl = agentUrlInput.value.trim();
                         const agentType = agentTypeSelect.value;
@@ -884,8 +887,9 @@ window.attachAgentsTab = function() {
                             const clientId = clientIdInput.value.trim();
                             const clientSecret = clientSecretInput.value.trim();
                             const tokenUrl = tokenUrlInput.value.trim();
-                            if (!clientId || !clientSecret || !tokenUrl) {
-                                alert('Please fill in Client ID, Client Secret, and Token URL for Client Credentials authentication');
+                            const encodeInBody = encodeClientCredentialsInBodySelect ? encodeClientCredentialsInBodySelect.value : 'false';
+                            if (!clientId || !clientSecret || !tokenUrl || !encodeInBody) {
+                                alert('Please fill in Client ID, Client Secret, Token URL, and Encode Client Credentials In Body for Client Credentials authentication');
                                 return;
                             }
                         }
@@ -945,6 +949,7 @@ window.attachAgentsTab = function() {
                             authentication.clientId = clientIdInput.value.trim();
                             authentication.clientSecret = clientSecretInput.value.trim();
                             authentication.tokenUrl = tokenUrlInput.value.trim();
+                            authentication.encodeClientCredentialsInBody = (encodeClientCredentialsInBodySelect && encodeClientCredentialsInBodySelect.value === 'true');
                         }
                         
                         // Build agent object
@@ -1058,6 +1063,9 @@ window.attachAgentsTab = function() {
                             }
                             if (tokenUrlInput) {
                                 tokenUrlInput.value = '';
+                            }
+                            if (encodeClientCredentialsInBodySelect) {
+                                encodeClientCredentialsInBodySelect.value = 'false';
                             }
                             
                             // Hide client credentials fields
@@ -1461,6 +1469,7 @@ function openEditAgentModal(agentUrl, agentName, tileElement) {
     const clientIdInput = document.getElementById('clientIdInput');
     const clientSecretInput = document.getElementById('clientSecretInput');
     const tokenUrlInput = document.getElementById('tokenUrlInput');
+    const encodeClientCredentialsInBodySelect = document.getElementById('encodeClientCredentialsInBodySelect');
     
     if (authenticationSelect) {
         authenticationSelect.disabled = true;
@@ -1477,6 +1486,10 @@ function openEditAgentModal(agentUrl, agentName, tileElement) {
     if (tokenUrlInput) {
         tokenUrlInput.disabled = true;
         tokenUrlInput.style.backgroundColor = '#f8f9fa';
+    }
+    if (encodeClientCredentialsInBodySelect) {
+        encodeClientCredentialsInBodySelect.disabled = true;
+        encodeClientCredentialsInBodySelect.style.backgroundColor = '#f8f9fa';
     }
     
     // Store reference to the tile element for updating later
@@ -1540,6 +1553,34 @@ function resetModalToAddMode() {
         agentUrlInput.style.backgroundColor = '';
     }
     
+    // Ensure the General tab is active by default
+    try {
+        const generalTabBtn = document.getElementById('general-tab');
+        if (generalTabBtn) {
+            if (window.bootstrap && window.bootstrap.Tab) {
+                const tab = window.bootstrap.Tab.getOrCreateInstance(generalTabBtn);
+                tab.show();
+            } else {
+                // Fallback: manually toggle classes
+                const generalPane = document.getElementById('generalTab');
+                const authPane = document.getElementById('authenticationTab');
+                if (generalTabBtn) generalTabBtn.classList.add('active');
+                const authTabBtn = document.getElementById('authentication-tab');
+                if (authTabBtn) authTabBtn.classList.remove('active');
+                if (generalPane) {
+                    generalPane.classList.add('show');
+                    generalPane.classList.add('active');
+                }
+                if (authPane) {
+                    authPane.classList.remove('show');
+                    authPane.classList.remove('active');
+                }
+            }
+        }
+    } catch (e) {
+        console.warn('Failed to activate General tab:', e);
+    }
+    
     // Clear the agent type select
     const agentTypeSelect = document.getElementById('agentTypeSelect');
     if (agentTypeSelect) {
@@ -1565,9 +1606,15 @@ function resetModalToAddMode() {
         clientCredentialsFields.style.display = 'none';
     }
     
+    const encodeClientCredentialsInBodySelect = document.getElementById('encodeClientCredentialsInBodySelect');
     const clientIdInput = document.getElementById('clientIdInput');
     const clientSecretInput = document.getElementById('clientSecretInput');
     const tokenUrlInput = document.getElementById('tokenUrlInput');
+    if (encodeClientCredentialsInBodySelect) {
+        encodeClientCredentialsInBodySelect.value = 'false';
+        encodeClientCredentialsInBodySelect.disabled = false;
+        encodeClientCredentialsInBodySelect.style.backgroundColor = '';
+    }
     if (clientIdInput) {
         clientIdInput.value = '';
         clientIdInput.disabled = false; // Re-enable in add mode

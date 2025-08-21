@@ -40,7 +40,7 @@ http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/
 	<a2a:client-config name="A2A_Client_Auth_client-credentials" doc:name="A2A Client" doc:id="f6f78f08-f879-4da4-89b5-6285a17fa062" >
 		<a2a:client-connection serverUrl="#[vars.agentUrl]" requestTimeout="${agent.general.timeout}">
 			<a2a:authentication >
-				<oauth:client-credentials-grant-type clientId="#[vars.agentAuthentication.clientId]" clientSecret="#[vars.agentAuthentication.clientSecret]" tokenUrl="#[vars.agentAuthentication.tokenUrl]" encodeClientCredentialsInBody="true">
+				<oauth:client-credentials-grant-type clientId="#[vars.agentAuthentication.clientId]" clientSecret="#[vars.agentAuthentication.clientSecret]" tokenUrl="#[vars.agentAuthentication.tokenUrl]" encodeClientCredentialsInBody="#[vars.agentAuthentication.encodeClientCredentialsInBody default false]">
 					<tls:context >
 						<tls:trust-store insecure="true" />
 					</tls:context>
