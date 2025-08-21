@@ -259,7 +259,7 @@ write(vars.selectedAgents, "application/json") ++
 				<set-variable value="#[[]]" doc:name="Empty calledAgents" doc:id="9238dbf7-12bf-4f79-9d61-e4001f798e36" variableName="calledAgents" />
 				<parallel-foreach doc:name="Parallel For Each" doc:id="d1855f3b-dc20-4aa7-87b9-6afbcda3fc74" collection="#[vars.selectedAgents.tools]">
 							<set-variable value="#[payload]" doc:name="Set selectedAgent" doc:id="e610d0ac-e77e-48b1-abdc-a78546f13094" variableName="selectedAgent"/>
-					<flow-ref doc:name="send-task" doc:id="1bc962f6-168b-4a5e-9c32-cfa9c3657d65" name="send-task-refactored"/>
+					<flow-ref doc:name="send-task" doc:id="1bc962f6-168b-4a5e-9c32-cfa9c3657d65" name="send-task"/>
 						</parallel-foreach>
 				<set-variable value="#[%dw 2.0
 output application/json
@@ -453,7 +453,7 @@ write(toxicityAggregation, "application/json") ++
 				<set-variable value="#[[]]" doc:name="Empty calledAgents" doc:id="c7acba5f-fca9-400d-a9f8-eb4fc83979eb" variableName="calledAgents" />
 				<parallel-foreach doc:name="Parallel For Each" doc:id="45341d72-ab34-4c11-a49e-f7ed6d0dfc88" collection="#[vars.selectedAgents.tools]" >
 					<set-variable value="#[payload]" doc:name="Set selectedAgent" doc:id="28f1a267-4253-4f02-a8fd-a652f593cb58" variableName="selectedAgent" />
-					<flow-ref doc:name="send-task" doc:id="f79e08b8-68d5-43d4-8cbf-12ded0e3ce92" name="send-task-refactored" />
+					<flow-ref doc:name="send-task" doc:id="f79e08b8-68d5-43d4-8cbf-12ded0e3ce92" name="send-task" />
 				</parallel-foreach>
 				<set-variable value="#[%dw 2.0
 output application/json
@@ -530,11 +530,21 @@ var cleaned = raw replace '```json' with '' replace '```' with ''
 			</otherwise>
 		</choice>
 	</sub-flow>
-	<sub-flow name="send-task-refactored" doc:id="4be1e4ea-9f9d-4c85-b834-6b2ae7e343a8">
-		<set-variable value='#[%dw 2.0
+	<sub-flow name="send-task" doc:id="4be1e4ea-9f9d-4c85-b834-6b2ae7e343a8">
+		<choice doc:name="Choice" doc:id="794eda0e-ed78-4720-aacc-0af6bcb880d3" >
+			<when expression="vars.useTrustLayer == true">
+				<set-variable value='#[%dw 2.0
+output text/plain
+---
+vars.selectedAgent.function.arguments.prompt]' doc:name="agentPrompt" doc:id="f02a7365-e442-4734-b67a-588918ca1588" variableName="agentPrompt" />
+			</when>
+			<otherwise >
+				<set-variable value='#[%dw 2.0
 output text/plain
 ---
 (read(((vars.selectedAgent as Object).function as Object).arguments as String default "", "application/json") as Object).prompt]' doc:name="agentPrompt" doc:id="c4e079c8-8a08-4bd4-97e1-ebade15cf212" variableName="agentPrompt" />
+			</otherwise>
+		</choice>
 		<set-variable value="#[%dw 2.0
 output text/plain
 ---
@@ -568,6 +578,11 @@ output text/plain
 output text
 ---
 payload]" doc:name="agentUrl" doc:id="52bda8cb-caed-4c7f-b06a-83f2743e0b13" variableName="agentUrl" />
+		<os:retrieve doc:name="Retrieve auth by agent name and set vars.agentAuthentication" doc:id="bded5650-a727-4830-8dc7-84a5e1306abc" key='#[(vars.userSessionId default "") ++ "-agent-auth-" ++ (vars.agentToCall as String)]' objectStore="AgentObjectStore" />
+		<set-variable value="#[%dw 2.0
+output json
+---
+payload]" doc:name="agentAuthentication" doc:id="c28de689-1c6c-45c4-9f79-c8042aee457c" variableName="agentAuthentication" />
 		<ee:transform doc:name="Transform Message" doc:id="0f914f47-f198-41b5-bc2d-15cb27670e24">
 			<ee:message>
 				<ee:set-payload><![CDATA[%dw 2.0
@@ -577,6 +592,8 @@ output application/json
 	"id": uuid(),
 	"sessionId": vars.sessionId,
 	"message": {
+		"messageId": uuid(),
+        "role": "agent",
 		"parts": [
 			{
                 "type": "text",
@@ -601,7 +618,14 @@ write(payload default {}, "application/json") ++ "\n" ++
 		<set-variable value="#[payload]" doc:name="agentTaskRequest" doc:id="ba04a953-36c4-4498-a546-d9c1ec94ae8e" variableName="agentTaskRequest" />
 		<flow-ref doc:name="Capture Request" doc:id="64b06400-cf37-439c-b3e8-a1eb931f5951" name="capture-agent-requests" target="capture_request"/>
 		<try doc:name="Try" doc:id="6cbc4b95-43c1-443d-a18e-3080b331b786">
-			<a2a:send-task doc:name="Send task to {agentToCall} Agent" doc:id="5eac269a-6344-427e-a624-703cb29dabc4" config-ref="A2A_Client" />
+			<choice doc:name='Route based on the Authentication Type (Default "none")' doc:id="8ea54aa7-6bc3-45f0-be54-af3ec6ee2328">
+				<when expression='#[vars.agentAuthentication."type" == "client-credentials"]'>
+					<a2a:send-task doc:name="Send task to {agentToCall} Agent with ClientCredentials Grant Type" doc:id="a5a87d33-ccd3-4118-810c-06096a0b12a4" config-ref="A2A_Client_Auth_client-credentials" />
+				</when>
+				<otherwise>
+					<a2a:send-task doc:name="Send task to {agentToCall} Agent with NO AUTH" doc:id="0ebe3564-206f-4052-aaaf-bbd130267156" config-ref="A2A_Client_Auth_none" />
+				</otherwise>
+			</choice>
 			<try doc:name="Try send update over socket" doc:id="47de575d-ead3-4dd4-9f0e-73e81c1dbb82" >
 				<set-variable value='#[output text
 ---

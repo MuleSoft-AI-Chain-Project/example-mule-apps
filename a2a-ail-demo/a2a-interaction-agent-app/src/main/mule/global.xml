@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:ms-inference="http://www.mulesoft.org/schema/mule/ms-inference" xmlns:file="http://www.mulesoft.org/schema/mule/file"
-	xmlns:websocket="http://www.mulesoft.org/schema/mule/websocket"
-	xmlns:ms-einstein-ai="http://www.mulesoft.org/schema/mule/ms-einstein-ai" xmlns:mac-inference="http://www.mulesoft.org/schema/mule/mac-inference" xmlns:mcp="http://www.mulesoft.org/schema/mule/mcp" xmlns:os="http://www.mulesoft.org/schema/mule/os" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:a2a="http://www.mulesoft.org/schema/mule/a2a" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+<mule xmlns:tls="http://www.mulesoft.org/schema/mule/tls" xmlns:oauth="http://www.mulesoft.org/schema/mule/oauth"
+	xmlns:ms-inference="http://www.mulesoft.org/schema/mule/ms-inference"
+	xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:websocket="http://www.mulesoft.org/schema/mule/websocket" xmlns:ms-einstein-ai="http://www.mulesoft.org/schema/mule/ms-einstein-ai" xmlns:mac-inference="http://www.mulesoft.org/schema/mule/mac-inference" xmlns:mcp="http://www.mulesoft.org/schema/mule/mcp" xmlns:os="http://www.mulesoft.org/schema/mule/os" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:a2a="http://www.mulesoft.org/schema/mule/a2a" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
 http://www.mulesoft.org/schema/mule/a2a http://www.mulesoft.org/schema/mule/a2a/current/mule-a2a.xsd
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
@@ -12,7 +12,9 @@ http://www.mulesoft.org/schema/mule/mac-inference http://www.mulesoft.org/schema
 http://www.mulesoft.org/schema/mule/ms-einstein-ai http://www.mulesoft.org/schema/mule/ms-einstein-ai/current/mule-ms-einstein-ai.xsd
 http://www.mulesoft.org/schema/mule/websocket http://www.mulesoft.org/schema/mule/websocket/current/mule-websocket.xsd
 http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
-http://www.mulesoft.org/schema/mule/ms-inference http://www.mulesoft.org/schema/mule/ms-inference/current/mule-ms-inference.xsd">
+http://www.mulesoft.org/schema/mule/ms-inference http://www.mulesoft.org/schema/mule/ms-inference/current/mule-ms-inference.xsd
+http://www.mulesoft.org/schema/mule/oauth http://www.mulesoft.org/schema/mule/oauth/current/mule-oauth.xsd
+http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd">
 	<!-- <a2a:client-config name="A2A_Client_ERP" doc:name="A2A Client" doc:id="6d5d3081-e17e-46f3-8326-b5aa6ed80086" >
 		<a2a:client-connection serverUrl="${agent.erp.url}" requestTimeout="${agent.erp.timeout}"/>
 	</a2a:client-config> -->
@@ -31,8 +33,20 @@ http://www.mulesoft.org/schema/mule/ms-inference http://www.mulesoft.org/schema/
 		<ms-inference:openai-connection apiKey="${openai.apikey}" maxTokens="${openai.maxToken}" openAIModelName="${openai.model}"/>
 	</ms-inference:text-generation-config>
 	<configuration-properties doc:name="Configuration properties" doc:id="6d86e7e5-a6b8-4e0a-b7b8-5a053649db54" file="config.properties" />
-	<a2a:client-config name="A2A_Client" doc:name="A2A Client" doc:id="8a9fffe5-1981-4bad-9dc2-2324810b36de" >
-		<a2a:client-connection serverUrl="#[vars.agentUrl]" requestTimeout="${agent.general.timeout}"/>
+	<a2a:client-config name="A2A_Client_Auth_none" doc:name="A2A Client" doc:id="8a9fffe5-1981-4bad-9dc2-2324810b36de" >
+		<a2a:client-connection serverUrl="#[vars.agentUrl]" requestTimeout="${agent.general.timeout}">
+		</a2a:client-connection>
+	</a2a:client-config>
+	<a2a:client-config name="A2A_Client_Auth_client-credentials" doc:name="A2A Client" doc:id="f6f78f08-f879-4da4-89b5-6285a17fa062" >
+		<a2a:client-connection serverUrl="#[vars.agentUrl]" requestTimeout="${agent.general.timeout}">
+			<a2a:authentication >
+				<oauth:client-credentials-grant-type clientId="#[vars.agentAuthentication.clientId]" clientSecret="#[vars.agentAuthentication.clientSecret]" tokenUrl="#[vars.agentAuthentication.tokenUrl]" encodeClientCredentialsInBody="#[vars.agentAuthentication.encodeClientCredentialsInBody default false]">
+					<tls:context >
+						<tls:trust-store insecure="true" />
+					</tls:context>
+				</oauth:client-credentials-grant-type>
+			</a2a:authentication>
+		</a2a:client-connection>
 	</a2a:client-config>
 	<ms-einstein-ai:config name="Einstein_AI" doc:name="Einstein AI Configuration" doc:id="a9b3d80c-cc8b-4151-aa75-0e26894f7f0a" >
 		<ms-einstein-ai:oauth-client-credentials-connection >
@@ -69,6 +83,7 @@ http://www.mulesoft.org/schema/mule/ms-inference http://www.mulesoft.org/schema/
 				</a2a:agent-skill>
 			</a2a:skills>
 		</a2a:card>
+		<a2a:history taskHistoryEnabled="false" />
 	</a2a:server-config>
 	<file:config name="File_Config" doc:name="File Config" doc:id="ab5e7a0b-7171-4c93-af78-93a3fd16862b" />
 </mule>

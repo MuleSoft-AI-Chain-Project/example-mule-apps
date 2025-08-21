@@ -60,7 +60,12 @@ window.ConversationManager = (function() {
         
         const userSessionId = getCookie('userSessionId');
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        const wsUrl = new URL('/ws/prompt', window.location.origin.replace(/^https?:/, protocol));
+        const url = new URL(window.location.href);
+        // remove trailing slash, split, and drop last segment
+        const segments = url.pathname.replace(/\/$/, "").split("/");
+        segments.pop();
+        const parentPath = segments.join("/") + "/";
+        const wsUrl = new URL(parentPath + 'ws/prompt', window.location.origin);//window.location.origin.replace(/^https?:/, protocol));
         wsUrl.searchParams.set('userSessionId', userSessionId || '');
         wsUrl.searchParams.set('sessionId', sessionId);
         
@@ -551,7 +556,7 @@ window.ConversationManager = (function() {
         }
         if (modal) { modal.remove(); console.log('Removed old modal'); }
         if (window.renderInteractionModal) { delete window.renderInteractionModal; console.log('Deleted old renderInteractionModal'); }
-        fetch('/ui/interaction-modal.html')
+        fetch('interaction-modal.html')
             .then(resp => resp.text())
             .then(html => {
                 console.log('Fetched interaction-modal.html');

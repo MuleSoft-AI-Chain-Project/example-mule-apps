@@ -90,7 +90,7 @@ function loadConversation(forceReload = false) {
         window.ConversationManager.cleanup();
     }
     
-    fetch('/ui/conversation.html')
+    fetch('conversation.html')
         .then(response => response.text())
         .then(html => {
             conversationContent.innerHTML = html;
@@ -98,7 +98,7 @@ function loadConversation(forceReload = false) {
             // Load the conversation manager script if not already loaded
             if (!window.ConversationManager) {
                 const script = document.createElement('script');
-                script.src = '/ui/assets/js/conversation/conversation-manager.js';
+                script.src = 'assets/js/conversation/conversation-manager.js';
                 script.onload = function() {
                     // Wait a bit for the script to initialize, then call init
                     setTimeout(() => {
@@ -171,11 +171,40 @@ function loadAgents(forceReload = false) {
     
     const agentsContent = document.getElementById('agents-content');
     
-    fetch('/ui/agents.html')
+    // Clean up existing agents resources
+    if (window.attachAgentsTab) {
+        // Reset any existing state if needed
+        if (window.resetAgentsTabState) {
+            window.resetAgentsTabState();
+        }
+    }
+    
+    fetch('agents.html')
         .then(response => response.text())
         .then(html => {
             agentsContent.innerHTML = html;
-            // Extract and execute scripts
+            
+            // Load the agents script if not already loaded
+            if (!window.attachAgentsTab) {
+                const script = document.createElement('script');
+                script.src = 'assets/js/agents/agents.js';
+                script.onload = function() {
+                    // Wait a bit for the script to initialize, then call attachAgentsTab
+                    setTimeout(() => {
+                        if (window.attachAgentsTab) {
+                            window.attachAgentsTab();
+                        }
+                    }, 100);
+                };
+                document.head.appendChild(script);
+            } else {
+                // Script already loaded, just call attachAgentsTab
+                if (window.attachAgentsTab) {
+                    window.attachAgentsTab();
+                }
+            }
+            
+            // Extract and execute any inline scripts from the HTML
             const scripts = agentsContent.querySelectorAll('script');
             scripts.forEach(script => {
                 const newScript = document.createElement('script');
@@ -187,10 +216,11 @@ function loadAgents(forceReload = false) {
                 document.body.appendChild(newScript);
                 document.body.removeChild(newScript);
             });
-            if (window.attachAgentsTab) {
-                window.attachAgentsTab();
-            }
+            
             agentsLoaded = true;
+        })
+        .catch(error => {
+            console.error('Error loading agents:', error);
         });
 }
 
@@ -199,7 +229,7 @@ function loadSessions(forceReload = false) {
     
     const sessionsContent = document.getElementById('sessions-content');
     
-    fetch('/ui/sessions.html')
+    fetch('sessions.html')
         .then(response => response.text())
         .then(html => {
             sessionsContent.innerHTML = html;

@@ -51,14 +51,8 @@ output application/json
 			<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="56c6daea-1ab4-47e8-beea-1b33a42feea3" type="ANY"/>
 		</error-handler>
 	</flow>
-	<flow name="call-out-external-service" doc:id="31bf34b6-4fcc-4340-b337-46cb8e2906bd" >
-		<http:request method="POST" doc:name="External Service for Capturing Interactions" doc:id="0fd3554f-8748-47e2-89e7-fd9b653dce5b" url="${external.service}"/>
-		<error-handler >
-			<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="76594df5-0471-4ebc-a72c-a952415545b4" type="ANY"/>
-		</error-handler>
-	</flow>
-	<flow name="capture-domain-agent-no-agent" doc:id="ad974bb4-92c3-4864-99e4-6908f83b6a02" >
-		<choice doc:name="Choice" doc:id="8adfb845-18b5-4c97-ae02-8ac0f16dfbc4" >
+	<flow name="capture-domain-agent-no-agent" doc:id="ad974bb4-92c3-4864-99e4-6908f83b6a02">
+		<choice doc:name="Choice" doc:id="8adfb845-18b5-4c97-ae02-8ac0f16dfbc4">
 			<when expression="#[vars.agentUsed==false default false]">
 				<ee:transform doc:name="Agent Request Payload" doc:id="5b351759-13c9-4ca6-9b76-3643a6b9faff">
 			<ee:message>
@@ -97,10 +91,10 @@ output application/json
 		</ee:transform>
 				<flow-ref doc:name="call-external" doc:id="0f92c225-9f00-45c8-b74d-72585fdfade8" name="call-out-external-service" />
 			</when>
-			<otherwise >
-				<ee:transform doc:name="Agent Request Payload" doc:id="25ad9835-489f-4a17-b573-04d69d502174" >
-					<ee:message >
-						<ee:set-payload ><![CDATA[%dw 2.0
+			<otherwise>
+				<ee:transform doc:name="Agent Request Payload" doc:id="25ad9835-489f-4a17-b573-04d69d502174">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
 output application/json
 ---
 {
@@ -116,9 +110,9 @@ output application/json
 					</ee:message>
 				</ee:transform>
 				<flow-ref doc:name="call-external" doc:id="49b6a232-85c5-4cfa-abf4-c8c0f9ccfd16" name="call-out-external-service" />
-				<ee:transform doc:name="Agent Response Payload" doc:id="f97bb06b-7fa6-487b-98c5-e8433f8de85c" >
-					<ee:message >
-						<ee:set-payload ><![CDATA[%dw 2.0
+				<ee:transform doc:name="Agent Response Payload" doc:id="f97bb06b-7fa6-487b-98c5-e8433f8de85c">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
 output application/json
 ---
 {
@@ -136,8 +130,14 @@ output application/json
 				<flow-ref doc:name="call-external1" doc:id="1f5616df-6b13-4bca-a71b-78dd30e896db" name="call-out-external-service" />
 			</otherwise>
 		</choice>
+		<error-handler>
+			<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="6914fd5b-a985-4a35-8733-6a1fe4cfb246" type="ANY" />
+		</error-handler>
+	</flow>
+	<flow name="call-out-external-service" doc:id="31bf34b6-4fcc-4340-b337-46cb8e2906bd" >
+		<http:request method="POST" doc:name="External Service for Capturing Interactions" doc:id="0fd3554f-8748-47e2-89e7-fd9b653dce5b" url="${external.service}"/>
 		<error-handler >
-			<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="6914fd5b-a985-4a35-8733-6a1fe4cfb246" type="ANY"/>
+			<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="76594df5-0471-4ebc-a72c-a952415545b4" type="ANY"/>
 		</error-handler>
 	</flow>
 </mule>
