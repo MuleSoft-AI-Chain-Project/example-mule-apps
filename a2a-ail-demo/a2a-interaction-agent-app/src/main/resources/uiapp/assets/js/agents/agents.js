@@ -1470,10 +1470,22 @@ function openEditAgentModal(agentUrl, agentName, tileElement) {
     const clientSecretInput = document.getElementById('clientSecretInput');
     const tokenUrlInput = document.getElementById('tokenUrlInput');
     const encodeClientCredentialsInBodySelect = document.getElementById('encodeClientCredentialsInBodySelect');
+    const authenticationHelpText = document.getElementById('authenticationHelpText');
+    const clientCredentialsFields = document.getElementById('clientCredentialsFields');
     
     if (authenticationSelect) {
         authenticationSelect.disabled = true;
         authenticationSelect.style.backgroundColor = '#f8f9fa';
+        // If this is a predefined (default) agent, hide the selector and show help text
+        if (isPredefinedAgentUrl(agentUrl)) {
+            authenticationSelect.style.display = 'none';
+            if (authenticationHelpText) authenticationHelpText.style.display = 'block';
+            if (clientCredentialsFields) clientCredentialsFields.style.display = 'none';
+        } else {
+            // Custom agents: ensure selector is visible and help text hidden
+            authenticationSelect.style.display = 'block';
+            if (authenticationHelpText) authenticationHelpText.style.display = 'none';
+        }
     }
     if (clientIdInput) {
         clientIdInput.disabled = true;

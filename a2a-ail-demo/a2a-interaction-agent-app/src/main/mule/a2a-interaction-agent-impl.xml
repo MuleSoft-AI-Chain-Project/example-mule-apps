@@ -170,7 +170,7 @@ output application/json
 		</os:store>
 		<logger level="INFO" doc:name="💬 Log Conversations's chat messages 💬" doc:id="3c12fca8-7264-4b3b-bd78-2888bcb9b0d2" message='#[output text
 ---
-"💬💬💬💬💬 ---------- STORED CHAT MESSAGES ---------- 💬💬💬💬💬 \n\n" ++
+"\n\n💬💬💬💬💬 ---------- STORED CHAT MESSAGES ---------- 💬💬💬💬💬 \n\n" ++
 "Chat messages:\n" ++
 write(vars.chatMessages, "application/json") ++ "\n\n" ++
 "💬💬💬💬💬 -------------------------------------------- 💬💬💬💬💬"]' />
