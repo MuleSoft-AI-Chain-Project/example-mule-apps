@@ -826,6 +826,7 @@ body {
     height: 100%;
     display: flex;
     flex-direction: column;
+    max-height: 650px;
 }
 
 .chat-modal .modal-body {
@@ -841,7 +842,6 @@ body {
     overflow-y: auto;
     padding: 1rem;
     background: #f8f9fa;
-    max-height: 650px;
     min-height: 300px;
     scroll-behavior: smooth;
 }
