@@ -800,7 +800,7 @@ window.attachAgentsTab = function() {
                 if (iconWrapper) {
                     iconWrapper.addEventListener('click', function(e) {
                         e.stopPropagation();
-                        openEditAgentModal(agentUrl, agentInfo.agentName || tool.function.name, tile);
+                        openEditAgentModal(agentUrl, agentInfo.agentName || tool.function.name, tile, agentInfo, tool);
                     });
                 }
             });
@@ -1451,8 +1451,8 @@ function debugAgentTypesStorage() {
 }
 
 // Function to open edit agent modal
-function openEditAgentModal(agentUrl, agentName, tileElement) {
-    console.log('Opening edit modal for agent:', agentName, 'with URL:', agentUrl);
+function openEditAgentModal(agentUrl, agentName, tileElement, agentInfo, tool) {
+    console.log('Opening edit modal for agent:', agentName, 'with URL:', agentUrl, 'agentInfo:', agentInfo, 'tool:', tool);
     
     // Store the currently focused element
     window.lastFocusedElement = document.activeElement;
@@ -1477,6 +1477,48 @@ function openEditAgentModal(agentUrl, agentName, tileElement) {
         const currentAgentType = getAgentTypeForUrl(agentUrl);
         agentTypeSelect.value = currentAgentType || '';
         console.log('Pre-filled agent type:', currentAgentType);
+    }
+    
+    // Pre-fill authentication parameters with current values
+    if (tool && tool.agentAuthentication) {
+        const authenticationSelect = document.getElementById('authenticationSelect');
+        const clientIdInput = document.getElementById('clientIdInput');
+        const clientSecretInput = document.getElementById('clientSecretInput');
+        const tokenUrlInput = document.getElementById('tokenUrlInput');
+        const encodeClientCredentialsInBodySelect = document.getElementById('encodeClientCredentialsInBodySelect');
+        const clientCredentialsFields = document.getElementById('clientCredentialsFields');
+        
+        if (authenticationSelect && tool.agentAuthentication.type) {
+            authenticationSelect.value = tool.agentAuthentication.type;
+            console.log('Pre-filled authentication type:', tool.agentAuthentication.type);
+        }
+        if (clientIdInput && tool.agentAuthentication.clientId) {
+            clientIdInput.value = tool.agentAuthentication.clientId;
+            console.log('Pre-filled client ID');
+        }
+        if (clientSecretInput && tool.agentAuthentication.clientSecret) {
+            clientSecretInput.value = tool.agentAuthentication.clientSecret;
+            console.log('Pre-filled client secret');
+        }
+        if (tokenUrlInput && tool.agentAuthentication.tokenUrl) {
+            tokenUrlInput.value = tool.agentAuthentication.tokenUrl;
+            console.log('Pre-filled token URL');
+        }
+        if (encodeClientCredentialsInBodySelect && tool.agentAuthentication.encodeClientCredentialsInBody !== undefined) {
+            encodeClientCredentialsInBodySelect.value = tool.agentAuthentication.encodeClientCredentialsInBody ? 'true' : 'false';
+            console.log('Pre-filled encode client credentials in body:', tool.agentAuthentication.encodeClientCredentialsInBody);
+        }
+        
+        // Show/hide client credentials fields based on authentication type
+        if (tool.agentAuthentication.type === 'client-credentials') {
+            if (clientCredentialsFields) {
+                clientCredentialsFields.style.display = 'block';
+            }
+        } else {
+            if (clientCredentialsFields) {
+                clientCredentialsFields.style.display = 'none';
+            }
+        }
     }
     
     // Disable authentication parameters in edit mode
@@ -1517,6 +1559,34 @@ function openEditAgentModal(agentUrl, agentName, tileElement) {
     if (encodeClientCredentialsInBodySelect) {
         encodeClientCredentialsInBodySelect.disabled = true;
         encodeClientCredentialsInBodySelect.style.backgroundColor = '#f8f9fa';
+    }
+    
+    // Ensure the General tab is active by default
+    try {
+        const generalTabBtn = document.getElementById('general-tab');
+        if (generalTabBtn) {
+            if (window.bootstrap && window.bootstrap.Tab) {
+                const tab = window.bootstrap.Tab.getOrCreateInstance(generalTabBtn);
+                tab.show();
+            } else {
+                // Fallback: manually toggle classes
+                const generalPane = document.getElementById('generalTab');
+                const authPane = document.getElementById('authenticationTab');
+                if (generalTabBtn) generalTabBtn.classList.add('active');
+                const authTabBtn = document.getElementById('authentication-tab');
+                if (authTabBtn) authTabBtn.classList.remove('active');
+                if (generalPane) {
+                    generalPane.classList.add('show');
+                    generalPane.classList.add('active');
+                }
+                if (authPane) {
+                    authPane.classList.remove('show');
+                    authPane.classList.remove('active');
+                }
+            }
+        }
+    } catch (e) {
+        console.warn('Failed to activate General tab:', e);
     }
     
     // Store reference to the tile element for updating later
