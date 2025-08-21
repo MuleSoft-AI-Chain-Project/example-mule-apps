@@ -59,13 +59,26 @@ window.ConversationManager = (function() {
         }
         
         const userSessionId = getCookie('userSessionId');
-        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
         const url = new URL(window.location.href);
-        // remove trailing slash, split, and drop last segment
-        const segments = url.pathname.replace(/\/$/, "").split("/");
-        segments.pop();
-        const parentPath = segments.join("/") + "/";
-        const wsUrl = new URL(parentPath + 'ws/prompt', window.location.origin);//window.location.origin.replace(/^https?:/, protocol));
+        // Find the /ui/ segment and get the parent path above /ui/
+        const pathSegments = url.pathname.split("/");
+        const uiIndex = pathSegments.indexOf("ui");
+        let parentPath;
+        if (uiIndex !== -1) {
+            // Take everything up to (but not including) "ui" to get the parent path
+            const validSegments = pathSegments.slice(1, uiIndex).filter(segment => segment !== "");
+            if (validSegments.length > 0) {
+                parentPath = "/" + validSegments.join("/") + "/";
+            } else {
+                parentPath = "/";
+            }
+        } else {
+            // Fallback: remove trailing slash, split, and drop last segment
+            const segments = url.pathname.replace(/\/$/, "").split("/");
+            segments.pop();
+            parentPath = segments.join("/") + "/";
+        }
+        const wsUrl = new URL(parentPath + 'ws/prompt', window.location.origin);
         wsUrl.searchParams.set('userSessionId', userSessionId || '');
         wsUrl.searchParams.set('sessionId', sessionId);
         
