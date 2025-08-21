@@ -1408,3 +1408,40 @@ body {
     margin-top: 0.5rem;
     z-index: 10;
 } 
+
+/* ===== TAB HOVER FIX ===== */
+/* Tabs should be blue only when hovered, gray when active but not hovered */
+#addAgentModal .nav-tabs .nav-link {
+    color: #6c757d !important;
+    background-color: transparent !important;
+    border-color: transparent !important;
+}
+
+#addAgentModal .nav-tabs .nav-link:focus,
+#addAgentModal .nav-tabs .nav-link:focus-visible {
+    color: #6c757d !important;
+    background-color: transparent !important;
+    border-color: transparent !important;
+    box-shadow: none !important;
+}
+
+#addAgentModal .nav-tabs .nav-link:hover {
+    color: #0d6efd !important;
+    background-color: #fff !important;
+    border-color: #dee2e6 #dee2e6 #fff !important;
+}
+
+/* Active tab without hover should have subtle indication */
+#addAgentModal .nav-tabs .nav-link.active {
+    color: #495057 !important;
+    background-color: #fff !important;
+    border-color: #dee2e6 #dee2e6 #fff !important;
+    font-weight: 500 !important;
+}
+
+/* Active tab with hover should be blue */
+#addAgentModal .nav-tabs .nav-link.active:hover {
+    color: #0d6efd !important;
+    background-color: #fff !important;
+    border-color: #dee2e6 #dee2e6 #fff !important;
+}

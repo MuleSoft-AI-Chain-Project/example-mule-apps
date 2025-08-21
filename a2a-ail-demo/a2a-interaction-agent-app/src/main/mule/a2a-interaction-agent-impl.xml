@@ -170,7 +170,7 @@ output application/json
 		</os:store>
 		<logger level="INFO" doc:name="💬 Log Conversations's chat messages 💬" doc:id="3c12fca8-7264-4b3b-bd78-2888bcb9b0d2" message='#[output text
 ---
-"💬💬💬💬💬 ---------- STORED CHAT MESSAGES ---------- 💬💬💬💬💬 \n\n" ++
+"\n\n💬💬💬💬💬 ---------- STORED CHAT MESSAGES ---------- 💬💬💬💬💬 \n\n" ++
 "Chat messages:\n" ++
 write(vars.chatMessages, "application/json") ++ "\n\n" ++
 "💬💬💬💬💬 -------------------------------------------- 💬💬💬💬💬"]' />
@@ -226,7 +226,16 @@ write(vars.queryAssessment, "application/json") ++
 write(vars.agents.tools, "application/json") ++ 
 
 "### Already called agents\n" ++ 
-write(vars.selectedAgents.tools, "application/json")]]]></ms-inference:data>
+write(vars.selectedAgents.tools, "application/json") ++ 
+
+if((vars.replanCount as Number default 0) == 0 and sizeOf(vars.chatMessages) > 1)
+
+	"### Conversation history (last agent message)\n" ++ 
+	write(vars.chatMessages[-2], "application/json")
+	
+else 
+
+	""]]]></ms-inference:data>
 					<ms-inference:tools><![CDATA[#[vars.agents.tools]]]></ms-inference:tools>
 				</ms-inference:tools-native-template>
 				<try doc:name="Try" doc:id="c223c450-364a-4174-a411-c216cdf93131" >
@@ -337,11 +346,20 @@ var cleaned = raw replace '```json' with '' replace '```' with ''
 				<ms-einstein-ai:agent-define-prompt-template doc:id="eb9d0407-0a88-4194-b1c9-5c61ea8545a9" config-ref="Einstein_AI" modelApiName="${einstein.queryAssessmentModel}" doc:name="Evaluate if agent calls are required" >
 					<ms-einstein-ai:template ><![CDATA[You are a orchestration agent. You answer user queries and if needed you can hand off tasks to specialized agents.]]></ms-einstein-ai:template>
 					<ms-einstein-ai:instructions ><![CDATA[#[vars.einsteinPlanningInstructions]]]></ms-einstein-ai:instructions>
-					<ms-einstein-ai:dataset ><![CDATA[#["User query: " ++ (vars.userPrompt as String) ++ 
-"Conversation history: " ++ write(vars.chatMessages, "application/json") ++
-", Available agents: " ++ write(vars.agents.tools, "application/json") ++ 
-", Already called agents: " ++ write(vars.selectedAgents.tools, "application/json") ++ 
-", Task executed through called agents: " ++ (vars.taskHistory as String)]]]></ms-einstein-ai:dataset>
+					<ms-einstein-ai:dataset ><![CDATA[#["### User query\n" ++ 
+(vars.userPrompt as String) ++ 
+
+"### Conversation history\n" ++ 
+write(vars.chatMessages, "application/json") ++
+
+"### Available agents\n" ++ 
+write(vars.agents.tools, "application/json") ++ 
+
+"### Already called agents\n" ++ 
+write(vars.selectedAgents.tools, "application/json") ++ 
+
+"### Task executed through called agents\n" ++ 
+(vars.taskHistory as String)]]]></ms-einstein-ai:dataset>
 				</ms-einstein-ai:agent-define-prompt-template>
 				<set-variable value="#[%dw 2.0
 output application/json
@@ -393,7 +411,16 @@ Your Guardrails
 write(vars.agents.tools, "application/json") ++
 
 "### Already Called Agents (results)\n" ++ 
-write(vars.calledAgents, "application/json")]]]></ms-einstein-ai:dataset>
+write(vars.calledAgents, "application/json") ++ 
+
+if((vars.replanCount as Number default 0) == 0 and sizeOf(vars.chatMessages) > 1)
+
+	"### Conversation history (last agent message)\n" ++ 
+	write(vars.chatMessages[-2], "application/json")
+	
+else 
+
+	""]]]></ms-einstein-ai:dataset>
 				</ms-einstein-ai:agent-define-prompt-template>
 				<try doc:name="Try" doc:id="82244586-0c47-4090-814b-966a682ec92a" >
 					<set-variable value="#[%dw 2.0
@@ -496,7 +523,7 @@ else
 	<sub-flow name="replan-process-user-query-with-einstein" doc:id="0d64f529-d29b-43d2-a6c6-dee4662b5bcd">
 		<choice doc:name="Choice" doc:id="6bb2aff1-c5a8-4096-8e83-6a289a4de1e1">
 			<when expression="#[(vars.replanCount default 0) &lt; 10]">
-				<set-variable value="#[(vars.replanCount default 0) + 1]" doc:name="replanCount" doc:id="fbcb9512-ae06-4420-9de5-48a037fb7377" variableName="replanCount" />
+				<set-variable value="#[((vars.replanCount default 0) + 1 ) as Number]" doc:name="replanCount" doc:id="fbcb9512-ae06-4420-9de5-48a037fb7377" variableName="replanCount" />
 				<flow-ref doc:name="process-user-query (replan)" doc:id="edf1d140-b36d-4856-bde5-fb9e741d17b2" name="process-user-query-with-einstein" />
 			</when>
 			<otherwise>
@@ -645,10 +672,12 @@ write(payload default {}, "application/json") ++ "\n" ++
 output application/json
 ---
 {
+	sessionId: vars.sessionId,
 	status: "error",
 	errorMessage: error.errorMessage,
 	detailedDescription: error.detailedDescription
 }]' doc:name="Set Payload" doc:id="02568e47-7091-4b56-a79d-dca23055fcd8" />
+					<logger level="INFO" doc:name="❗️Log error sending A2A Task/Message❗️" doc:id="819e528b-8f73-4667-9e3a-753d337a8902" message="❗️❗️❗️❗️❗️ Error sending A2A Task/Message ❗️❗️❗️❗️❗️"/>
 				</on-error-continue>
 			</error-handler>
 		</try>

@@ -12,7 +12,53 @@ http://www.mulesoft.org/schema/mule/a2a http://www.mulesoft.org/schema/mule/a2a/
 		<set-variable value='#[attributes.queryParams.userSessionId default ""]' doc:name="Set userSessionId" doc:id="4b1721ff-321f-43c0-b11a-7c9faf61c44b" variableName="userSessionId"/>
 		<choice doc:name="Choice" doc:id="e061eba7-a625-4f2e-92a0-6054be03745b" >
 			<when expression='#[vars.defaultAgents == true or vars.userSessionId == ""]'>
-				<set-variable value="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;	agents: [&#10;		{&#10;			url: p('agent.agentforce.url'),&#10;			agentType: &quot;Agentforce&quot;,&#10;			authentication: {&#10;			    &quot;type&quot;: &quot;client-credentials&quot;,&#10;			    &quot;tokenUrl&quot;: p('agent.agentforce.tokenUrl'),&#10;				&quot;clientId&quot;: p('agent.agentforce.clientId'),&#10;				&quot;clientSecret&quot;: p('agent.agentforce.clientSecret')&#10;			}&#10;		},&#10;		{&#10;			url: p('agent.crm.url'),&#10;			agentType: &quot;MuleSoft AI Chain&quot;,&#10;			authentication: {&#10;			    &quot;type&quot;: &quot;client-credentials&quot;,&#10;			    &quot;tokenUrl&quot;: p('agent.crm.tokenUrl'),&#10;				&quot;clientId&quot;: p('agent.crm.clientId'),&#10;				&quot;clientSecret&quot;: p('agent.crm.clientSecret')&#10;			}&#10;		},&#10;		{&#10;			url: p('agent.erp.url'),&#10;			agentType: &quot;MuleSoft AI Chain&quot;,&#10;			authentication: {&#10;			    &quot;type&quot;: &quot;client-credentials&quot;,&#10;			    &quot;tokenUrl&quot;: p('agent.erp.tokenUrl'),&#10;				&quot;clientId&quot;: p('agent.erp.clientId'),&#10;				&quot;clientSecret&quot;: p('agent.erp.clientSecret')&#10;			}&#10;		},&#10;		{&#10;			url: p('agent.einstein.url'),&#10;			agentType: &quot;Einstein Models&quot;,&#10;			authentication: {&#10;			    &quot;type&quot;: &quot;client-credentials&quot;,&#10;			    &quot;tokenUrl&quot;: p('agent.einstein.tokenUrl'),&#10;				&quot;clientId&quot;: p('agent.einstein.clientId'),&#10;				&quot;clientSecret&quot;: p('agent.einstein.clientSecret')&#10;			}&#10;		}&#10;	]&#10;}]" doc:name="Set  defaults agentDetails" doc:id="fa49d939-0e44-48ad-9201-e0991fbc44a5" variableName="agentDetails" />
+				<set-variable value="#[%dw 2.0
+output application/json
+---
+{
+	agents: [
+		{
+			url: p('agent.agentforce.url'),
+			agentType: &quot;Agentforce&quot;,
+			authentication: {
+			    &quot;type&quot;: &quot;client-credentials&quot;,
+			    &quot;tokenUrl&quot;: p('agent.agentforce.tokenUrl'),
+				&quot;clientId&quot;: p('agent.agentforce.clientId'),
+				&quot;clientSecret&quot;: p('agent.agentforce.clientSecret')
+			}
+		},
+		{
+			url: p('agent.crm.url'),
+			agentType: &quot;MuleSoft AI Chain&quot;,
+			authentication: {
+			    &quot;type&quot;: &quot;client-credentials&quot;,
+			    &quot;tokenUrl&quot;: p('agent.crm.tokenUrl'),
+				&quot;clientId&quot;: p('agent.crm.clientId'),
+				&quot;clientSecret&quot;: p('agent.crm.clientSecret')
+			}
+		},
+		{
+			url: p('agent.erp.url'),
+			agentType: &quot;MuleSoft AI Chain&quot;,
+			authentication: {
+			    &quot;type&quot;: &quot;client-credentials&quot;,
+			    &quot;tokenUrl&quot;: p('agent.erp.tokenUrl'),
+				&quot;clientId&quot;: p('agent.erp.clientId'),
+				&quot;clientSecret&quot;: p('agent.erp.clientSecret')
+			}
+		},
+		{
+			url: p('agent.einstein.url'),
+			agentType: &quot;Einstein Models&quot;,
+			authentication: {
+			    &quot;type&quot;: &quot;client-credentials&quot;,
+			    &quot;tokenUrl&quot;: p('agent.einstein.tokenUrl'),
+				&quot;clientId&quot;: p('agent.einstein.clientId'),
+				&quot;clientSecret&quot;: p('agent.einstein.clientSecret')
+			}
+		}
+	]
+}]" doc:name="Set  defaults agentDetails" doc:id="fa49d939-0e44-48ad-9201-e0991fbc44a5" variableName="agentDetails" />
 			</when>
 			<otherwise >
 				<set-variable value="#[%dw 2.0
@@ -124,19 +170,35 @@ output application/json
 output text
 ---
 payload]" doc:name="agentUrl" doc:id="89565302-0f13-4d73-bf2b-a0a41278c2d5" variableName="agentUrl" />
+			<os:retrieve doc:name="Retrieve auth by agent name and set vars.agentAuthentication" doc:id="e2ec861d-fd81-401e-96ac-c9fa4517312c" key='#[(vars.userSessionId default "") ++ "-agent-auth-" ++ (vars.currAgent as String)]' objectStore="AgentObjectStore" />
+			<set-variable value='#[%dw 2.0
+output json
+---
+payload ++
+
+if(payload."type" == "client-credentials") {clientId: "****"} else {}]' doc:name="agentAuthentication" doc:id="3f8a59c1-6b7f-418b-ba72-7e2d19e88314" variableName="agentAuthentication" />
 			<set-variable value="#[%dw 2.0
 output application/json
 ---
 {
 	tools: vars.agents.tools map ((item, index) -&gt; 
 	    if (item.function.name == vars.currAgent)
-	        item ++ { agentUrl: vars.agentUrl }
+	        item ++ { agentUrl: vars.agentUrl, agentAuthentication: vars.agentAuthentication }
 	    else
 	        item
 	)
-}]" doc:name="Set agents" doc:id="59ffc200-57dd-4409-9e29-a3e9fb75640e" variableName="agents"/>
+}]" doc:name="Set agents" doc:id="59ffc200-57dd-4409-9e29-a3e9fb75640e" variableName="agents" />
 		</foreach>
 		<set-payload value="#[vars.agents]" doc:name="Set Payload to vars.agents" doc:id="c0fe7b72-b57c-4f3c-8948-41ffd779d0c4" />
+		<logger level="INFO" doc:name="👮 Agents Returned to the Client  👮" doc:id="5b5efee7-5889-43aa-b4db-977fcb70d072" message='#[%dw 2.0
+output text
+---
+"\n\n" ++
+"👮👮👮👮👮️️ --------------------------  GET /agents -------------------------- 👮👮👮👮👮️\n" ++
+"Agents : \n" ++ 
+write(payload, "application/json") ++ 
+"\n 👮👮👮👮👮️️ ---------------------------------------------------------- 👮👮👮👮👮" ++
+"\n\n"]'/>
 	</flow>
 	<flow name="post-a2a-agents-flow" doc:id="133bd89a-0da9-416e-b322-a13d07ebf62e" >
 		<http:listener doc:name="Listener" doc:id="de80c74c-3479-4cbd-95a1-f6963ab35e0b" config-ref="HTTP_Listener_config" path="/agents" allowedMethods="POST"/>

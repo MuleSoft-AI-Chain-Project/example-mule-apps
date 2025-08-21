@@ -56,13 +56,42 @@
                     if (agent.agentTaskResponse) {
                         html += `<div class='interaction-task-response-tile'>`;
                         html += `<div class='interaction-task-section'><span class='interaction-task-label'>Agent Task Response</span></div>`;
-                        html += `<div class='interaction-task-section'><span class='interaction-task-label'>ID:</span> <span class='interaction-task-value'>${agent.agentTaskResponse.id || ''}</span></div>`;
-                        html += `<div class='interaction-task-section'><span class='interaction-task-label'>Session ID:</span> <span class='interaction-task-value'>${agent.agentTaskResponse.sessionId || ''}</span></div>`;
-                        if (agent.agentTaskResponse.status) {
-                            html += `<div class='interaction-task-section'><span class='interaction-task-label'>Status:</span> <span class='interaction-task-value'>${agent.agentTaskResponse.status.state || ''}</span></div>`;
-                            html += `<div class='interaction-task-section'><span class='interaction-task-label'>Timestamp:</span> <span class='interaction-task-value'>${agent.agentTaskResponse.status.timestamp || ''}</span></div>`;
-                            html += `<div class='interaction-task-section'><span class='interaction-task-label'>Message:</span> <span class='interaction-task-value'>${(agent.agentTaskResponse.status.message && Array.isArray(agent.agentTaskResponse.status.message.parts) ? agent.agentTaskResponse.status.message.parts.map(p => p.text || p.type).join('<br>') : '')}</span></div>`;
+                        
+                        // Handle regular response format
+                        if (agent.agentTaskResponse.id) {
+                            html += `<div class='interaction-task-section'><span class='interaction-task-label'>ID:</span> <span class='interaction-task-value'>${agent.agentTaskResponse.id}</span></div>`;
                         }
+                        if (agent.agentTaskResponse.sessionId) {
+                            html += `<div class='interaction-task-section'><span class='interaction-task-label'>Session ID:</span> <span class='interaction-task-value'>${agent.agentTaskResponse.sessionId}</span></div>`;
+                        }
+                        
+                        // Handle status object
+                        if (agent.agentTaskResponse.status) {
+                            if (agent.agentTaskResponse.status.state) {
+                                html += `<div class='interaction-task-section'><span class='interaction-task-label'>Status:</span> <span class='interaction-task-value'>${agent.agentTaskResponse.status.state}</span></div>`;
+                            }
+                            if (agent.agentTaskResponse.status.timestamp) {
+                                html += `<div class='interaction-task-section'><span class='interaction-task-label'>Timestamp:</span> <span class='interaction-task-value'>${agent.agentTaskResponse.status.timestamp}</span></div>`;
+                            }
+                            if (agent.agentTaskResponse.status.message && Array.isArray(agent.agentTaskResponse.status.message.parts)) {
+                                const messageText = agent.agentTaskResponse.status.message.parts.map(p => p.text || p.type).join('<br>');
+                                if (messageText.trim()) {
+                                    html += `<div class='interaction-task-section'><span class='interaction-task-label'>Message:</span> <span class='interaction-task-value'>${messageText}</span></div>`;
+                                }
+                            }
+                        }
+                        
+                        // Handle error format
+                        if (agent.agentTaskResponse.status === 'error') {
+                            html += `<div class='interaction-task-section'><span class='interaction-task-label'>Status:</span> <span class='interaction-task-value'>Error</span></div>`;
+                        }
+                        if (agent.agentTaskResponse.errorMessage) {
+                            html += `<div class='interaction-task-section'><span class='interaction-task-label'>Error Message:</span> <span class='interaction-task-value'>${agent.agentTaskResponse.errorMessage}</span></div>`;
+                        }
+                        if (agent.agentTaskResponse.detailedDescription) {
+                            html += `<div class='interaction-task-section'><span class='interaction-task-label'>Error Detailed Description:</span> <span class='interaction-task-value'>${agent.agentTaskResponse.detailedDescription}</span></div>`;
+                        }
+                        
                         html += `</div>`;
                     }
                     html += `</div>`;

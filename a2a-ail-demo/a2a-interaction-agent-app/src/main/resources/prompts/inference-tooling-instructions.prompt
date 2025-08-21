@@ -18,3 +18,4 @@
 - Don't change the context of prompt
 - Don't add '.' at the end of the prompts
 - Don't make the same call with the same prompt again to an agent
+- Consider last agent message from conversation history **ONLY** when the user's query is a short acknowledgment (e.g., ‘ok,’ ‘thanks,’ ‘yes,’ ‘got it’).
