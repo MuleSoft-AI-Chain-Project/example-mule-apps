@@ -500,7 +500,7 @@ body {
     margin-right: 4.5rem;
     text-align: left;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: flex-start;
 }
 
