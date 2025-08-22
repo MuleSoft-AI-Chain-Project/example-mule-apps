@@ -587,20 +587,34 @@ window.ConversationManager = (function() {
                 } else {
                     console.warn('No modalEl found in fetched HTML');
                 }
+                // Load the external JavaScript file
                 const scriptTag = tempDiv.querySelector('script');
-                if (scriptTag) {
+                if (scriptTag && scriptTag.src) {
                     const newScript = document.createElement('script');
-                    newScript.textContent = scriptTag.textContent;
+                    newScript.src = scriptTag.src;
+                    newScript.onload = function() {
+                        console.log('External modal script loaded successfully');
+                        // Wait a bit more for the function to be available
+                        setTimeout(function() {
+                            if (typeof window.renderInteractionModal === 'function') {
+                                console.log('renderInteractionModal function is available, calling callback');
+                                callback();
+                            } else {
+                                console.error('renderInteractionModal function still not available after script load');
+                                callback(); // Call callback anyway to avoid hanging
+                            }
+                        }, 50);
+                    };
+                    newScript.onerror = function() {
+                        console.error('Failed to load external modal script:', scriptTag.src);
+                        callback(); // Call callback anyway to avoid hanging
+                    };
                     document.body.appendChild(newScript);
-                    document.body.removeChild(newScript);
-                    console.log('Executed modal script');
+                    console.log('Loading external modal script:', scriptTag.src);
                 } else {
-                    console.warn('No script tag found in fetched HTML');
+                    console.warn('No script tag with src found in fetched HTML');
+                    callback(); // Call callback anyway to avoid hanging
                 }
-                setTimeout(function() {
-                    console.log('Calling callback after modal/script load');
-                    callback();
-                }, 50);
             })
             .catch(err => {
                 console.error('Failed to load interaction-modal.html:', err);
