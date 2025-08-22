@@ -426,21 +426,21 @@
     flex-direction: column;
     gap: 0.75rem;
     margin-bottom: 1rem;
+    align-items: center;
 }
 
 .reasoning-engine-tile {
     border: 2px solid #e0e0e0;
-    border-radius: 12px;
-    padding: 0.75rem 1.5rem;
+    border-radius: 50px;
+    padding-left:  0.1rem;
     text-align: center;
     cursor: pointer;
     transition: border-color 0.2s, box-shadow 0.2s;
     background: #fafbfc;
-    width: 100%;
+    width: 65%;
     box-shadow: 0 1px 4px rgba(0,0,0,0.03);
     display: flex;
     align-items: center;
-    justify-content: center;
     gap: 1rem;
 }
 
@@ -465,8 +465,8 @@
 .engine-logo-modal {
     display: block;
     margin: 0;
-    height: 40px;
-    width: 40px;
+    height: 55px;
+    width: 55px;
     padding: 0.3rem;
 }
 
