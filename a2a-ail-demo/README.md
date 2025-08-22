@@ -254,6 +254,32 @@ This demo implements enterprise-grade security using MuleSoft Flex Gateway polic
 5. **Token Validation**: Flex Gateway OAuth 2.0 Token Introspection Policy validates tokens with Keycloak
 6. **Policy Enforcement**: Additional A2A-specific policies enforce agent-specific security controls
 
+### Configuration Requirements
+
+#### Interaction Agent Configuration (a2a-interaction-agent-app)
+```properties
+# Agent URLs and Authentication (for A2A agents using Keycloak)
+agent.erp.url=https://your-gateway-url/erp-agent
+agent.erp.tokenUrl=https://your-keycloak-url/auth/realms/your-realm/protocol/openid-connect/token
+agent.erp.clientId=your_erp_client_id
+agent.erp.clientSecret=your_erp_client_secret
+
+agent.crm.url=https://your-gateway-url/crm-agent
+agent.crm.tokenUrl=https://your-keycloak-url/auth/realms/your-realm/protocol/openid-connect/token
+agent.crm.clientId=your_crm_client_id
+agent.crm.clientSecret=your_crm_client_secret
+
+agent.agentforce.url=https://your-gateway-url/agentforce-agent
+agent.agentforce.tokenUrl=https://your-keycloak-url/auth/realms/your-realm/protocol/openid-connect/token
+agent.agentforce.clientId=your_agentforce_client_id
+agent.agentforce.clientSecret=your_agentforce_client_secret
+
+agent.einstein.url=https://your-gateway-url/einstein-agent
+agent.einstein.tokenUrl=https://your-keycloak-url/auth/realms/your-realm/protocol/openid-connect/token
+agent.einstein.clientId=your_einstein_client_id
+agent.einstein.clientSecret=your_einstein_client_secret
+```
+
 ## 📦 Release History
 
 ### Release 2.0 - Enterprise Security Enhancement
@@ -297,32 +323,6 @@ This demo implements enterprise-grade security using MuleSoft Flex Gateway polic
 - **MCP Connector 1.0.0**: Model Context Protocol support
 - **Local Development**: Support for local development and testing
 - **Basic Security**: HTTP-based communication with basic authentication
-
-### Configuration Requirements
-
-#### Interaction Agent Configuration (a2a-interaction-agent-app)
-```properties
-# Agent URLs and Authentication (for A2A agents using Keycloak)
-agent.erp.url=https://your-gateway-url/erp-agent
-agent.erp.tokenUrl=https://your-keycloak-url/auth/realms/your-realm/protocol/openid-connect/token
-agent.erp.clientId=your_erp_client_id
-agent.erp.clientSecret=your_erp_client_secret
-
-agent.crm.url=https://your-gateway-url/crm-agent
-agent.crm.tokenUrl=https://your-keycloak-url/auth/realms/your-realm/protocol/openid-connect/token
-agent.crm.clientId=your_crm_client_id
-agent.crm.clientSecret=your_crm_client_secret
-
-agent.agentforce.url=https://your-gateway-url/agentforce-agent
-agent.agentforce.tokenUrl=https://your-keycloak-url/auth/realms/your-realm/protocol/openid-connect/token
-agent.agentforce.clientId=your_agentforce_client_id
-agent.agentforce.clientSecret=your_agentforce_client_secret
-
-agent.einstein.url=https://your-gateway-url/einstein-agent
-agent.einstein.tokenUrl=https://your-keycloak-url/auth/realms/your-realm/protocol/openid-connect/token
-agent.einstein.clientId=your_einstein_client_id
-agent.einstein.clientSecret=your_einstein_client_secret
-```
 
 #### Specialized Agent Configuration (e.g., a2a-crm-headless-agent-app)
 ```properties
