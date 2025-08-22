@@ -1,0 +1,54 @@
+/* ===== SESSIONS TABLE ===== */
+.sessions-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 2rem;
+    background: #fff;
+    border-radius: 1rem;
+    box-shadow: 0 2px 8px rgba(44,62,80,0.07);
+    overflow: hidden;
+}
+
+.sessions-table th, .sessions-table td {
+    padding: 0.7rem 1.2rem;
+    border-bottom: 1px solid #eee;
+    text-align: left;
+}
+
+.sessions-table th {
+    background: #f8f9fa;
+    font-weight: bold;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+}
+
+.sessions-table tr:last-child td {
+    border-bottom: none;
+}
+
+.sessions-table-scroll {
+    flex: 1 1 auto;
+    height: 100%;
+    min-height: 0;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.sessions-table tbody {
+    width: 100%;
+}
+
+.sessions-table thead {
+    width: 100%;
+}
+
+.sessions-table td, .sessions-table th {
+    min-width: 120px;
+    box-sizing: border-box;
+}
+
+.open-session-modal {
+    text-decoration: none;
+}

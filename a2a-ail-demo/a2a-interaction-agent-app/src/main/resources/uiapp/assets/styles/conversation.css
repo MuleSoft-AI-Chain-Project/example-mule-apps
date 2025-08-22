@@ -1,0 +1,306 @@
+/* ===== CHAT STYLES ===== */
+.chat-container {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    max-width: 100%;
+    padding: 0;
+}
+
+.chat-messages {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 1rem;
+    width: 100%;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    background: white;
+    margin-bottom: 1rem;
+}
+
+.message {
+    margin-bottom: 1rem;
+    padding: 0.8rem;
+    border-radius: 10px;
+    max-width: 80%;
+    word-break: break-word;
+}
+
+.user-message {
+    background-color: var(--primary-color);
+    color: white;
+    margin-left: auto;
+}
+
+.agent-message {
+    background-color: #e9ecef;
+    margin-right: auto;
+    position: relative;
+}
+
+.input-group {
+    background: white;
+    padding: 1rem;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    width: 100%;
+    display: flex;
+    gap: 0.5rem;
+}
+
+.form-control {
+    border: 1px solid #dee2e6;
+    border-radius: 10px;
+    padding: 0.8rem 1.2rem;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    border: none;
+    border-radius: 20px;
+    padding: 0.8rem 1.5rem;
+    flex-shrink: 0;
+}
+
+.btn-primary:hover {
+    background-color: #0088cc;
+}
+
+.typing-indicator {
+    display: none;
+    color: #6c757d;
+    font-style: italic;
+    margin-bottom: 1rem;
+}
+
+#typingMessage {
+    color: #6c757d;
+}
+
+/* ===== AGENT PILLS ===== */
+.pills-container {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.4rem;
+    left: 0.8rem;
+    bottom: 0.8rem;
+}
+
+.agent-pill {
+    display: inline-block;
+    padding: 0.2rem 0.8rem;
+    border-radius: 1rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+    margin-right: 0.3rem;
+    margin-bottom: 0;
+    margin: 0.1rem 0rem;
+    color: #fff;
+    background: #6c757d;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+
+.agent-pill.blue {
+    background: #007bff;
+}
+
+.agent-pill.green {
+    background: #28a745;
+}
+
+/* Specific styling for "No Remote Agent Used" pills */
+.agent-pill.no-agent {
+    min-width: 11rem;
+}
+
+/* ===== TOXICITY STYLES ===== */
+.toxicity-toggle {
+    border-radius: 1rem;
+    margin-right: 0.5rem;
+    font-size: 0.8rem;
+    padding: 0.175rem 0.5rem;
+    border-color: #ffc107;
+    color: #856404;
+    background-color: transparent;
+    border-radius: 1rem;
+}
+
+.toxicity-toggle:hover {
+    background-color: #ffc107;
+    border-color: #ffc107;
+    color: #212529;
+}
+
+.toxicity-container {
+    max-width: 50%
+} 
+
+.toxicity-content {
+    margin-top: 0.5rem;
+    padding: 0.5rem;
+    background-color: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 0.375rem;
+}
+
+.toxicity-pills-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 0rem 0.5rem;
+}
+
+.toxicity-pill {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    border-radius: 0.25rem;
+    text-transform: capitalize;
+    white-space: nowrap;
+}
+
+.toxicity-pill.low {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.toxicity-pill.medium {
+    background-color: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeaa7;
+}
+
+.toxicity-pill.high {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+/* ===== MESSAGE BOTTOM SECTION ===== */
+.message-bottom-section {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: flex-start !important;
+    gap: 1rem;
+    width: 100%;
+}
+
+.message-bottom-section .pills-container,
+.message-bottom-section .toxicity-container {
+    align-self: flex-start !important;
+}
+
+.message-bottom-section .pills-container {
+    flex: 1 !important;
+    margin-bottom: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.message-bottom-section .toxicity-container {
+    flex-shrink: 0 !important;
+    margin-left: auto;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.message-bottom-section .toxicity-toggle {
+    margin-right: 0;
+    margin-left: auto;
+    display: block;
+}
+
+.message-bottom-section .toxicity-content {
+    left: 0;
+    right: 0;
+    top: 100%;
+    margin-top: 0.5rem;
+    z-index: 10;
+}
+
+/* ===== REASONING DISPLAY STYLES ===== */
+.reasoning-updates {
+    font-family: 'Courier New', monospace;
+    font-size: 0.9em;
+    font-weight: 500;
+    color: #666;
+    background-color: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 4px;
+    padding: 8px;
+    overflow-y: auto;
+}
+
+.reasoning-updates p {
+    margin: 0 0 2px 0;
+    font-weight: 500;
+}
+
+.reasoning-updates p:last-child {
+    margin-bottom: 0;
+}
+
+.reasoning-updates li {
+    margin: 0 0 1px 0;
+    font-weight: 500;
+}
+
+.reasoning-updates ul, .reasoning-updates ol {
+    margin: 0 0 2px 0;
+    padding-left: 20px;
+}
+
+.reasoning-updates strong {
+    font-weight: 700;
+}
+
+.reasoning-updates em {
+    font-style: italic;
+    font-weight: 600;
+}
+
+.reasoning-container {
+    margin-top: 8px;
+    margin-bottom: 0.5rem;
+}
+
+.reasoning-toggle {
+    font-size: 0.8em;
+    padding: 0.175rem 0.5rem;;
+    margin-bottom: 4px;
+    border-radius: 1rem;
+}
+
+.reasoning-content {
+    background-color: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 4px;
+    padding: 8px;
+    margin-top: 4px;
+    font-weight: 600;
+}
+
+.reasoning-update {
+    font-family: 'Courier New', monospace;
+    font-size: 0.85em;
+    font-weight: 600;
+    color: #495057;
+    padding: 2px 0;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.reasoning-update:last-child {
+    border-bottom: none;
+}
