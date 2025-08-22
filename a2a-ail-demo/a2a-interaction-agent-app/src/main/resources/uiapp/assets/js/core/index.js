@@ -225,16 +225,56 @@ function loadAgents(forceReload = false) {
 }
 
 function loadSessions(forceReload = false) {
+    console.log('[Index] loadSessions called, forceReload:', forceReload, 'sessionsLoaded:', sessionsLoaded);
     if (sessionsLoaded && !forceReload) return;
     
     const sessionsContent = document.getElementById('sessions-content');
+    console.log('[Index] sessionsContent element:', sessionsContent);
+    
+    // Clean up existing sessions resources
+    if (window.SessionsManager) {
+        console.log('[Index] Cleaning up existing SessionsManager');
+        window.SessionsManager.cleanup();
+    }
     
     fetch('sessions.html')
         .then(response => response.text())
         .then(html => {
+            console.log('[Index] Fetched sessions.html, length:', html.length);
             sessionsContent.innerHTML = html;
-            // Extract and execute scripts
+            
+            // Load the sessions script if not already loaded
+            if (!window.attachSessionsTab) {
+                console.log('[Index] Loading sessions.js script');
+                const script = document.createElement('script');
+                script.src = 'assets/js/sessions/sessions.js';
+                script.onload = function() {
+                    console.log('[Index] sessions.js script loaded');
+                    // Wait a bit for the script to initialize, then call attachSessionsTab
+                    setTimeout(() => {
+                        if (window.attachSessionsTab) {
+                            console.log('[Index] Calling attachSessionsTab');
+                            window.attachSessionsTab();
+                        } else {
+                            console.error('[Index] attachSessionsTab not available after script load');
+                        }
+                    }, 100);
+                };
+                script.onerror = function() {
+                    console.error('[Index] Failed to load sessions.js script');
+                };
+                document.head.appendChild(script);
+            } else {
+                // Script already loaded, just call attachSessionsTab
+                console.log('[Index] sessions.js already loaded, calling attachSessionsTab directly');
+                if (window.attachSessionsTab) {
+                    window.attachSessionsTab();
+                }
+            }
+            
+            // Extract and execute any inline scripts from the HTML
             const scripts = sessionsContent.querySelectorAll('script');
+            console.log('[Index] Found', scripts.length, 'inline scripts in sessions.html');
             scripts.forEach(script => {
                 const newScript = document.createElement('script');
                 if (script.src) {
@@ -245,8 +285,12 @@ function loadSessions(forceReload = false) {
                 document.body.appendChild(newScript);
                 document.body.removeChild(newScript);
             });
+            
             sessionsLoaded = true;
-            if (window.renderSessionsTable) window.renderSessionsTable();
+            console.log('[Index] Sessions loaded successfully');
+        })
+        .catch(error => {
+            console.error('Error loading sessions:', error);
         });
 }
 
@@ -407,15 +451,20 @@ function setupInitialState() {
 // ----------------------------------------------------------------------------
 
 function removeSessionsTabSessionModal() {
-    var modal = document.getElementById('sessionModal');
-    var sessionsContent = document.getElementById('sessions-content');
-    if (modal && sessionsContent && sessionsContent.contains(modal)) {
-        modal.remove();
-        console.log('[Index] Removed sessionModal from #sessions-content');
-    }
-    if (window.renderSessionModal) {
-        delete window.renderSessionModal;
-        console.log('[Index] Deleted window.renderSessionModal');
+    if (window.SessionsManager && window.SessionsManager.removeSessionsTabSessionModal) {
+        window.SessionsManager.removeSessionsTabSessionModal();
+    } else {
+        // Fallback for when SessionsManager is not available
+        var modal = document.getElementById('sessionModal');
+        var sessionsContent = document.getElementById('sessions-content');
+        if (modal && sessionsContent && sessionsContent.contains(modal)) {
+            modal.remove();
+            console.log('[Index] Removed sessionModal from #sessions-content');
+        }
+        if (window.renderSessionModal) {
+            delete window.renderSessionModal;
+            console.log('[Index] Deleted window.renderSessionModal');
+        }
     }
 }
 

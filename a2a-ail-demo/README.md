@@ -14,6 +14,8 @@ The **A2A AIL Demo** (Agent-to-Agent Integration and Learning Demonstration) is 
   - [🔧 MCP Servers (Model Context Protocol)](#-mcp-servers-model-context-protocol)
   - [📊 Supporting Services](#-supporting-services)
 - [🛠️ Technology Stack](#️-technology-stack)
+- [🔒 Security & Authentication](#-security--authentication)
+- [📦 Release History](#-release-history)
 - [🚀 Getting Started](#-getting-started)
   - [Prerequisites](#prerequisites)
   - [Configuration Steps](#configuration-steps)
@@ -42,6 +44,7 @@ This demo demonstrates a multi-agent architecture where:
 - **AI engines** (OpenAI, Einstein AI, Agentforce) power intelligent decision-making
 - **MCP servers** provide standardized tool access for agents
 - **Audit services** track all agent interactions for compliance and monitoring
+- **Security layer** ensures enterprise-grade protection with comprehensive A2A policies, MCP  policies, core security policies and additional security controls, deployed using Flex Gateway in CloudHub 2.0 private spaces
 
 ![Demo Architecture](services/img/demo-architecture.png "Demo Archtecture")
 
@@ -59,6 +62,8 @@ This demo demonstrates a multi-agent architecture where:
 - **Skills**: Get Accounts, Create Accounts, Update Accounts, Delete Accounts
 - **Integration**: Uses MCP connector to communicate with CRM systems
 - **AI Engine**: OpenAI GPT-4o-mini
+- **Deployment**: Private CloudHub 2.0 space
+- **Security**: Protected by Flex Gateway with OAuth 2.0 Token Introspection and comprehensive A2A policies
 - **Endpoint**: `/crm-agent`
 
 #### 2. **a2a-erp-headless-agent-app**
@@ -73,6 +78,8 @@ This demo demonstrates a multi-agent architecture where:
 - **Skills**: Inventory Check, Sales Order, Process Delivery
 - **Integration**: Uses MCP native integration of the Inference Connector to reason on available tools
 - **AI Engine**: OpenAI GPT-4o-mini  
+- **Deployment**: Private CloudHub 2.0 space
+- **Security**: Protected by Flex Gateway with OAuth 2.0 Token Introspection and comprehensive A2A policies
 - **Endpoint**: `/erp-agent`
 
 #### 3. **a2a-einstein-ai-headless-agent-app**
@@ -87,6 +94,8 @@ This demo demonstrates a multi-agent architecture where:
 - **Skills**: Get Leads, Create Leads, Delete Leads
 - **AI Engine**: Salesforce Einstein AI (Models API)
 - **Integration**: HubSpot connector
+- **Deployment**: Private CloudHub 2.0 space
+- **Security**: Protected by Flex Gateway with OAuth 2.0 Token Introspection and comprehensive A2A policies
 - **Endpoint**: `/einstein-agent`
 
 #### 4. **a2a-agentforce-headless-reservation-agent-app**
@@ -97,6 +106,8 @@ This demo demonstrates a multi-agent architecture where:
 - **Capabilities**: Automated reservation processing
 - **Skills**: Submit Reservation
 - **AI Engine**: Salesforce Agentforce
+- **Deployment**: Private CloudHub 2.0 space
+- **Security**: Protected by Flex Gateway with OAuth 2.0 Token Introspection and comprehensive A2A policies
 - **Endpoint**: `/agentforce-agent`
 
 ![Specialised Agents](services/img/Specialised_agents.png "Specialised Agents")
@@ -123,12 +134,17 @@ This demo demonstrates a multi-agent architecture where:
   - External service integration for audit logging
 - **Skills**: Account Mgmt, Lead Mgmt, Reservation Mgmt, Opportunities, Contacts
 - **AI Engine**: Option between OpenAI GPT-4o-mini (via Inference Connector) or OpenAI GPT-4.1 via Salesforce Einstein AI (Models API)
+- **Deployment**: Private CloudHub 2.0 space
+- **Security**: Protected by Flex Gateway with OAuth 2.0 Token Introspection and comprehensive A2A policies
 - **Endpoint**: `/crm-domain-agent`
 
 ### 🔧 MCP Servers (Model Context Protocol)
 
 #### **mcp-server-demo-crm**
 - **Purpose**: Provides standardized tools for CRM operations
+- **Security**: Protected by Flex Gateway with Client ID Enforcement, MCP Attribute-Based Access Control, and MCP Schema Validation
+- **Deployment**: Private CloudHub 2.0 space
+- **Authentication**: Client Credentials (Client ID and Client Secret)
 - **Tools Available**:
   - `get_accounts` - Retrieve account information by ID or name
   - `create_accounts` - Create new accounts with full details
@@ -139,6 +155,9 @@ This demo demonstrates a multi-agent architecture where:
 
 #### **mcp-server-demo-erp**  
 - **Purpose**: Provides standardized tools for ERP operations
+- **Security**: Protected by Flex Gateway with Client ID Enforcement, MCP Attribute-Based Access Control, and MCP Schema Validation
+- **Deployment**: Private CloudHub 2.0 space
+- **Authentication**: Client Credentials (Client ID and Client Secret)
 - **Tools Available**:
   - `get_inventory` - Check inventory levels for materials
   - `submit_order` - Create sales orders in ERP system
@@ -166,8 +185,10 @@ This demo demonstrates a multi-agent architecture where:
 
 ### Core Technologies
 - **MuleSoft Runtime**: 4.9.6+
-- **A2A Connector**: 0.1.0-BETA (Agent-to-Agent communication)
-- **MCP Connector**: 1.0.0 (Model Context Protocol)
+- **A2A Connector**: 0.3.0-BETA (Agent-to-Agent communication)
+- **MCP Connector**: 1.2.0 (Model Context Protocol)
+- **Inference Connector**: 1.0.0 (OpenAI integration)
+- **Einstein AI Connector**: 1.2.0 (Salesforce Einstein AI integration)
 
 ### AI/ML Integrations  
 - **OpenAI**: GPT-4o-mini for natural language processing
@@ -183,16 +204,147 @@ This demo demonstrates a multi-agent architecture where:
 - **File Connector**: File operations
 - **Object Store Connector**: Session management
 
+## 🔒 Security & Authentication
+
+### Overview
+This demo implements enterprise-grade security using MuleSoft Flex Gateway policies and OAuth 2.0 authentication to protect all components in the A2A ecosystem.
+
+### Security Architecture
+
+#### MCP Server Security
+- **Deployment**: MCP servers are deployed in private CloudHub 2.0 spaces
+- **Gateway Protection**: All MCP servers are secured behind Flex Gateway with:
+
+**Core Security Policies:**
+- **Client ID Enforcement Policy**: Restricts access to registered client applications only
+
+**MCP-Specific Policies:**
+- **MCP Attribute-Based Access Control Policy**: Controls access based on MCP attributes and user context
+- **MCP Schema Validation Policy**: Validates MCP requests and responses against defined schemas
+
+#### A2A Agent Security
+- **Deployment**: All specialized A2A agents are deployed in private CloudHub 2.0 spaces
+- **Gateway Protection**: All A2A agents are secured behind Flex Gateway with:
+
+**Core Security Policies:**
+- **OAuth 2.0 Token Introspection Policy**: Validates OAuth tokens for each request
+
+**A2A-Specific Policies:**
+- **A2A Agent Card**: Validates agent identity and capabilities
+- **A2A PII Detector**: Automatically detects and protects Personally Identifiable Information
+- **A2A Prompt Decorator**: Enhances prompts with security context and validation
+- **A2A Schema Validation**: Validates all incoming and outgoing messages against defined schemas
+
+- **Authentication**: Client Credential Grant Type (OAuth 2.0)
+- **Access Control**: Only authorized applications with valid OAuth tokens can access A2A agents
+
+## 📦 Release History
+
+### Release 2.0 - Enterprise Security Enhancement
+**Release Date**: August 2025
+
+#### 🚀 Major Security Features Added
+- **Flex Gateway Integration**: All components now deployed behind Flex Gateway for enterprise-grade security
+- **CloudHub 2.0 Private Spaces**: All applications deployed in private CloudHub 2.0 spaces for enhanced isolation
+- **OAuth 2.0 Authentication**: A2A agents now use OAuth 2.0 Token Introspection with external Keycloak IDP
+- **Client ID Enforcement**: MCP servers protected with Client ID Enforcement Policy
+- **MCP Security Policies**: Added MCP Attribute-Based Access Control and MCP Schema Validation policies
+- **A2A Security Policies**: Comprehensive A2A policies including Agent Card, PII Detector, Prompt Decorator, and Schema Validation
+
+#### 🔧 Technical Improvements
+- **Hybrid Authentication**: MCP servers use simple Client ID/Secret authentication, A2A agents use full OAuth 2.0 flow
+- **External IDP Integration**: Keycloak integration for A2A agent authentication
+- **Enhanced Configuration**: Updated configuration structure to support security requirements
+- **Production-Ready Security**: All components now meet enterprise security standards
+- **Connector Updates**: Upgraded A2A Connector to 0.3.0-BETA, MCP Connector to 1.2.0, and Inference Connector to 1.0.0 for enhanced functionality and stability
+
+#### 📋 Migration Notes
+- **Breaking Changes**: Configuration files updated to include security properties
+- **Authentication Changes**: A2A agents now require OAuth 2.0 tokens instead of simple credentials
+- **Deployment Changes**: All applications must be deployed to CloudHub 2.0 private spaces
+- **Gateway Requirements**: Flex Gateway required for production deployments
+
+### Release 1.0 - Initial Release
+**Release Date**: June 2025
+
+#### 🎯 Core Features
+- **Multi-Agent Architecture**: Specialized agents for CRM, ERP, Einstein AI, and Agentforce
+- **A2A Communication**: Agent-to-Agent communication using MuleSoft A2A connector
+- **MCP Integration**: Model Context Protocol servers for standardized tool access
+- **Web UI**: Interactive web interface for agent conversations
+- **Audit Logging**: Comprehensive audit trail for all agent interactions
+- **Multi-Modal AI**: Support for OpenAI, Salesforce Einstein AI, and Agentforce
+
+#### 🔧 Technical Foundation
+- **MuleSoft Runtime 4.9.x+**: Core integration platform
+- **A2A Connector 0.1.0-BETA**: Agent-to-Agent communication
+- **MCP Connector 1.0.0**: Model Context Protocol support
+- **Local Development**: Support for local development and testing
+- **Basic Security**: HTTP-based communication with basic authentication
+
+### Authentication Flow
+
+#### MCP Server Authentication Flow
+1. **Client Registration**: Applications must be registered in Anypoint Platform
+2. **Credential Generation**: Client ID and Client Secret are generated for each application
+3. **Request Authentication**: Applications provide Client ID and Client Secret as HTTP headers
+4. **Policy Enforcement**: Flex Gateway Client ID Enforcement Policy validates credentials and enforces access controls
+
+#### A2A Agent Authentication Flow
+1. **Client Registration**: Applications must be registered in external Identity Provider (Keycloak)
+2. **Credential Generation**: Client ID and Client Secret are generated for each application in Keycloak
+3. **Token Acquisition**: Applications obtain OAuth tokens by hitting Keycloak using Client Credential Grant
+4. **Request Authentication**: Applications include valid OAuth tokens in requests
+5. **Token Validation**: Flex Gateway OAuth 2.0 Token Introspection Policy validates tokens with Keycloak
+6. **Policy Enforcement**: Additional A2A-specific policies enforce agent-specific security controls
+
+### Configuration Requirements
+
+#### Interaction Agent Configuration (a2a-interaction-agent-app)
+```properties
+# Agent URLs and Authentication (for A2A agents using Keycloak)
+agent.erp.url=https://your-gateway-url/erp-agent
+agent.erp.tokenUrl=https://your-keycloak-url/auth/realms/your-realm/protocol/openid-connect/token
+agent.erp.clientId=your_erp_client_id
+agent.erp.clientSecret=your_erp_client_secret
+
+agent.crm.url=https://your-gateway-url/crm-agent
+agent.crm.tokenUrl=https://your-keycloak-url/auth/realms/your-realm/protocol/openid-connect/token
+agent.crm.clientId=your_crm_client_id
+agent.crm.clientSecret=your_crm_client_secret
+
+agent.agentforce.url=https://your-gateway-url/agentforce-agent
+agent.agentforce.tokenUrl=https://your-keycloak-url/auth/realms/your-realm/protocol/openid-connect/token
+agent.agentforce.clientId=your_agentforce_client_id
+agent.agentforce.clientSecret=your_agentforce_client_secret
+
+agent.einstein.url=https://your-gateway-url/einstein-agent
+agent.einstein.tokenUrl=https://your-keycloak-url/auth/realms/your-realm/protocol/openid-connect/token
+agent.einstein.clientId=your_einstein_client_id
+agent.einstein.clientSecret=your_einstein_client_secret
+```
+
+#### Specialized Agent Configuration (e.g., a2a-crm-headless-agent-app)
+```properties
+# MCP Server Configuration
+mcpserver.crm.url=https://your-gateway-url/mcp-crm
+mcpserver.crm.clientId=your_mcp_client_id
+mcpserver.crm.clientSecret=your_mcp_client_secret
+```
+
 ## 🚀 Getting Started
 
 ### Prerequisites
 - MuleSoft Anypoint Studio
 - Mule Runtime 4.9.6+
+- **Flex Gateway** (for production deployments)
+- **Anypoint Platform Access** (for client application registration)
 - OpenAI API key
 - Salesforce org with Einstein AI/Agentforce enabled
 - MySQL database (for audit logging)
 - SAP ECC system access (for ERP operations)
 - HubSpot account (for lead management)
+- **OAuth 2.0 Authorization Server** (for token management)
 
 ### Configuration Steps
 
@@ -218,12 +370,28 @@ This demo demonstrates a multi-agent architecture where:
    salesforce.clientSecret=your_client_secret
    ```
 
-   **Agent URLs (for interaction agent):**
+   **Agent URLs and Authentication (for interaction agent):**
    ```properties
-   agent.erp.url=http://localhost:8082/erp-agent
-   agent.crm.url=http://localhost:8083/crm-agent  
-   agent.agentforce.url=http://localhost:8084/agentforce-agent
-   agent.einstein.url=http://localhost:8085/einstein-agent
+   # Use secure HTTPS endpoints for production
+   agent.erp.url=https://your-gateway-url/erp-agent
+   agent.erp.tokenUrl=https://your-keycloak-url/auth/realms/your-realm/protocol/openid-connect/token
+   agent.erp.clientId=your_erp_client_id
+   agent.erp.clientSecret=your_erp_client_secret
+   
+   agent.crm.url=https://your-gateway-url/crm-agent
+   agent.crm.tokenUrl=https://your-keycloak-url/auth/realms/your-realm/protocol/openid-connect/token
+   agent.crm.clientId=your_crm_client_id
+   agent.crm.clientSecret=your_crm_client_secret
+   
+   agent.agentforce.url=https://your-gateway-url/agentforce-agent
+   agent.agentforce.tokenUrl=https://your-keycloak-url/auth/realms/your-realm/protocol/openid-connect/token
+   agent.agentforce.clientId=your_agentforce_client_id
+   agent.agentforce.clientSecret=your_agentforce_client_secret
+   
+   agent.einstein.url=https://your-gateway-url/einstein-agent
+   agent.einstein.tokenUrl=https://your-keycloak-url/auth/realms/your-realm/protocol/openid-connect/token
+   agent.einstein.clientId=your_einstein_client_id
+   agent.einstein.clientSecret=your_einstein_client_secret
    ```
 
    **Database Configuration (for audit service):**
@@ -265,8 +433,8 @@ This demo demonstrates a multi-agent architecture where:
 ## 💡 Usage Examples
 
 ### Web UI Interaction
-1. Navigate to `http://localhost:8081/ui/agents.html`
-2. Select an agent type (ERP, CRM, Agentforce, Einstein)
+1. Navigate to `https://your-gateway-url/ui/agents.html`
+2. Add one or more agent types (ERP, CRM, Agentforce, Einstein)
 3. Start a conversation with natural language queries
 
 ### Sample Conversations
@@ -298,8 +466,9 @@ Send messages directly to specific agents:
 
 **Request:**
 ```bash
-curl -X POST "http://localhost:8081/prompt-agent?agentName=crmagent&userSessionId=user123" \
+curl -X POST "https://your-gateway-url/prompt-agent?agentName=crmagent&userSessionId=user123" \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_OAUTH_TOKEN" \
   -d '{
     "prompt": "Show me all accounts containing MuleSoft"
   }'
@@ -364,7 +533,7 @@ Send natural language prompts for intelligent agent routing:
 
 **Request (using default agents):**
 ```bash
-curl -X POST "http://localhost:8081/prompt?sessionId=user123&useTrustLayer=true&defaultAgents=true" \
+curl -X POST "https://your-gateway-url/prompt?sessionId=user123&useTrustLayer=true&defaultAgents=true" \
   -H "Content-Type: application/json" \
   -d '{
     "prompt": "I need to check inventory for material MULETEST0 and then create a sales order"
@@ -373,7 +542,7 @@ curl -X POST "http://localhost:8081/prompt?sessionId=user123&useTrustLayer=true&
 
 **Request (using session-specific agent discovery):**
 ```bash
-curl -X POST "http://localhost:8081/prompt?sessionId=user123&userSessionId=user456&useTrustLayer=true" \
+curl -X POST "https://your-gateway-url/prompt?sessionId=user123&userSessionId=user456&useTrustLayer=true" \
   -H "Content-Type: application/json" \
   -d '{
     "prompt": "I need to check inventory for material MULETEST0 and then create a sales order"
@@ -382,7 +551,7 @@ curl -X POST "http://localhost:8081/prompt?sessionId=user123&userSessionId=user4
 
 **Alternative Request (parameters in body, session-specific discovery):**
 ```bash
-curl -X POST "http://localhost:8081/prompt?userSessionId=user456" \
+curl -X POST "https://your-gateway-url/prompt?userSessionId=user456" \
   -H "Content-Type: application/json" \
   -d '{
     "prompt": "I need to check inventory for material MULETEST0 and then create a sales order",
@@ -489,7 +658,7 @@ Get list of available agents:
 
 **Request:**
 ```bash
-curl -X GET "http://localhost:8081/agents?userSessionId=user123&defaultAgents=true"
+curl -X GET "https://your-gateway-url/agents?userSessionId=user123&defaultAgents=true"
 ```
 
 **Response:**
@@ -511,7 +680,13 @@ curl -X GET "http://localhost:8081/agents?userSessionId=user123&defaultAgents=tr
           "required": ["prompt"]
         }
       },
-      "agentUrl": "http://localhost:8083/crm-agent"
+      "agentUrl": "https://your-gateway-url/crm-agent"
+      "agentAuthentication": {
+        "type": "client-credentials",
+        "tokenUrl": "https://your-keycloak-url/auth/realms/your-realm/protocol/openid-connect/token",
+        "clientId": "your-client-id",
+        "clientSecret": "***",
+      }
     }
   ]
 }
@@ -523,7 +698,7 @@ For real-time communication, use the WebSocket endpoint:
 
 ##### Connection Setup
 
-**WebSocket URL:** `ws://localhost:8081/ws/prompt`
+**WebSocket URL:** `wss://your-gateway-url/ws/prompt`
 
 **Query Parameters:**
 - `userSessionId`: User session identifier
@@ -531,8 +706,8 @@ For real-time communication, use the WebSocket endpoint:
 
 **JavaScript Example:**
 ```javascript
-// Establish WebSocket connection
-const wsUrl = new URL('/ws/prompt', 'ws://localhost:8081');
+// Establish WebSocket connection with authentication
+const wsUrl = new URL('/ws/prompt', 'wss://your-gateway-url');
 wsUrl.searchParams.set('userSessionId', 'user123');
 wsUrl.searchParams.set('sessionId', 'session456');
 
@@ -583,8 +758,9 @@ Each specialized agent also exposes direct A2A endpoints:
 
 **ERP Agent Example:**
 ```bash
-curl -X POST http://localhost:8082/erp-agent \
+curl -X POST https://your-gateway-url/erp-agent \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_OAUTH_TOKEN"
   -d '{
     "id": "task123",
     "sessionId": "session456",
@@ -597,8 +773,9 @@ curl -X POST http://localhost:8082/erp-agent \
 
 **CRM Agent Example:**
 ```bash
-curl -X POST http://localhost:8083/crm-agent \
+curl -X POST https://your-gateway-url/crm-agent \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_OAUTH_TOKEN"
   -d '{
     "id": "task124",
     "sessionId": "session456", 
@@ -615,16 +792,19 @@ curl -X POST http://localhost:8083/crm-agent \
 - Uses A2A connector for standardized agent messaging
 - Session management for conversation continuity
 - Task-based interaction model
+- **Secure communication** with OAuth 2.0 authentication
 
 ### MCP Integration  
 - Standardized tool discovery and execution
 - Support for both SSE and HTTP streaming
 - Schema-driven parameter validation
+- **Protected access** through Flex Gateway with Client ID Enforcement
 
 ### Multi-Modal AI
 - Combines different AI engines (OpenAI, Einstein, Agentforce)  
 - Context-aware agent selection
 - Natural language to structured API translation
+- **Enhanced security** with A2A-specific policies
 
 ## 📈 Monitoring and Observability
 
@@ -646,16 +826,19 @@ curl -X POST http://localhost:8083/crm-agent \
 3. Define agent skills and capabilities  
 4. Implement business logic flows
 5. Register with interaction agent
+6. **Configure security policies** (OAuth 2.0, A2A policies)
 
 ### Extending MCP Servers
 1. Add new tool definitions to MCP server
 2. Implement tool execution logic
 3. Update agent configurations to use new tools
+4. **Configure Flex Gateway policies** for new tools
 
 ### Custom AI Integration
 1. Add new AI connector dependencies
 2. Configure AI service connections
 3. Implement agent-specific AI logic
+4. **Apply security policies** to new AI integrations
 
 ## 🤝 Contributing
 
@@ -680,4 +863,4 @@ For questions or issues:
 
 ---
 
-*This demonstration showcases the power of Agent-to-Agent integration patterns and provides a foundation for building sophisticated AI-powered business automation solutions.* 
+*This demonstration showcases the power of Agent-to-Agent integration patterns and provides a foundation for building sophisticated AI-powered business automation solutions with enterprise-grade security.* 
