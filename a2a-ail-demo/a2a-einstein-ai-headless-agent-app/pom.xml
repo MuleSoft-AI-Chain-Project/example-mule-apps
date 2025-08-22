@@ -57,7 +57,7 @@
 		<dependency>
 			<groupId>com.mulesoft.connectors</groupId>
 			<artifactId>mule4-einstein-ai-connector</artifactId>
-			<version>1.2.0</version>
+			<version>1.2.1</version>
 			<classifier>mule-plugin</classifier>
 		</dependency>
 		<dependency>

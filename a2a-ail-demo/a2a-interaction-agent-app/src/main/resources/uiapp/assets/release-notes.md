@@ -16,7 +16,7 @@
 - **External IDP Integration**: Keycloak integration for A2A agent authentication
 - **Enhanced Configuration**: Updated configuration structure to support security requirements
 - **Production-Ready Security**: All components now meet enterprise security standards
-- **Connector Updates**: Upgraded A2A Connector to 0.3.0-BETA, MCP Connector to 1.2.0, and Inference Connector to 1.0.0 for enhanced functionality and stability
+- **Connector Updates**: Upgraded A2A Connector to 0.3.0-BETA, MCP Connector to 1.2.0, Einstein AI Connector to 1.2.1, and Inference Connector to 1.0.0 for enhanced functionality and stability
 
 ### 📋 Migration Notes
 - **Breaking Changes**: Configuration files updated to include security properties
