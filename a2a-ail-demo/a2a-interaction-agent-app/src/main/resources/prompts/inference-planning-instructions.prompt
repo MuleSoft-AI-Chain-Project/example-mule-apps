@@ -38,6 +38,7 @@ Determine if additional agent calls are required to fulfill the **User query** o
 - If no agents are available or no further agents are needed:
 - Set "response" to the answer for the user, based on successfully executed agent tasks or direct knowledge.
 - Set "needAgents" to false.
+- If no agents are available and a call is required include "No specialised agents available at this moment to process your query" in the response.
 - If an error prevents fulfilling the request, include a generic error message in "response".
   {
     "response": "response to send back to the user",

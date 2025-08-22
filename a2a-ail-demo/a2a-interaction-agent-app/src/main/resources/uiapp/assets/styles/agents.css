@@ -1,0 +1,268 @@
+/* ===== AGENTS GRID ===== */
+.agents-tiles-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin: 1rem 0;
+}
+
+/* Responsive grid layout */
+@media (max-width: 1500px) {
+    .agents-tiles-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 1000px) {
+    .agents-tiles-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.agent-tile {
+    height: 240px;
+    background: #ffffff;
+    border-radius: 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    font-size: 1rem;
+    color: #01a2ff;
+    box-shadow: 0 2px 8px rgba(44,62,80,0.07);
+    cursor: pointer;
+    transition: box-shadow 0.2s;
+    border: 2px dashed #dee2e6;
+    min-width: 350px;
+    width: 100%;
+    padding: 1rem;
+    position: relative;
+}
+
+.agent-tile .tile-robot-icon {
+    position: static;
+    margin-right: 0.5rem;
+    font-size: 1.8rem;
+    color: #01a2ff;
+    vertical-align: middle;
+}
+
+.agent-tile .agent-title {
+    font-weight: bold;
+    color: #222;
+    font-size: 1.6rem;
+    margin-bottom: 0.5rem;
+    margin-right: 4.5rem;
+    text-align: left;
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-start;
+}
+
+.agent-tile .agent-desc {
+    color: #666;
+    font-size: 0.95rem;
+    line-height: 1.2;
+    flex: 1;
+    text-align: left;
+    width: 100%;
+    display: block;
+}
+
+.agent-tile.add-agent-tile {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    color: #000000;
+    border: 2px dashed #dee2e6;
+    background: white;
+    min-width: 0;
+    padding: 0;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.agent-tile.add-agent-tile:hover {
+    background: #f8f9fa;
+    color: #00a2ff;
+}
+
+.agent-skills {
+    margin-top: 0.3rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+}
+
+.skill-pill {
+    background: #eaf6fb;
+    color: #01a2ff;
+    border-radius: 1rem;
+    padding: 0.15rem 0.7rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+    display: inline-block;
+    border: 1px solid #b2e0fa;
+}
+
+.agent-tile .agent-skills {
+    margin-top: 0.3rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+    justify-content: flex-start;
+    width: 100%;
+}
+
+/* ===== BUTTONS ===== */
+.delete-all-btn {
+    position: absolute;
+    bottom: 1rem;
+    right: 1rem;
+    background: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 0.5rem;
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    z-index: 10;
+}
+
+.delete-all-btn:hover {
+    background: #c82333;
+}
+
+.add-default-btn {
+    position: absolute;
+    bottom: 1rem;
+    right: 7.5rem;
+    background: #0d6efd;
+    color: white;
+    border: none;
+    border-radius: 0.5rem;
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    z-index: 10;
+}
+
+.add-default-btn:hover {
+    background: #0b5ed7;
+}
+
+.delete-agent-btn {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    margin-top: 0.7rem;
+    margin-right: 0.5rem;
+    background: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 2rem;
+    height: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 0.8rem;
+    opacity: 0.8;
+    transition: opacity 0.2s;
+}
+
+.delete-agent-btn:hover {
+    opacity: 1;
+    background: #c82333;
+}
+
+.chat-agent-btn {
+    position: absolute;
+    top: 0.5rem;
+    right: 3rem;
+    margin-top: 0.7rem;
+    margin-right: 0.5rem;
+    background: #28a745;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 2rem;
+    height: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 0.8rem;
+    opacity: 0.8;
+    transition: opacity 0.2s;
+}
+
+.chat-agent-btn:hover {
+    opacity: 1;
+    background: #218838;
+}
+
+/* ===== MODAL STYLES ===== */
+/* Modal primary button override to match Bootstrap default */
+#addAgentModal .btn-primary {
+    border-radius: 0.375rem;
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+}
+
+#agentUrlInput {
+    padding: 0.4rem 0.75rem;
+    border-radius: 0.375rem;
+}
+
+#clientIdInput, #clientSecretInput, #tokenUrlInput {
+    padding: 0.4rem 0.75rem;
+    border-radius: 0.375rem;
+}
+
+/* ===== TAB HOVER FIX ===== */
+/* Tabs should be blue only when hovered, gray when active but not hovered */
+#addAgentModal .nav-tabs .nav-link {
+    color: #6c757d !important;
+    background-color: transparent !important;
+    border-color: transparent !important;
+}
+
+#addAgentModal .nav-tabs .nav-link:focus,
+#addAgentModal .nav-tabs .nav-link:focus-visible {
+    color: #6c757d !important;
+    background-color: transparent !important;
+    border-color: transparent !important;
+    box-shadow: none !important;
+}
+
+#addAgentModal .nav-tabs .nav-link:hover {
+    color: #0d6efd !important;
+    background-color: #fff !important;
+    border-color: #dee2e6 #dee2e6 #fff !important;
+}
+
+/* Active tab without hover should have subtle indication */
+#addAgentModal .nav-tabs .nav-link.active {
+    color: #495057 !important;
+    background-color: #fff !important;
+    border-color: #dee2e6 #dee2e6 #fff !important;
+    font-weight: 500 !important;
+}
+
+/* Active tab with hover should be blue */
+#addAgentModal .nav-tabs .nav-link.active:hover {
+    color: #0d6efd !important;
+    background-color: #fff !important;
+    border-color: #dee2e6 #dee2e6 #fff !important;
+}
+
+/* Agent type icon styles */
+.agent-type-icon {
+    width: 24px;
+    height: 24px;
+    margin-right: 8px;
+}
