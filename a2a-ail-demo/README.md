@@ -280,6 +280,14 @@ agent.einstein.clientId=your_einstein_client_id
 agent.einstein.clientSecret=your_einstein_client_secret
 ```
 
+#### Specialized Agent Configuration (e.g., a2a-crm-headless-agent-app)
+```properties
+# MCP Server Configuration
+mcpserver.crm.url=https://your-gateway-url/mcp-crm
+mcpserver.crm.clientId=your_mcp_client_id
+mcpserver.crm.clientSecret=your_mcp_client_secret
+```
+
 ## 📦 Release History
 
 ### Release 2.0 - Enterprise Security Enhancement
@@ -323,14 +331,6 @@ agent.einstein.clientSecret=your_einstein_client_secret
 - **MCP Connector 1.0.0**: Model Context Protocol support
 - **Local Development**: Support for local development and testing
 - **Basic Security**: HTTP-based communication with basic authentication
-
-#### Specialized Agent Configuration (e.g., a2a-crm-headless-agent-app)
-```properties
-# MCP Server Configuration
-mcpserver.crm.url=https://your-gateway-url/mcp-crm
-mcpserver.crm.clientId=your_mcp_client_id
-mcpserver.crm.clientSecret=your_mcp_client_secret
-```
 
 ## 🚀 Getting Started
 
