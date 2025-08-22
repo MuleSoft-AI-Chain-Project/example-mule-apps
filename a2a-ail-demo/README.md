@@ -238,6 +238,22 @@ This demo implements enterprise-grade security using MuleSoft Flex Gateway polic
 - **Authentication**: Client Credential Grant Type (OAuth 2.0)
 - **Access Control**: Only authorized applications with valid OAuth tokens can access A2A agents
 
+### Authentication Flow
+
+#### MCP Server Authentication Flow
+1. **Client Registration**: Applications must be registered in Anypoint Platform
+2. **Credential Generation**: Client ID and Client Secret are generated for each application
+3. **Request Authentication**: Applications provide Client ID and Client Secret as HTTP headers
+4. **Policy Enforcement**: Flex Gateway Client ID Enforcement Policy validates credentials and enforces access controls
+
+#### A2A Agent Authentication Flow
+1. **Client Registration**: Applications must be registered in external Identity Provider (Keycloak)
+2. **Credential Generation**: Client ID and Client Secret are generated for each application in Keycloak
+3. **Token Acquisition**: Applications obtain OAuth tokens by hitting Keycloak using Client Credential Grant
+4. **Request Authentication**: Applications include valid OAuth tokens in requests
+5. **Token Validation**: Flex Gateway OAuth 2.0 Token Introspection Policy validates tokens with Keycloak
+6. **Policy Enforcement**: Additional A2A-specific policies enforce agent-specific security controls
+
 ## 📦 Release History
 
 ### Release 2.0 - Enterprise Security Enhancement
@@ -281,22 +297,6 @@ This demo implements enterprise-grade security using MuleSoft Flex Gateway polic
 - **MCP Connector 1.0.0**: Model Context Protocol support
 - **Local Development**: Support for local development and testing
 - **Basic Security**: HTTP-based communication with basic authentication
-
-### Authentication Flow
-
-#### MCP Server Authentication Flow
-1. **Client Registration**: Applications must be registered in Anypoint Platform
-2. **Credential Generation**: Client ID and Client Secret are generated for each application
-3. **Request Authentication**: Applications provide Client ID and Client Secret as HTTP headers
-4. **Policy Enforcement**: Flex Gateway Client ID Enforcement Policy validates credentials and enforces access controls
-
-#### A2A Agent Authentication Flow
-1. **Client Registration**: Applications must be registered in external Identity Provider (Keycloak)
-2. **Credential Generation**: Client ID and Client Secret are generated for each application in Keycloak
-3. **Token Acquisition**: Applications obtain OAuth tokens by hitting Keycloak using Client Credential Grant
-4. **Request Authentication**: Applications include valid OAuth tokens in requests
-5. **Token Validation**: Flex Gateway OAuth 2.0 Token Introspection Policy validates tokens with Keycloak
-6. **Policy Enforcement**: Additional A2A-specific policies enforce agent-specific security controls
 
 ### Configuration Requirements
 
