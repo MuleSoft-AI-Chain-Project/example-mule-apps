@@ -376,6 +376,15 @@ output text
 write(vars.queryAssessment, "application/json") ++ 
 "\n 🔎🔎🔎🔎🔎️️ ---------------------------------------------------------------------- 🔎🔎🔎🔎🔎️" ++
 "\n\n"]' />
+				<logger level="INFO" doc:name="💀Content Quality 💀" doc:id="f65e8de2-8545-4959-b847-4c8ae1ca16f3" message='#[%dw 2.0
+output text
+---
+"\n\n" ++
+"💀💀💀💀💀️️ --------------------------  Content Quality -------------------------- 💀💀💀💀💀️\n\n" ++ 
+
+write(attributes.contentQuality, "application/json") ++ 
+"\n 💀💀💀💀💀️️ ---------------------------------------------------------------------- 💀💀💀💀💀" ++
+"\n\n"]' />
 			</route>
 			<route >
 				<ms-einstein-ai:agent-define-prompt-template doc:id="18576ab8-acf8-4d03-8602-e7b5ec8b8ade" config-ref="Einstein_AI" modelApiName="${einstein.agentReasoningModel}" doc:name="Tool Template" >
