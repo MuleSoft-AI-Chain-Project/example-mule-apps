@@ -29,10 +29,20 @@ http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/
 		</http:listener-interceptors>
 	</http:listener-config>
 	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="25405d11-7b16-4925-8be7-168fb677743c" />
+	<http:request-config name="MuleSoft_Anypoint_Platform_API" doc:name="HTTP Request configuration" doc:id="e42e363d-38c1-4d40-ba5d-e2d44d84016c">
+		<http:request-connection host='#[vars.url as String]' protocol="HTTPS" connectionIdleTimeout="10000">
+			<http:authentication >
+				<oauth:client-credentials-grant-type clientId="#[vars.clientId]" clientSecret="#[vars.clientSecret]" tokenUrl='#["https://" ++ vars.url ++ "/accounts/api/v2/oauth2/token"]' >
+					<oauth:token-manager objectStore="PlatformAPITokenObjectStore" />
+				</oauth:client-credentials-grant-type>
+			</http:authentication>
+		</http:request-connection>
+	</http:request-config>
 	<ms-inference:text-generation-config name="MuleSoft_Inference_Text_generation_config" doc:name="MuleSoft Inference Text generation config" doc:id="9d3a7c9a-98d7-4b45-8c43-a51af4cab446" >
 		<ms-inference:openai-connection apiKey="${openai.apikey}" maxTokens="${openai.maxToken}" openAIModelName="${openai.model}"/>
 	</ms-inference:text-generation-config>
 	<configuration-properties doc:name="Configuration properties" doc:id="6d86e7e5-a6b8-4e0a-b7b8-5a053649db54" file="config.properties" />
+	
 	<a2a:client-config name="A2A_Client_Auth_none" doc:name="A2A Client" doc:id="8a9fffe5-1981-4bad-9dc2-2324810b36de" >
 		<a2a:client-connection serverUrl="#[vars.agentUrl]" requestTimeout="${agent.general.timeout}">
 		</a2a:client-connection>
@@ -53,14 +63,18 @@ http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/
 			<ms-einstein-ai:oauth-client-credentials clientId="${salesforce.clientId}" clientSecret="${salesforce.clientSecret}" tokenUrl="${salesforce.tokenUrl}" />
 		</ms-einstein-ai:oauth-client-credentials-connection>
 	</ms-einstein-ai:config>
+	
 	<websocket:config name="WebSockets_Config" doc:name="WebSockets Config" doc:id="d589e427-90c9-4973-820b-0298f357f7da" >
 		<websocket:connection >
 			<websocket:server-settings listenerConfig="HTTP_Listener_config" />
 			<websocket:client-settings />
 		</websocket:connection>
 	</websocket:config>
+	
 	<os:object-store name="AgentObjectStore" doc:name="Object store" doc:id="202d801e-4c20-4b9d-8013-4c779cba5015" persistent="false"/>
 	<os:object-store name="ChatMessagesObjectStore" doc:name="Object store" doc:id="c6519eb1-bb67-4baf-aa2d-888e3b523c17" persistent="false" />
+	<os:object-store name="PlatformAPITokenObjectStore" doc:name="Object store" doc:id="07fa6bd9-3420-4744-be95-31ec74a5e944" persistent="false" />
+	
 	<a2a:server-config name="A2A_Server" doc:name="A2A Server" doc:id="5eed4f53-1ed9-4943-810c-c604e310a4c1" >
 		<a2a:connection listenerConfig="HTTP_Listener_config" agentPath="/crm-domain-agent" />
 		<a2a:card name="${agent.name}" url="${agent.host}/crm-domain-agent" version="1.0.0">
