@@ -408,27 +408,44 @@
 
 /* ===== EXCHANGE MODAL ===== */
 #exchangeModal .modal-dialog {
-    max-width: 900px; /* 150% larger than original 600px */
+    width: 80%;
+    max-width: 1024px;
 }
 
 #exchangeModal .modal-content {
-    border-radius: 12px;
+    border-radius: 0;
     border: none;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
 }
 
 #exchangeModal .modal-header {
     border-bottom: 1px solid #e9ecef;
-    padding: 1.5rem 1.5rem 1rem;
+    padding: 0.5rem 1.5rem 0.5rem;
+}
+
+#exchangeModal .modal-title-container {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+#exchangeModal .exchange-logo {
+    width: 42px;
+    height: 42px;
+    flex-shrink: 0;
 }
 
 #exchangeModal .modal-title {
-    font-weight: 600;
     color: var(--text-color);
+    margin: 0;
+    font-family: var(--lume-g-font-family);
+    --lume-g-font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, sans-serif, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', 'Liberation Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
 }
 
 #exchangeModal .modal-body {
     padding: 1.5rem;
+    background-color: #e5e5e5;
+    min-height: 400px;
 }
 
 
