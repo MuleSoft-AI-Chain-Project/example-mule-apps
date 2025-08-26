@@ -43,7 +43,7 @@
     position: relative;
 }
 
-.input-group {
+.conversation-content .input-group {
     background: white;
     padding: 1rem;
     border-radius: 10px;

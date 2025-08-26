@@ -59,3 +59,9 @@ agent.skill.5.name=Contacts
 agent.skill.5.description=Agent has access to contacts
 
 external.service=
+
+exchange.default.url=
+exchange.default.clientId=
+exchange.default.clientSecret=
+exchange.default.organizationId=
+exchange.default.environmentId=

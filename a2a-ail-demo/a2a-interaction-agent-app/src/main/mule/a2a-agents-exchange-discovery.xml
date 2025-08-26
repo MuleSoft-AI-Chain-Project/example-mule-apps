@@ -6,50 +6,73 @@
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
 http://www.mulesoft.org/schema/mule/oauth http://www.mulesoft.org/schema/mule/oauth/current/mule-oauth.xsd
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<flow name="get-my-profile-listener-flow" doc:id="3e006ebe-e21d-4fb6-b93a-8f0858bedfb5" >
+		<http:listener doc:name="Listener for /platform/me" doc:id="1652225c-3ffb-47e5-8b71-1f726cf46744" config-ref="HTTP_Listener_config" path="/platform/me" allowedMethods="GET"/>
+		<logger level="INFO" doc:name="Log request" doc:id="62b338ed-3ba0-4204-8fd9-87be9c79885d" message='#[output text
+---
+write(attributes, "application/json")]'/>
+		<flow-ref doc:name="Set initial variables for mulesoft anypoint platform apis" doc:id="6c98f09f-9617-45c4-924f-d66051e165c7" name="set-initial-ms-platform-apis-vars"/>
+		<flow-ref doc:name="Get my profile" doc:id="7dc84e7e-35df-4fa9-a197-00236768c49a" name="get-all-environments-impl-flow"/>
+	</flow>
 	<flow name="get-all-environments-listener-flow" doc:id="f63ab0ca-3623-49bb-80e2-6dacec3f2b2d" >
 		<http:listener doc:name="Listener for /platform/environments" doc:id="4cd8c34f-d10f-4a9d-a296-36f28919a6e8" config-ref="HTTP_Listener_config" path="/platform/environments" allowedMethods="GET"/>
-		<logger level="INFO" doc:name="Log request" doc:id="47f877a6-406d-49d9-a413-f51b8f5e935d" message='#[output text&#10;---&#10;write(attributes, "application/json")]'/>
+		<logger level="INFO" doc:name="Log request" doc:id="47f877a6-406d-49d9-a413-f51b8f5e935d" message='#[output text
+---
+write(attributes, "application/json")]'/>
 		<flow-ref doc:name="Set initial variables for mulesoft anypoint platform apis" doc:id="99a0396a-6c14-49e7-822c-89e5881aa120" name="set-initial-ms-platform-apis-vars"/>
 		<flow-ref doc:name="Get all environments" doc:id="14125720-c15f-4ee1-b76d-23a97c592d3e" name="get-all-environments-impl-flow"/>
 	</flow>
 	<flow name="get-all-apis-by-environment-listener-flow" doc:id="073dab75-0dfd-45f5-b2f0-578daf737538">
 		<http:listener doc:name="Listener for /platform/apis" doc:id="2ce772d3-1b10-46f4-81ca-3e58f5b0db61" config-ref="HTTP_Listener_config" path="platform/apis" allowedMethods="GET"/>
-		<logger level="INFO" doc:name="Log request" doc:id="91ede195-3baf-41c2-8eac-073e0aa23cac" message='#[output text&#10;---&#10;write(attributes, "application/json")]' />
+		<logger level="INFO" doc:name="Log request" doc:id="91ede195-3baf-41c2-8eac-073e0aa23cac" message='#[output text
+---
+write(attributes, "application/json")]' />
 		<flow-ref doc:name="Set initial variables for mulesoft anypoint platform apis" doc:id="6f8df6f1-558f-4e1b-a49c-8a8e6b0ddc75" name="set-initial-ms-platform-apis-vars" />
 		<flow-ref doc:name="Get all apis by environment" doc:id="63ed3337-945f-4536-b88c-6acac88c5772" name="get-all-apis-by-environment-impl-flow" />
 	</flow>
 	<flow name="get-api-details-by-id-listener-flow" doc:id="500bc109-74bc-4b9c-9327-104ec644b959">
 		<http:listener doc:name="Listener for /platform/apis/{apiId}" doc:id="307951d0-de80-4937-a4d5-24ac6d2eb190" config-ref="HTTP_Listener_config" path="platform/apis/{apiId}" allowedMethods="GET"/>
-		<logger level="INFO" doc:name="Log request" doc:id="db217185-b067-432f-bed2-137513a925bf" message='#[output text&#10;---&#10;write(attributes, "application/json")]' />
+		<logger level="INFO" doc:name="Log request" doc:id="db217185-b067-432f-bed2-137513a925bf" message='#[output text
+---
+write(attributes, "application/json")]' />
 		<flow-ref doc:name="Set initial variables for mulesoft anypoint platform apis" doc:id="2bac1c8a-31a9-4769-bb43-8ca9238349e9" name="set-initial-ms-platform-apis-vars" />
 		<flow-ref doc:name="Get all api details by id" doc:id="6257d485-83c7-471a-bc9e-270e67f22a10" name="get-api-details-by-id-impl-flow" />
 	</flow>
 	<flow name="get-a2a-agents-by-environment-listener-flow" doc:id="a0b94525-e389-44aa-98bc-099205754406">
 		<http:listener doc:name="Listener for /platform/a2a-agents" doc:id="adcf8576-a648-42bf-be6a-fccd218c2bf9" config-ref="HTTP_Listener_config" path="platform/a2a-agents" allowedMethods="GET" />
-		<logger level="INFO" doc:name="Log request" doc:id="99b861bd-22c7-41a4-b68e-eb3e7aaa1f06" message='#[output text&#10;---&#10;write(attributes, "application/json")]' />
+		<logger level="INFO" doc:name="Log request" doc:id="99b861bd-22c7-41a4-b68e-eb3e7aaa1f06" message='#[output text
+---
+write(attributes, "application/json")]' />
 		<flow-ref doc:name="Set initial variables for mulesoft anypoint platform apis" doc:id="2f30530b-466e-490a-ab45-38d467d5d45a" name="set-initial-ms-platform-apis-vars" />
 		<flow-ref doc:name="Get all apis by environment" doc:id="6a3b8681-bee2-4c74-8d86-3fae887a0b5a" name="get-all-apis-by-environment-impl-flow" />
 		<parallel-foreach doc:name="Iterate over all apis inside environment" doc:id="f5e7b5bf-e3fa-4cec-8f53-01a5a8236c78" collection="#[payload.assets]">
-			<set-variable value="#[output text&#10;---&#10;(((payload as Object).apis as Array)[-1] as Object).id as String]" doc:name="Set apiId" doc:id="3bb9747d-7561-4244-8854-62ac50663ff1" variableName="apiId"/>
+			<set-variable value="#[output text
+---
+(((payload as Object).apis as Array)[-1] as Object).id as String]" doc:name="Set apiId" doc:id="3bb9747d-7561-4244-8854-62ac50663ff1" variableName="apiId"/>
 			<flow-ref doc:name="Get all api details by id" doc:id="b5d9d813-1f62-4484-beaf-c35dffcd490f" name="get-api-details-by-id-impl-flow" />
-			<logger level="INFO" doc:name="Log endpoint type" doc:id="23860e16-1846-44b2-80c3-250b180c4049" message='#[output text&#10;---&#10;((payload as Object).endpoint as Object)."type"]'/>
+			<logger level="INFO" doc:name="Log endpoint type" doc:id="23860e16-1846-44b2-80c3-250b180c4049" message='#[output text
+---
+((payload as Object).endpoint as Object)."type"]'/>
 		</parallel-foreach>
 		<ee:transform doc:name="Filter out a2a types" doc:id="d2833018-a195-488a-8bba-7c1e825cf469" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
 output application/json
 ---
-payload filter ((item, index) -> item.endpoint."type" == "a2a")]]></ee:set-payload>
+payload.payload filter ((item, index) -> item.endpoint."type" == "a2a")]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
 	</flow>
 	<sub-flow name="set-initial-ms-platform-apis-vars" doc:id="6d273219-f423-4096-9500-d76c30eb4d89" >
-		<set-variable value='#[attributes.queryParams.url default "https://anypoint.mulesoft.com/"]' doc:name="Set url" doc:id="122f5be7-b78d-41ac-a181-d27a02dcaf81" variableName="url" />
-		<set-variable value="#[attributes.headers.client_id]" doc:name="Set clientId" doc:id="73755b07-8724-473f-be26-8b2161d86a99" variableName="clientId" />
-		<set-variable value="#[attributes.headers.client_secret]" doc:name="Set clientSecret" doc:id="e22d9e49-3389-456e-8a0d-f661e6e5158b" variableName="clientSecret" />
-		<set-variable value="#[attributes.queryParams.organizationId]" doc:name="Set organizationId" doc:id="129a7a6d-5ac1-46b1-80c8-9c9c4b8e7e0c" variableName="organizationId" />
-		<set-variable value="#[attributes.queryParams.environmentId]" doc:name="Set environmentId" doc:id="56e8c433-95f5-42f8-9f11-bd4763c9b20b" variableName="environmentId" />
+		<set-variable value="#[attributes.queryParams.url default p('exchange.default.url')]" doc:name="Set url" doc:id="122f5be7-b78d-41ac-a181-d27a02dcaf81" variableName="url" />
+		<set-variable value="#[attributes.headers.client_id default p('exchange.default.clientId')]" doc:name="Set clientId" doc:id="73755b07-8724-473f-be26-8b2161d86a99" variableName="clientId" />
+		<set-variable value="#[attributes.headers.client_secret default p('exchange.default.clientSecret')]" doc:name="Set clientSecret" doc:id="e22d9e49-3389-456e-8a0d-f661e6e5158b" variableName="clientSecret" />
+		<set-variable value="#[attributes.queryParams.organizationId default p('exchange.default.organizationId')]" doc:name="Set organizationId" doc:id="129a7a6d-5ac1-46b1-80c8-9c9c4b8e7e0c" variableName="organizationId" />
+		<set-variable value="#[attributes.queryParams.environmentId  default p('exchange.default.environmentId')]" doc:name="Set environmentId" doc:id="56e8c433-95f5-42f8-9f11-bd4763c9b20b" variableName="environmentId" />
 		<set-variable value="#[attributes.uriParams.apiId]" doc:name="Set apiId" doc:id="f2739ed1-c4cc-442b-a804-64745fbc3c22" variableName="apiId" />
+	</sub-flow>
+	<sub-flow name="get-my-profile-impl-flow" doc:id="8201b06b-279b-4121-8734-716f7ca3c36b" >
+		<http:request method="GET" doc:name="Get my profile" doc:id="1f136e05-7645-4d5c-abf5-f9f0ab1b59d8" config-ref="MuleSoft_Anypoint_Platform_API" path='#["/accounts/api/me"]' />
 	</sub-flow>
 	<sub-flow name="get-all-environments-impl-flow" doc:id="0efd66bf-e66a-47d3-9009-c8c0f54441fb" >
 		<http:request method="GET" doc:name="Get all environments" doc:id="055a52a8-8e35-4596-875c-cc9058392ed6" config-ref="MuleSoft_Anypoint_Platform_API" path='#["/accounts/api/organizations/" ++ (vars.organizationId as String) ++ "/environments"]' />

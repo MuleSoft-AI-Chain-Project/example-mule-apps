@@ -716,6 +716,7 @@ window.attachAgentsTab = function() {
     const agentUrlInput = document.getElementById('agentUrlInput');
     if (agentUrlInput) {
         agentUrlInput.addEventListener('input', function() {
+            const authenticationSelect = document.getElementById('authenticationSelect');
             const authenticationSection = document.querySelector('.mb-3:has(#authenticationSelect)');
             const authenticationLabel = document.querySelector('label[for="authenticationSelect"]');
             const authenticationHelpText = document.getElementById('authenticationHelpText');
@@ -742,6 +743,26 @@ window.attachAgentsTab = function() {
                     authenticationHelpText.style.display = 'none';
                 }
             }
+        });
+    }
+    
+    // Add exchange icon button event listener
+    const exchangeIconBtn = document.getElementById('exchangeIconBtn');
+    if (exchangeIconBtn) {
+        exchangeIconBtn.addEventListener('click', function() {
+            // Close the Add New Agent modal
+            if (window.addAgentModal) {
+                window.addAgentModal.hide();
+            }
+            
+            // Load and show exchange modal
+            loadExchangeModal(function() {
+                if (typeof window.renderExchangeModal === 'function') {
+                    window.renderExchangeModal();
+                } else {
+                    console.error('renderExchangeModal function not available');
+                }
+            });
         });
     }
     

@@ -287,6 +287,42 @@
     border-radius: 0.375rem;
 }
 
+/* Exchange icon button styles */
+#exchangeIconBtn {
+    width: 44px;
+    border: 1px solid #dee2e6;
+    border-radius: 0.5rem;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #e3f2fd;
+}
+
+#exchangeIconBtn:hover {
+    background-color: transparent;
+    border-color: #00a2ff;
+    color: #00a2ff;
+}
+
+#exchangeIconBtn svg {
+    width: 24px;
+    height: 24px;
+}
+
+/* Ensure the input group has proper styling */
+.input-group .form-control {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+/* Remove box shadow and padding from input group in Add Agent modal */
+#addAgentModal .input-group {
+    box-shadow: none !important;
+    padding: 0;
+    gap: 0.5rem;
+}
+
 /* ===== TAB HOVER FIX ===== */
 /* Tabs should be blue only when hovered, gray when active but not hovered */
 #addAgentModal .nav-tabs .nav-link {
