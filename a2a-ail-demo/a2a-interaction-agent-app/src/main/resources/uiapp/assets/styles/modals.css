@@ -406,6 +406,33 @@
     color: #333;
 }
 
+/* ===== EXCHANGE MODAL ===== */
+#exchangeModal .modal-dialog {
+    max-width: 900px; /* 150% larger than original 600px */
+}
+
+#exchangeModal .modal-content {
+    border-radius: 12px;
+    border: none;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+#exchangeModal .modal-header {
+    border-bottom: 1px solid #e9ecef;
+    padding: 1.5rem 1.5rem 1rem;
+}
+
+#exchangeModal .modal-title {
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+#exchangeModal .modal-body {
+    padding: 1.5rem;
+}
+
+
+
 /* ===== REASONING ENGINE MODAL ===== */
 .powered-by-text {
     font-size: 0.8rem;
@@ -538,6 +565,13 @@
     .powered-by-icon {
         height: 14px;
     }
+}
+
+/* ===== GENERAL MODAL BUTTON STYLES ===== */
+.modal .btn-primary {
+    border-radius: 0.375rem;
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
 }
 
 #reasoningEngineModal .btn-primary {

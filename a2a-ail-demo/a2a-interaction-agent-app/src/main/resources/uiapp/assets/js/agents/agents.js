@@ -170,6 +170,7 @@ window.agentsTabInitialized = false;
 window.addAgentModal = null;
 window.skillDescModal = null;
 window.chatModal = null;
+window.exchangeModal = null;
 window.lastFocusedElement = null; // Store the element that had focus before modal opened
 
 // Chat state variables
@@ -183,12 +184,82 @@ window.addDefaultBtnListener = null;
 window.cancelBtnListener = null;
 window.closeBtnListener = null;
 
+// Function to load exchange modal
+function loadExchangeModal(callback) {
+    console.log('[Agents] Loading exchange modal');
+    
+    // Check if modal is already loaded
+    if (document.getElementById('exchangeModal')) {
+        console.log('[Agents] Exchange modal already loaded');
+        callback();
+        return;
+    }
+    
+    // Remove any existing modal to avoid stale state
+    const existingModal = document.getElementById('exchangeModal');
+    if (existingModal) { 
+        existingModal.remove(); 
+        console.log('[Agents] Removed old exchange modal'); 
+    }
+    
+    fetch('exchange-modal.html')
+        .then(resp => resp.text())
+        .then(html => {
+            console.log('[Agents] Fetched exchange-modal.html');
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = html;
+            
+            // Append modal to document.body for proper Bootstrap modal styling
+            const modalEl = tempDiv.querySelector('#exchangeModal');
+            if (modalEl) {
+                document.body.appendChild(modalEl);
+                console.log('[Agents] Appended exchange modal to document.body');
+            } else {
+                console.warn('[Agents] No exchange modal element found in fetched HTML');
+            }
+            
+            // Load the external JavaScript file
+            const scriptTag = tempDiv.querySelector('script');
+            if (scriptTag && scriptTag.src) {
+                const newScript = document.createElement('script');
+                newScript.src = scriptTag.src;
+                newScript.onload = function() {
+                    console.log('[Agents] Exchange modal script loaded successfully');
+                    // Wait a bit more for the function to be available
+                    setTimeout(function() {
+                        if (typeof window.renderExchangeModal === 'function') {
+                            console.log('[Agents] renderExchangeModal function is available, calling callback');
+                            callback();
+                        } else {
+                            console.error('[Agents] renderExchangeModal function still not available after script load');
+                            callback(); // Call callback anyway to avoid hanging
+                        }
+                    }, 50);
+                };
+                newScript.onerror = function() {
+                    console.error('[Agents] Failed to load exchange modal script:', scriptTag.src);
+                    callback(); // Call callback anyway to avoid hanging
+                };
+                document.body.appendChild(newScript);
+                console.log('[Agents] Loading exchange modal script:', scriptTag.src);
+            } else {
+                console.warn('[Agents] No script tag with src found in fetched HTML');
+                callback(); // Call callback anyway to avoid hanging
+            }
+        })
+        .catch(err => {
+            console.error('[Agents] Failed to load exchange-modal.html:', err);
+            alert('Could not load exchange modal.');
+        });
+}
+
 // Reset initialization state when content is reloaded
 function resetAgentsTabState() {
     window.agentsTabInitialized = false;
     window.addAgentModal = null;
     window.skillDescModal = null;
     window.chatModal = null;
+    window.exchangeModal = null;
     window.lastFocusedElement = null;
     
     // Remove old event listeners if they exist
@@ -563,6 +634,21 @@ function initializeModals() {
             }
         });
         
+        // Add event listener for add agent modal hidden event
+        modalEl.addEventListener('hidden.bs.modal', function() {
+            // Restore focus
+            if (window.lastFocusedElement) {
+                window.lastFocusedElement.focus();
+            }
+        });
+        
+        // Add ESC key handler for add agent modal
+        modalEl.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                window.addAgentModal.hide();
+            }
+        });
+        
         console.log('Modals initialized successfully');
         // Reset retry counter on success
         window.modalInitRetryCount = 0;
@@ -804,13 +890,19 @@ window.attachAgentsTab = function() {
                     });
                 }
             });
-            // Add the + tile as the last tile
+            // Add the split tile as the last tile
             const addTile = document.createElement('div');
             addTile.className = 'agent-tile add-agent-tile';
             addTile.id = 'addAgentBtn';
-            addTile.title = 'Add new agent';
-            addTile.innerHTML = '+';
-            addTile.addEventListener('click', function() {
+            addTile.title = 'Add new agent / Exchange';
+            
+            // Create left half (add agent)
+            const leftHalf = document.createElement('div');
+            leftHalf.className = 'add-agent-left-half';
+            leftHalf.innerHTML = '+';
+            leftHalf.title = 'Add new agent';
+            leftHalf.addEventListener('click', function(e) {
+                e.stopPropagation();
                 // Store the currently focused element
                 window.lastFocusedElement = document.activeElement;
                 
@@ -849,6 +941,26 @@ window.attachAgentsTab = function() {
                             }
                         });
                         
+                        // Add ESC key handler for fallback modal
+                        const handleEscape = function(e) {
+                            if (e.key === 'Escape') {
+                                const modalEl = document.getElementById('addAgentModal');
+                                if (modalEl) {
+                                    modalEl.classList.remove('show');
+                                    modalEl.style.display = 'none';
+                                    modalEl.setAttribute('inert', '');
+                                    const backdrop = document.getElementById('modalBackdrop');
+                                    if (backdrop) backdrop.remove();
+                                    // Restore focus
+                                    if (window.lastFocusedElement) {
+                                        window.lastFocusedElement.focus();
+                                    }
+                                    document.removeEventListener('keydown', handleEscape);
+                                }
+                            }
+                        };
+                        document.addEventListener('keydown', handleEscape);
+                        
                         // Focus the input field when modal opens
                         const inputField = document.getElementById('agentUrlInput');
                         if (inputField) {
@@ -859,6 +971,30 @@ window.attachAgentsTab = function() {
                     }
                 }
             });
+            
+            // Create right half (exchange)
+            const rightHalf = document.createElement('div');
+            rightHalf.className = 'add-agent-right-half';
+            rightHalf.title = 'Anypoint Exchange';
+            rightHalf.innerHTML = '<svg width="48" height="48" viewBox="0 0 242 242" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M32.5764 121C32.5764 101.621 38.8152 83.7022 49.3869 69.1305L39.4072 59.1514C26.362 76.3351 18.6149 97.7615 18.6149 121C18.6149 144.239 26.362 165.665 39.4072 182.848L49.3869 172.868C38.8152 158.298 32.5764 140.379 32.5764 121ZM192.613 69.1305L202.593 59.1514C215.639 76.3351 223.385 97.7615 223.385 121C223.385 144.239 215.639 165.665 202.593 182.848L192.613 172.868C203.185 158.298 209.424 140.379 209.424 121C209.424 101.621 203.185 83.7022 192.613 69.1305Z" fill="#114459"></path><path d="M202.593 59.1513L59.1519 202.592C51.7065 196.941 45.0597 190.294 39.4072 182.848L182.849 39.4077C190.294 45.0591 196.941 51.7059 202.593 59.1513Z" fill="#00A3E0"></path><path fill-rule="evenodd" clip-rule="evenodd" d="M107.837 88.0913L59.1514 39.4077C51.707 45.0591 45.0597 51.7059 39.4072 59.1513L88.093 107.836L107.837 88.0913ZM134.164 153.906L153.909 134.163L202.593 182.847C196.941 190.294 190.294 196.941 182.849 202.592L134.164 153.906Z" fill="#087299"></path></svg>';
+            rightHalf.addEventListener('click', function(e) {
+                e.stopPropagation();
+                // Store the currently focused element
+                window.lastFocusedElement = document.activeElement;
+                
+                // Load and show exchange modal
+                loadExchangeModal(function() {
+                    if (typeof window.renderExchangeModal === 'function') {
+                        window.renderExchangeModal();
+                    } else {
+                        console.error('renderExchangeModal function not available');
+                    }
+                });
+            });
+            
+            // Append both halves to the tile
+            addTile.appendChild(leftHalf);
+            addTile.appendChild(rightHalf);
             grid.appendChild(addTile);
 
             // Attach click listeners to skill pills

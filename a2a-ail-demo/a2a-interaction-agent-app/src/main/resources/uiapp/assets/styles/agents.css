@@ -70,9 +70,8 @@
 }
 
 .agent-tile.add-agent-tile {
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     font-size: 2.5rem;
     color: #000000;
     border: 2px dashed #dee2e6;
@@ -80,11 +79,55 @@
     min-width: 0;
     padding: 0;
     transition: background-color 0.2s, color 0.2s;
+    position: relative;
 }
 
 .agent-tile.add-agent-tile:hover {
     background: #f8f9fa;
     color: #00a2ff;
+}
+
+.add-agent-left-half {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    height: 100%;
+    border-top-left-radius: 2rem;
+    border-bottom-left-radius: 2rem;
+    border-right: 2px dashed #dee2e6;
+}
+
+.add-agent-left-half:hover {
+    background: #e3f2fd;
+}
+
+.add-agent-right-half {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    padding: 0.5rem;
+    height: 100%;
+    border-top-right-radius: 2rem;
+    border-bottom-right-radius: 2rem;
+}
+
+.add-agent-right-half:hover {
+    background: #e3f2fd;
+}
+
+.add-agent-right-half svg {
+    width: 48px;
+    height: 48px;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+}
+
+.add-agent-right-half:hover svg {
+    opacity: 1;
 }
 
 .agent-skills {
@@ -138,7 +181,7 @@
     position: absolute;
     bottom: 1rem;
     right: 7.5rem;
-    background: #0d6efd;
+    background: #00a2ff;
     color: white;
     border: none;
     border-radius: 0.5rem;
@@ -205,14 +248,35 @@
     background: #218838;
 }
 
-/* ===== MODAL STYLES ===== */
-/* Modal primary button override to match Bootstrap default */
-#addAgentModal .btn-primary {
-    border-radius: 0.375rem;
-    padding: 0.5rem 1rem;
-    font-size: 1rem;
+/* ===== AGENT MODAL SPECIFIC STYLES ===== */
+/* Agent modal positioning and styling */
+#addAgentModal .modal-dialog {
+    display: flex;
+    align-items: center;
+    min-height: calc(100% - 1rem);
+    margin: 0.5rem auto;
+    transition: transform 0.3s ease-out;
 }
 
+#addAgentModal .modal-content {
+    border-radius: 12px;
+    border: none;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-50px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Agent modal input styles */
 #agentUrlInput {
     padding: 0.4rem 0.75rem;
     border-radius: 0.375rem;
