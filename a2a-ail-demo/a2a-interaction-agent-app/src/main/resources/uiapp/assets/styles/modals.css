@@ -754,3 +754,47 @@
         padding: 0.5rem;
     }
 }
+
+/* Exchange Asset Pill Styles */
+.exchange-asset-pill {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.075rem 0rem 0.075rem 0.75rem;
+    background-color: #e3f2fd;
+    border: 1px solid #2196f3;
+    border-radius: 0.375rem;
+    margin-bottom: 0.5rem;
+}
+
+.exchange-asset-icon {
+    flex-shrink: 0;
+}
+
+.exchange-asset-name {
+    font-size: 1rem;
+    font-weight: 500;
+    color: #1976d2;
+    flex-grow: 1;
+}
+
+.exchange-asset-remove {
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.375rem;
+    border: none;
+    background-color: transparent;
+    color: #dc3545;
+    transition: all 0.2s ease;
+    font-size: 1.1rem;
+    font-weight: bold;
+}
+
+.exchange-asset-remove:hover {
+    background-color: #dc3545;
+    color: white;
+}
+
+.exchange-asset-remove:focus {
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+    outline: none;
+}

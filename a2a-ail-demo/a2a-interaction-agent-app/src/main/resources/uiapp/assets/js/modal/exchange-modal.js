@@ -101,9 +101,12 @@ function populateModalWithAgents(agents) {
         const agentTile = document.createElement('div');
         agentTile.className = 'exchange-assets-tile';
         
-        // Store the endpoint URI as a data attribute for later use
+        // Store the endpoint URI and instance label as data attributes for later use
         if (agent.endpointUri) {
             agentTile.setAttribute('data-endpoint-uri', agent.endpointUri.replace(/\/$/, ''));
+        }
+        if (agent.instanceLabel) {
+            agentTile.setAttribute('data-instance-label', agent.instanceLabel);
         }
         
         // Add the SVG icon in the middle of the tile
@@ -158,7 +161,8 @@ function populateModalWithAgents(agents) {
         // Add click event listener to the agent tile
         agentTile.addEventListener('click', function() {
             const endpointUri = this.getAttribute('data-endpoint-uri');
-            console.log('[Exchange Modal] Agent tile clicked with endpoint URI:', endpointUri);
+            const instanceLabel = this.getAttribute('data-instance-label');
+            console.log('[Exchange Modal] Agent tile clicked with endpoint URI:', endpointUri, 'and instance label:', instanceLabel);
             
             // Close the exchange modal
             if (window.exchangeModal) {
@@ -181,32 +185,51 @@ function populateModalWithAgents(agents) {
                     console.error('[Exchange Modal] Add agent modal not available');
                 }
                 
-                // Wait a bit for the modal to be fully shown, then prefill the agent URL
+                // Wait a bit for the modal to be fully shown, then show the exchange asset pill
                 setTimeout(() => {
-                    // Prefill the agent URL input
-                    const agentUrlInput = document.getElementById('agentUrlInput');
-                    if (agentUrlInput && endpointUri) {
-                        agentUrlInput.value = endpointUri;
-                        console.log('[Exchange Modal] Agent URL prefilled:', endpointUri);
+                    // Show the exchange asset pill and hide the URL input
+                    const exchangeAssetPill = document.getElementById('exchangeAssetPill');
+                    const agentUrlInputGroup = document.getElementById('agentUrlInputGroup');
+                    const exchangeAssetName = document.getElementById('exchangeAssetName');
+                    
+                    if (exchangeAssetPill && agentUrlInputGroup && exchangeAssetName && endpointUri) {
+                        // Set the asset name in the pill
+                        exchangeAssetName.textContent = instanceLabel || 'Unnamed Agent';
                         
-                        // Trigger the input event to enable the agent type field and handle authentication visibility
-                        const inputEvent = new Event('input', { bubbles: true });
-                        agentUrlInput.dispatchEvent(inputEvent);
-                        console.log('[Exchange Modal] Input event triggered for agent URL');
+                        // Store the endpoint URI in the pill for later use
+                        exchangeAssetPill.setAttribute('data-endpoint-uri', endpointUri);
                         
-                        // Set default agent type if it's a predefined URL
-                        // Try both the original endpointUri and normalized version
-                        const normalizedEndpointUri = endpointUri.replace(/\/$/, '');
-                        const defaultAgentType = window.DEFAULT_AGENT_TYPES && (
-                            window.DEFAULT_AGENT_TYPES[endpointUri] || 
-                            window.DEFAULT_AGENT_TYPES[normalizedEndpointUri]
-                        );
+                        // Show the pill and hide the URL input
+                        exchangeAssetPill.style.display = 'flex';
+                        agentUrlInputGroup.style.display = 'none';
                         
-                        if (defaultAgentType) {
-                            const agentTypeSelect = document.getElementById('agentTypeSelect');
-                            if (agentTypeSelect) {
-                                agentTypeSelect.value = defaultAgentType;
-                                console.log('[Exchange Modal] Default agent type set:', defaultAgentType);
+                        console.log('[Exchange Modal] Exchange asset pill shown for:', instanceLabel);
+                        
+                        // Set the agent URL value in the hidden input for form submission
+                        const agentUrlInput = document.getElementById('agentUrlInput');
+                        if (agentUrlInput) {
+                            agentUrlInput.value = endpointUri;
+                            console.log('[Exchange Modal] Agent URL set in hidden input:', endpointUri);
+                            
+                            // Trigger the input event to enable the agent type field and handle authentication visibility
+                            const inputEvent = new Event('input', { bubbles: true });
+                            agentUrlInput.dispatchEvent(inputEvent);
+                            console.log('[Exchange Modal] Input event triggered for agent URL');
+                            
+                            // Set default agent type if it's a predefined URL
+                            // Try both the original endpointUri and normalized version
+                            const normalizedEndpointUri = endpointUri.replace(/\/$/, '');
+                            const defaultAgentType = window.DEFAULT_AGENT_TYPES && (
+                                window.DEFAULT_AGENT_TYPES[endpointUri] || 
+                                window.DEFAULT_AGENT_TYPES[normalizedEndpointUri]
+                            );
+                            
+                            if (defaultAgentType) {
+                                const agentTypeSelect = document.getElementById('agentTypeSelect');
+                                if (agentTypeSelect) {
+                                    agentTypeSelect.value = defaultAgentType;
+                                    console.log('[Exchange Modal] Default agent type set:', defaultAgentType);
+                                }
                             }
                         }
                     }

@@ -795,6 +795,32 @@ window.attachAgentsTab = function() {
         });
     }
     
+    // Add remove exchange asset button event listener
+    const removeExchangeAssetBtn = document.getElementById('removeExchangeAssetBtn');
+    if (removeExchangeAssetBtn) {
+        removeExchangeAssetBtn.addEventListener('click', function() {
+            // Hide the exchange asset pill and show the URL input
+            const exchangeAssetPill = document.getElementById('exchangeAssetPill');
+            const agentUrlInputGroup = document.getElementById('agentUrlInputGroup');
+            const agentUrlInput = document.getElementById('agentUrlInput');
+            
+            if (exchangeAssetPill && agentUrlInputGroup && agentUrlInput) {
+                // Clear the agent URL input
+                agentUrlInput.value = '';
+                
+                // Hide the pill and show the URL input
+                exchangeAssetPill.style.display = 'none';
+                agentUrlInputGroup.style.display = 'flex';
+                
+                // Trigger the input event to disable the agent type field and reset authentication visibility
+                const inputEvent = new Event('input', { bubbles: true });
+                agentUrlInput.dispatchEvent(inputEvent);
+                
+                console.log('[Agents] Exchange asset removed, URL input shown');
+            }
+        });
+    }
+    
     // Add exchange icon button event listener
     const exchangeIconBtn = document.getElementById('exchangeIconBtn');
     if (exchangeIconBtn) {
@@ -815,16 +841,7 @@ window.attachAgentsTab = function() {
         });
     }
     
-    // Populate datalist with default URLs
-    const datalist = document.getElementById('agentUrlOptions');
-    if (datalist) {
-        datalist.innerHTML = '';
-        window.PREDEFINED_AGENT_URL.forEach(url => {
-            const option = document.createElement('option');
-            option.value = url;
-            datalist.appendChild(option);
-        });
-    }
+
 
     var skillDescModalBody = document.getElementById('skillDescModalBody');
     var skillDescModalLabel = document.getElementById('skillDescModalLabel');
@@ -1677,6 +1694,12 @@ function openEditAgentModal(agentUrl, agentName, tileElement, agentInfo, tool) {
         agentUrlInput.style.backgroundColor = '#f8f9fa';
     }
     
+    // Hide the entire Agent URL section in edit mode since URL cannot be edited
+    const agentUrlSection = document.getElementById('agentUrlSection');
+    if (agentUrlSection) {
+        agentUrlSection.style.display = 'none';
+    }
+    
     // Pre-fill the agent type select with current value and enable it since URL is present
     const agentTypeSelect = document.getElementById('agentTypeSelect');
     if (agentTypeSelect) {
@@ -1797,6 +1820,13 @@ function openEditAgentModal(agentUrl, agentName, tileElement, agentInfo, tool) {
         console.warn('Failed to activate General tab:', e);
     }
     
+    // Hide the Authentication tab in edit mode since only agent type can be edited
+    const authTabBtn = document.getElementById('authentication-tab');
+    if (authTabBtn) {
+        authTabBtn.style.display = 'none';
+        console.log('[Edit Mode] Authentication tab hidden');
+    }
+    
     // Store reference to the tile element for updating later
     window.currentEditingTile = tileElement;
     window.currentEditingAgentUrl = agentUrl;
@@ -1858,6 +1888,20 @@ window.resetModalToAddMode = function() {
         agentUrlInput.style.backgroundColor = '';
     }
     
+    // Show the entire Agent URL section in add mode
+    const agentUrlSection = document.getElementById('agentUrlSection');
+    if (agentUrlSection) {
+        agentUrlSection.style.display = 'block';
+    }
+    
+    // Reset exchange asset pill state
+    const exchangeAssetPill = document.getElementById('exchangeAssetPill');
+    const agentUrlInputGroup = document.getElementById('agentUrlInputGroup');
+    if (exchangeAssetPill && agentUrlInputGroup) {
+        exchangeAssetPill.style.display = 'none';
+        agentUrlInputGroup.style.display = 'flex';
+    }
+    
     // Ensure the General tab is active by default
     try {
         const generalTabBtn = document.getElementById('general-tab');
@@ -1884,6 +1928,13 @@ window.resetModalToAddMode = function() {
         }
     } catch (e) {
         console.warn('Failed to activate General tab:', e);
+    }
+    
+    // Show the Authentication tab in add mode
+    const authTabBtn = document.getElementById('authentication-tab');
+    if (authTabBtn) {
+        authTabBtn.style.display = 'block';
+        console.log('[Add Mode] Authentication tab shown');
     }
     
     // Clear and disable the agent type select
