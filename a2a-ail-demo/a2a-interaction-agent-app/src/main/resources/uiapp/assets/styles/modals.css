@@ -643,6 +643,7 @@
 .exchange-assets-tile:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    border-color: #0176D3;
 }
 
 .exchange-assets-tile:active {

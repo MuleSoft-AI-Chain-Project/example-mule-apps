@@ -642,6 +642,15 @@ function initializeModals() {
             }
         });
         
+        // Add event listener for add agent modal shown event
+        modalEl.addEventListener('shown.bs.modal', function() {
+            // Focus the URL input field when modal opens for add mode
+            const agentUrlInput = document.getElementById('agentUrlInput');
+            if (agentUrlInput && !agentUrlInput.disabled) {
+                setTimeout(() => agentUrlInput.focus(), 100);
+            }
+        });
+        
         // Add ESC key handler for add agent modal
         modalEl.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
@@ -690,6 +699,13 @@ window.attachAgentsTab = function() {
     // Initialize modals first
     initializeModals();
     
+    // Initialize agent type field to be disabled initially
+    const agentTypeSelect = document.getElementById('agentTypeSelect');
+    if (agentTypeSelect) {
+        agentTypeSelect.disabled = true;
+        agentTypeSelect.style.backgroundColor = '#f8f9fa';
+    }
+    
     // Add authentication select event listener
     const authenticationSelect = document.getElementById('authenticationSelect');
     if (authenticationSelect) {
@@ -712,7 +728,7 @@ window.attachAgentsTab = function() {
         });
     }
     
-    // Add agent URL input event listener to handle authentication section visibility
+    // Add agent URL input event listener to handle authentication section visibility and agent type field state
     const agentUrlInput = document.getElementById('agentUrlInput');
     if (agentUrlInput) {
         agentUrlInput.addEventListener('input', function() {
@@ -720,8 +736,23 @@ window.attachAgentsTab = function() {
             const authenticationSection = document.querySelector('.mb-3:has(#authenticationSelect)');
             const authenticationLabel = document.querySelector('label[for="authenticationSelect"]');
             const authenticationHelpText = document.getElementById('authenticationHelpText');
+            const agentTypeSelect = document.getElementById('agentTypeSelect');
             
-            if (isPredefinedAgentUrl(this.value.trim())) {
+            const urlValue = this.value.trim();
+            
+            // Enable/disable agent type field based on URL presence
+            if (agentTypeSelect) {
+                if (urlValue) {
+                    agentTypeSelect.disabled = false;
+                    agentTypeSelect.style.backgroundColor = '';
+                } else {
+                    agentTypeSelect.disabled = true;
+                    agentTypeSelect.style.backgroundColor = '#f8f9fa';
+                    agentTypeSelect.value = ''; // Clear the selection when URL is empty
+                }
+            }
+            
+            if (isPredefinedAgentUrl(urlValue)) {
                 // Hide authentication select and show help text for predefined agents
                 if (authenticationSelect) {
                     authenticationSelect.style.display = 'none';
@@ -734,6 +765,19 @@ window.attachAgentsTab = function() {
                 if (clientCredentialsFields) {
                     clientCredentialsFields.style.display = 'none';
                 }
+                
+                // Set default agent type for predefined URLs
+                // Try both the original urlValue and normalized version
+                const normalizedUrlValue = urlValue.replace(/\/$/, '');
+                const defaultAgentType = window.DEFAULT_AGENT_TYPES && (
+                    window.DEFAULT_AGENT_TYPES[urlValue] || 
+                    window.DEFAULT_AGENT_TYPES[normalizedUrlValue]
+                );
+                
+                if (defaultAgentType && agentTypeSelect) {
+                    agentTypeSelect.value = defaultAgentType;
+                    console.log('[Agents] Default agent type set for predefined URL:', defaultAgentType);
+                }
             } else {
                 // Show authentication select and hide help text for custom agents
                 if (authenticationSelect) {
@@ -741,6 +785,11 @@ window.attachAgentsTab = function() {
                 }
                 if (authenticationHelpText) {
                     authenticationHelpText.style.display = 'none';
+                }
+                
+                // Clear agent type for custom URLs
+                if (agentTypeSelect) {
+                    agentTypeSelect.value = '';
                 }
             }
         });
@@ -928,7 +977,7 @@ window.attachAgentsTab = function() {
                 window.lastFocusedElement = document.activeElement;
                 
                 // Reset modal to add mode
-                resetModalToAddMode();
+                window.resetModalToAddMode();
                 
                 if (window.addAgentModal) {
                     window.addAgentModal.show();
@@ -1080,7 +1129,7 @@ window.attachAgentsTab = function() {
                             }
                             
                             // Reset modal to add mode
-                            resetModalToAddMode();
+                            window.resetModalToAddMode();
                             
                             // Hide the modal
                             if (window.addAgentModal) {
@@ -1395,7 +1444,7 @@ window.attachAgentsTab = function() {
             if (cancelBtn) {
                 window.cancelBtnListener = function() {
                     // Reset modal to add mode
-                    resetModalToAddMode();
+                    window.resetModalToAddMode();
                     
                     if (window.addAgentModal) {
                         window.addAgentModal.hide();
@@ -1424,7 +1473,7 @@ window.attachAgentsTab = function() {
             if (closeBtn) {
                 window.closeBtnListener = function() {
                     // Reset modal to add mode
-                    resetModalToAddMode();
+                    window.resetModalToAddMode();
                     
                     if (window.addAgentModal) {
                         window.addAgentModal.hide();
@@ -1628,11 +1677,13 @@ function openEditAgentModal(agentUrl, agentName, tileElement, agentInfo, tool) {
         agentUrlInput.style.backgroundColor = '#f8f9fa';
     }
     
-    // Pre-fill the agent type select with current value
+    // Pre-fill the agent type select with current value and enable it since URL is present
     const agentTypeSelect = document.getElementById('agentTypeSelect');
     if (agentTypeSelect) {
         const currentAgentType = getAgentTypeForUrl(agentUrl);
         agentTypeSelect.value = currentAgentType || '';
+        agentTypeSelect.disabled = false;
+        agentTypeSelect.style.backgroundColor = '';
         console.log('Pre-filled agent type:', currentAgentType);
     }
     
@@ -1792,7 +1843,7 @@ function openEditAgentModal(agentUrl, agentName, tileElement, agentInfo, tool) {
 }
 
 // Function to reset modal to add mode
-function resetModalToAddMode() {
+window.resetModalToAddMode = function() {
     // Update modal title back to add mode
     const modalTitle = document.getElementById('addAgentModalLabel');
     if (modalTitle) {
@@ -1835,10 +1886,12 @@ function resetModalToAddMode() {
         console.warn('Failed to activate General tab:', e);
     }
     
-    // Clear the agent type select
+    // Clear and disable the agent type select
     const agentTypeSelect = document.getElementById('agentTypeSelect');
     if (agentTypeSelect) {
         agentTypeSelect.value = '';
+        agentTypeSelect.disabled = true;
+        agentTypeSelect.style.backgroundColor = '#f8f9fa';
     }
     
     // Reset authentication fields
