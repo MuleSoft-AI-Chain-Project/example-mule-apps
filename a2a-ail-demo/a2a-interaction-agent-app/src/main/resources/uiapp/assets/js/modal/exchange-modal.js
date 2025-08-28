@@ -1,6 +1,19 @@
 // Exchange Modal JavaScript
 console.log('[Exchange Modal] Exchange modal script loaded');
 
+// Use the global getUserSessionId function if available, otherwise define it locally
+if (!window.getUserSessionId) {
+    window.getUserSessionId = function() {
+        function getCookie(name) {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return parts.pop().split(';').shift();
+            return null;
+        }
+        return getCookie('userSessionId') || '';
+    };
+}
+
 // Function to render the exchange modal
 window.renderExchangeModal = function() {
     console.log('[Exchange Modal] renderExchangeModal called');
@@ -23,12 +36,54 @@ window.renderExchangeModal = function() {
         window.exchangeModal.show();
         console.log('[Exchange Modal] Exchange modal shown');
         
+        // Refresh the list of existing agent URLs before fetching exchange agents
+        refreshExistingAgentUrls();
+        
         // Fetch agents and populate the modal
         fetchAgentsAndPopulateModal();
     } else {
         console.error('[Exchange Modal] Exchange modal not initialized');
     }
 };
+
+// Function to refresh the list of existing agent URLs
+function refreshExistingAgentUrls() {
+    console.log('[Exchange Modal] Refreshing existing agent URLs');
+    
+    // If we're on the agents page, the existingAgentUrls should already be available
+    if (window.existingAgentUrls) {
+        console.log('[Exchange Modal] Existing agent URLs already available:', window.existingAgentUrls);
+        return;
+    }
+    
+    // If not available, fetch them from the agents endpoint
+    fetch(`../agents?userSessionId=${window.getUserSessionId()}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            const tools = data.tools || [];
+            window.existingAgentUrls = tools.map(tool => {
+                let agentInfo;
+                try {
+                    agentInfo = JSON.parse(tool.function.description);
+                } catch (e) {
+                    agentInfo = { agentName: tool.function.name, agentDescription: '', agentSkills: [] };
+                }
+                return tool.agentUrl || agentInfo.agentUrl || '';
+            }).filter(url => url); // Filter out empty URLs
+            
+            console.log('[Exchange Modal] Existing agent URLs refreshed:', window.existingAgentUrls);
+        })
+        .catch(error => {
+            console.error('[Exchange Modal] Error refreshing existing agent URLs:', error);
+            // Initialize as empty array if fetch fails
+            window.existingAgentUrls = [];
+        });
+}
 
 // Function to fetch agents from the platform/a2a-agents endpoint
 function fetchAgentsAndPopulateModal() {
@@ -109,6 +164,23 @@ function populateModalWithAgents(agents) {
             agentTile.setAttribute('data-instance-label', agent.instanceLabel);
         }
         
+        // Check if this agent is already added
+        const isAlreadyAdded = window.existingAgentUrls && window.existingAgentUrls.some(existingUrl => {
+            const normalizedExistingUrl = existingUrl.replace(/\/$/, '');
+            const normalizedAgentUrl = agent.endpointUri ? agent.endpointUri.replace(/\/$/, '') : '';
+            return normalizedExistingUrl === normalizedAgentUrl;
+        });
+        
+        // Apply disabled styling if already added
+        if (isAlreadyAdded) {
+            agentTile.classList.add('exchange-assets-tile-disabled');
+            agentTile.style.opacity = '0.5';
+            agentTile.style.cursor = 'not-allowed';
+            agentTile.title = `${agent.instanceLabel || 'Unnamed Agent'} is already added to your agents`;
+        } else {
+            agentTile.title = `Click to add ${agent.instanceLabel || 'Unnamed Agent'} to your agents`;
+        }
+        
         // Add the SVG icon in the middle of the tile
         agentTile.innerHTML = `
             <div class="exchange-assets-header">
@@ -131,6 +203,7 @@ function populateModalWithAgents(agents) {
                     </svg>
                     A2A
                 </span>
+                ${isAlreadyAdded ? '<span class="exchange-assets-added-badge">Added</span>' : ''}
             </div>
             <div class="exchange-assets-icon-container">
                 <svg aria-hidden="true" focusable="false" class="exchange-assets-icon-large">
@@ -160,6 +233,12 @@ function populateModalWithAgents(agents) {
         
         // Add click event listener to the agent tile
         agentTile.addEventListener('click', function() {
+            // Prevent clicking on disabled tiles
+            if (this.classList.contains('exchange-assets-tile-disabled')) {
+                console.log('[Exchange Modal] Attempted to click on disabled tile');
+                return;
+            }
+            
             const endpointUri = this.getAttribute('data-endpoint-uri');
             const instanceLabel = this.getAttribute('data-instance-label');
             console.log('[Exchange Modal] Agent tile clicked with endpoint URI:', endpointUri, 'and instance label:', instanceLabel);

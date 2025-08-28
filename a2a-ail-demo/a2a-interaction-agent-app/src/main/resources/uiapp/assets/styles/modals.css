@@ -651,6 +651,40 @@
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
+/* Disabled exchange assets tile styles */
+.exchange-assets-tile-disabled {
+    opacity: 0.5 !important;
+    cursor: not-allowed !important;
+    background-color: #f8f9fa !important;
+    border-color: #dee2e6 !important;
+}
+
+.exchange-assets-tile-disabled:hover {
+    transform: none !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+    border-color: #dee2e6 !important;
+}
+
+.exchange-assets-tile-disabled .exchange-assets-icon-container {
+    border-color: #adb5bd !important;
+}
+
+.exchange-assets-tile-disabled .exchange-assets-name {
+    color: #6c757d !important;
+}
+
+/* Added badge for exchange assets */
+.exchange-assets-added-badge {
+    background-color: #0276d3;
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 500;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
 /* Exchange modal header styles */
 .exchange-assets-header {
     display: flex;

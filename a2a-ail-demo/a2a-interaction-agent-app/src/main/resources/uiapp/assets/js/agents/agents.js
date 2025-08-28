@@ -315,6 +315,9 @@ function getUserSessionId() {
     return getCookie('userSessionId') || '';
 }
 
+// Make getUserSessionId globally available
+window.getUserSessionId = getUserSessionId;
+
 // Generate a UUID v4 string
 function generateUUID() {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
@@ -890,6 +893,19 @@ window.attachAgentsTab = function() {
                 
                 return nameA.localeCompare(nameB);
             });
+            
+            // Store existing agent URLs for exchange modal comparison
+            window.existingAgentUrls = tools.map(tool => {
+                let agentInfo;
+                try {
+                    agentInfo = JSON.parse(tool.function.description);
+                } catch (e) {
+                    agentInfo = { agentName: tool.function.name, agentDescription: '', agentSkills: [] };
+                }
+                return tool.agentUrl || agentInfo.agentUrl || '';
+            }).filter(url => url); // Filter out empty URLs
+            
+            console.log('[Agents] Existing agent URLs stored:', window.existingAgentUrls);
             
             tools.forEach(tool => {
                 let agentInfo;

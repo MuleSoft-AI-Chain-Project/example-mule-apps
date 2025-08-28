@@ -32,7 +32,7 @@ http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/
 	<http:request-config name="MuleSoft_Anypoint_Platform_API" doc:name="HTTP Request configuration" doc:id="e42e363d-38c1-4d40-ba5d-e2d44d84016c">
 		<http:request-connection host='#[vars.url as String]' protocol="HTTPS" connectionIdleTimeout="10000">
 			<http:authentication >
-				<oauth:client-credentials-grant-type clientId="#[vars.clientId]" clientSecret="#[vars.clientSecret]" tokenUrl='#["https://" ++ vars.url ++ "/accounts/api/v2/oauth2/token"]' >
+				<oauth:client-credentials-grant-type clientId="#[vars.clientId]" clientSecret="#[vars.clientSecret]" tokenUrl='#["https://" ++ vars.url ++ "/accounts/api/v2/oauth2/token"]' refreshTokenWhen="true">
 					<oauth:token-manager objectStore="PlatformAPITokenObjectStore" />
 				</oauth:client-credentials-grant-type>
 			</http:authentication>
@@ -53,7 +53,7 @@ http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/
 				<reconnect />
 			</reconnection>
 			<a2a:authentication >
-				<oauth:client-credentials-grant-type clientId="#[vars.agentAuthentication.clientId]" clientSecret="#[vars.agentAuthentication.clientSecret]" tokenUrl="#[vars.agentAuthentication.tokenUrl]" encodeClientCredentialsInBody="#[vars.agentAuthentication.encodeClientCredentialsInBody default false]">
+				<oauth:client-credentials-grant-type clientId="#[vars.agentAuthentication.clientId]" clientSecret="#[vars.agentAuthentication.clientSecret]" tokenUrl="#[vars.agentAuthentication.tokenUrl]" encodeClientCredentialsInBody="#[vars.agentAuthentication.encodeClientCredentialsInBody default false]" refreshTokenWhen="true">
 					<oauth:token-manager objectStore="A2AAgentsTokenObjectStore" />
 					<tls:context >
 						<tls:trust-store insecure="true" />
