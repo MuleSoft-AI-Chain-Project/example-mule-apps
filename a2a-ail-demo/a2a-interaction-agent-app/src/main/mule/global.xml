@@ -49,8 +49,12 @@ http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/
 	</a2a:client-config>
 	<a2a:client-config name="A2A_Client_Auth_client-credentials" doc:name="A2A Client" doc:id="f6f78f08-f879-4da4-89b5-6285a17fa062" >
 		<a2a:client-connection serverUrl="#[vars.agentUrl]" requestTimeout="${agent.general.timeout}">
+			<reconnection >
+				<reconnect />
+			</reconnection>
 			<a2a:authentication >
 				<oauth:client-credentials-grant-type clientId="#[vars.agentAuthentication.clientId]" clientSecret="#[vars.agentAuthentication.clientSecret]" tokenUrl="#[vars.agentAuthentication.tokenUrl]" encodeClientCredentialsInBody="#[vars.agentAuthentication.encodeClientCredentialsInBody default false]">
+					<oauth:token-manager objectStore="A2AAgentsTokenObjectStore" />
 					<tls:context >
 						<tls:trust-store insecure="true" />
 					</tls:context>
@@ -100,4 +104,5 @@ http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/
 		<a2a:history taskHistoryEnabled="false" />
 	</a2a:server-config>
 	<file:config name="File_Config" doc:name="File Config" doc:id="ab5e7a0b-7171-4c93-af78-93a3fd16862b" />
+	<os:object-store name="A2AAgentsTokenObjectStore" doc:name="Object store" doc:id="4288eebc-bd57-41c8-97af-d049611029ee" persistent="false" />
 </mule>

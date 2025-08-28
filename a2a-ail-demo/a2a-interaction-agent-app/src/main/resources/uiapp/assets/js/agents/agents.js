@@ -706,8 +706,14 @@ window.attachAgentsTab = function() {
         agentTypeSelect.style.backgroundColor = '#f8f9fa';
     }
     
-    // Add authentication select event listener
+    // Initialize authentication field to be disabled initially (same behavior as agent type)
     const authenticationSelect = document.getElementById('authenticationSelect');
+    if (authenticationSelect) {
+        authenticationSelect.disabled = true;
+        authenticationSelect.style.backgroundColor = '#f8f9fa';
+    }
+    
+    // Add authentication select event listener
     if (authenticationSelect) {
         authenticationSelect.addEventListener('change', function() {
             const clientCredentialsFields = document.getElementById('clientCredentialsFields');
@@ -753,9 +759,11 @@ window.attachAgentsTab = function() {
             }
             
             if (isPredefinedAgentUrl(urlValue)) {
-                // Hide authentication select and show help text for predefined agents
+                // For predefined agents: hide authentication select, show help text, and keep disabled
                 if (authenticationSelect) {
                     authenticationSelect.style.display = 'none';
+                    authenticationSelect.disabled = true;
+                    authenticationSelect.style.backgroundColor = '#f8f9fa';
                 }
                 if (authenticationHelpText) {
                     authenticationHelpText.style.display = 'block';
@@ -779,9 +787,17 @@ window.attachAgentsTab = function() {
                     console.log('[Agents] Default agent type set for predefined URL:', defaultAgentType);
                 }
             } else {
-                // Show authentication select and hide help text for custom agents
+                // For custom agents: show authentication select, hide help text, and enable if URL is present
                 if (authenticationSelect) {
                     authenticationSelect.style.display = 'block';
+                    if (urlValue) {
+                        authenticationSelect.disabled = false;
+                        authenticationSelect.style.backgroundColor = '';
+                    } else {
+                        authenticationSelect.disabled = true;
+                        authenticationSelect.style.backgroundColor = '#f8f9fa';
+                        authenticationSelect.value = 'none'; // Reset to default when URL is empty
+                    }
                 }
                 if (authenticationHelpText) {
                     authenticationHelpText.style.display = 'none';
@@ -1950,8 +1966,8 @@ window.resetModalToAddMode = function() {
     if (authenticationSelect) {
         authenticationSelect.value = 'none';
         authenticationSelect.style.display = 'block'; // Ensure it's visible
-        authenticationSelect.disabled = false; // Re-enable in add mode
-        authenticationSelect.style.backgroundColor = ''; // Reset background color
+        authenticationSelect.disabled = true; // Keep disabled initially (same behavior as agent type)
+        authenticationSelect.style.backgroundColor = '#f8f9fa'; // Set disabled background color
     }
     
     const authenticationHelpText = document.getElementById('authenticationHelpText');
