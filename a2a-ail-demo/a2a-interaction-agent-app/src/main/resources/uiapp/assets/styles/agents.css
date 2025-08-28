@@ -1,7 +1,7 @@
 /* ===== AGENTS GRID ===== */
 .agents-tiles-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(400px, 550px));
+    grid-template-columns: repeat(auto-fit, minmax(400px, 500px));
     gap: 1rem;
     margin: 1rem 0;
 }
@@ -22,7 +22,7 @@
 @media (max-width: 600px) {
     .agents-tiles-grid {
         grid-template-columns: 1fr;
-        max-width: 550px;
+        max-width: 500px;
         margin-left: auto;
         margin-right: auto;
     }
@@ -43,7 +43,7 @@
     transition: box-shadow 0.2s;
     border: 2px dashed #dee2e6;
     width: 100%;
-    max-width: 550px;
+    max-width: 500px;
     padding: 1rem;
     position: relative;
 }
@@ -168,9 +168,9 @@
 
 /* ===== BUTTONS ===== */
 .delete-all-btn {
-    position: absolute;
+    position: fixed;
     bottom: 1rem;
-    right: 1rem;
+    right: 4rem;
     background: #dc3545;
     color: white;
     border: none;
@@ -187,9 +187,9 @@
 }
 
 .add-default-btn {
-    position: absolute;
+    position: fixed;
     bottom: 1rem;
-    right: 7.5rem;
+    right: 10.5rem;
     background: #00a2ff;
     color: white;
     border: none;
