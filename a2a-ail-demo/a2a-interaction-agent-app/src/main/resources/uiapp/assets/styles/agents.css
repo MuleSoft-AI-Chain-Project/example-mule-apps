@@ -1,21 +1,30 @@
 /* ===== AGENTS GRID ===== */
 .agents-tiles-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(400px, 500px));
     gap: 1rem;
     margin: 1rem 0;
 }
 
 /* Responsive grid layout */
-@media (max-width: 1500px) {
+@media (max-width: 1200px) {
     .agents-tiles-grid {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(auto-fit, minmax(400px, 500px));
     }
 }
 
-@media (max-width: 1000px) {
+@media (max-width: 800px) {
+    .agents-tiles-grid {
+        grid-template-columns: repeat(auto-fit, minmax(400px, 450px));
+    }
+}
+
+@media (max-width: 600px) {
     .agents-tiles-grid {
         grid-template-columns: 1fr;
+        max-width: 500px;
+        margin-left: auto;
+        margin-right: auto;
     }
 }
 
@@ -33,8 +42,8 @@
     cursor: pointer;
     transition: box-shadow 0.2s;
     border: 2px dashed #dee2e6;
-    min-width: 350px;
     width: 100%;
+    max-width: 500px;
     padding: 1rem;
     position: relative;
 }
@@ -70,9 +79,8 @@
 }
 
 .agent-tile.add-agent-tile {
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     font-size: 2.5rem;
     color: #000000;
     border: 2px dashed #dee2e6;
@@ -80,11 +88,55 @@
     min-width: 0;
     padding: 0;
     transition: background-color 0.2s, color 0.2s;
+    position: relative;
 }
 
 .agent-tile.add-agent-tile:hover {
     background: #f8f9fa;
     color: #00a2ff;
+}
+
+.add-agent-left-half {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    height: 100%;
+    border-top-left-radius: 2rem;
+    border-bottom-left-radius: 2rem;
+    border-right: 2px dashed #dee2e6;
+}
+
+.add-agent-left-half:hover {
+    background: #e3f2fd;
+}
+
+.add-agent-right-half {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    padding: 0.5rem;
+    height: 100%;
+    border-top-right-radius: 2rem;
+    border-bottom-right-radius: 2rem;
+}
+
+.add-agent-right-half:hover {
+    background: #e3f2fd;
+}
+
+.add-agent-right-half svg {
+    width: 48px;
+    height: 48px;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+}
+
+.add-agent-right-half:hover svg {
+    opacity: 1;
 }
 
 .agent-skills {
@@ -116,9 +168,9 @@
 
 /* ===== BUTTONS ===== */
 .delete-all-btn {
-    position: absolute;
+    position: fixed;
     bottom: 1rem;
-    right: 1rem;
+    right: 4rem;
     background: #dc3545;
     color: white;
     border: none;
@@ -135,10 +187,10 @@
 }
 
 .add-default-btn {
-    position: absolute;
+    position: fixed;
     bottom: 1rem;
-    right: 7.5rem;
-    background: #0d6efd;
+    right: 10.5rem;
+    background: #00a2ff;
     color: white;
     border: none;
     border-radius: 0.5rem;
@@ -205,14 +257,35 @@
     background: #218838;
 }
 
-/* ===== MODAL STYLES ===== */
-/* Modal primary button override to match Bootstrap default */
-#addAgentModal .btn-primary {
-    border-radius: 0.375rem;
-    padding: 0.5rem 1rem;
-    font-size: 1rem;
+/* ===== AGENT MODAL SPECIFIC STYLES ===== */
+/* Agent modal positioning and styling */
+#addAgentModal .modal-dialog {
+    display: flex;
+    align-items: center;
+    min-height: calc(100% - 1rem);
+    margin: 0.5rem auto;
+    transition: transform 0.3s ease-out;
 }
 
+#addAgentModal .modal-content {
+    border-radius: 12px;
+    border: none;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-50px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Agent modal input styles */
 #agentUrlInput {
     padding: 0.4rem 0.75rem;
     border-radius: 0.375rem;
@@ -221,6 +294,42 @@
 #clientIdInput, #clientSecretInput, #tokenUrlInput {
     padding: 0.4rem 0.75rem;
     border-radius: 0.375rem;
+}
+
+/* Exchange icon button styles */
+#exchangeIconBtn {
+    width: 44px;
+    border: 1px solid #dee2e6;
+    border-radius: 0.5rem;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #e3f2fd;
+}
+
+#exchangeIconBtn:hover {
+    background-color: transparent;
+    border-color: #00a2ff;
+    color: #00a2ff;
+}
+
+#exchangeIconBtn svg {
+    width: 24px;
+    height: 24px;
+}
+
+/* Ensure the input group has proper styling */
+.input-group .form-control {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+/* Remove box shadow and padding from input group in Add Agent modal */
+#addAgentModal .input-group {
+    box-shadow: none !important;
+    padding: 0;
+    gap: 0.5rem;
 }
 
 /* ===== TAB HOVER FIX ===== */
