@@ -28,6 +28,25 @@
 .chat-modal .modal-dialog {
     max-width: 600px;
     height: 80vh;
+    margin: 1.75rem auto;
+    display: flex;
+    align-items: center;
+    min-height: calc(100% - 3.5rem);
+}
+
+.chat-modal .modal-dialog .modal-content {
+    animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-50px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
 }
 
 .chat-modal .modal-content {
@@ -406,6 +425,50 @@
     color: #333;
 }
 
+/* ===== EXCHANGE MODAL ===== */
+#exchangeModal .modal-dialog {
+    width: 80%;
+    max-width: 1024px;
+}
+
+#exchangeModal .modal-content {
+    border-radius: 0;
+    border: none;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+#exchangeModal .modal-header {
+    border-bottom: 1px solid #e9ecef;
+    padding: 0.5rem 1.5rem 0.5rem;
+}
+
+#exchangeModal .modal-title-container {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+#exchangeModal .exchange-logo {
+    width: 42px;
+    height: 42px;
+    flex-shrink: 0;
+}
+
+#exchangeModal .modal-title {
+    color: var(--text-color);
+    margin: 0;
+    font-family: var(--lume-g-font-family);
+    --lume-g-font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, sans-serif, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', 'Liberation Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+}
+
+#exchangeModal .modal-body {
+    padding: 1.5rem;
+    background-color: #e5e5e5;
+    min-height: 400px;
+}
+
+
+
 /* ===== REASONING ENGINE MODAL ===== */
 .powered-by-text {
     font-size: 0.8rem;
@@ -540,8 +603,232 @@
     }
 }
 
+/* ===== GENERAL MODAL BUTTON STYLES ===== */
+.modal .btn-primary {
+    border-radius: 0.375rem;
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+}
+
 #reasoningEngineModal .btn-primary {
     border-radius: 0.375rem;
     padding: 0.5rem 1rem;
     font-size: 1rem;
+}
+
+/* ===== EXCHANGE MODAL AGENTS GRID ===== */
+.exchange-assets-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1rem;
+    padding: 1rem 0;
+    max-width: calc(3 * 300px + 2 * 1rem); /* 3 items max with gaps */
+    margin: 0 auto;
+}
+
+.exchange-assets-tile {
+    background: white;
+    border: 1px solid #e0e0e0;
+    padding: 1rem 1rem 3.75rem 1rem;
+    min-height: 120px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.exchange-assets-tile:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    border-color: #0176D3;
+}
+
+.exchange-assets-tile:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Disabled exchange assets tile styles */
+.exchange-assets-tile-disabled {
+    opacity: 0.5 !important;
+    cursor: not-allowed !important;
+    background-color: #f8f9fa !important;
+    border-color: #dee2e6 !important;
+}
+
+.exchange-assets-tile-disabled:hover {
+    transform: none !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+    border-color: #dee2e6 !important;
+}
+
+.exchange-assets-tile-disabled .exchange-assets-icon-container {
+    border-color: #adb5bd !important;
+}
+
+.exchange-assets-tile-disabled .exchange-assets-name {
+    color: #6c757d !important;
+}
+
+/* Added badge for exchange assets */
+.exchange-assets-added-badge {
+    background-color: #0276d3;
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 500;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Exchange modal header styles */
+.exchange-assets-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+    width: 100%;
+}
+
+.exchange-assets-label {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.75rem;
+    color: #666;
+    font-weight: 500;
+}
+
+.exchange-assets-icon-small {
+    height: 16px;
+    width: 16px;
+    max-height: 16px;
+    max-width: 16px;
+}
+
+.exchange-assets-icon-large {
+    height: 44px;
+    width: 44px;
+    max-height: 44px;
+    max-width: 44px;
+}
+
+.exchange-assets-icon-container {
+    border: 3px solid rgb(50, 68, 77);
+    border-radius: 100%;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+}
+
+.exchange-assets-name {
+    margin-top: 0.875rem;
+    text-align: center;
+    font-size: 0.875rem;
+    color: #333;
+    font-weight: 500;
+    line-height: 1.2;
+}
+
+/* Exchange modal loading spinner styles */
+.exchange-loading-container {
+    text-align: center;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 300px;
+}
+
+.exchange-loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #00a2ff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 1rem;
+}
+
+.exchange-loading-text {
+    color: #333;
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+/* Responsive adjustments for agents grid */
+@media (max-width: 768px) {
+    .exchange-assets-grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 0.75rem;
+    }
+    
+    .exchange-assets-tile {
+        min-height: 100px;
+        padding: 0.75rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .exchange-assets-grid {
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 0.5rem;
+    }
+    
+    .exchange-assets-tile {
+        min-height: 80px;
+        padding: 0.5rem;
+    }
+}
+
+/* Exchange Asset Pill Styles */
+.exchange-asset-pill {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.075rem 0rem 0.075rem 0.75rem;
+    background-color: #e3f2fd;
+    border: 1px solid #2196f3;
+    border-radius: 0.375rem;
+    margin-bottom: 0.5rem;
+}
+
+.exchange-asset-icon {
+    flex-shrink: 0;
+}
+
+.exchange-asset-name {
+    font-size: 1rem;
+    font-weight: 500;
+    color: #1976d2;
+    flex-grow: 1;
+}
+
+.exchange-asset-remove {
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.375rem;
+    border: none;
+    background-color: transparent;
+    color: #dc3545;
+    transition: all 0.2s ease;
+    font-size: 1.1rem;
+    font-weight: bold;
+}
+
+.exchange-asset-remove:hover {
+    background-color: #dc3545;
+    color: white;
+}
+
+.exchange-asset-remove:focus {
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+    outline: none;
 }

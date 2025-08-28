@@ -1,5 +1,15 @@
 # A2A AIL Demo - Release Notes
 
+## Release 2.1 - Exchange Integration
+**Release Date**: September 2025
+
+### 🔗 Exchange Integration Features
+- **Exchange Asset Discovery**: A2A assets can now be picked up directly from Anypoint Exchange
+- **Default Organization Support**: Seamless integration with default Exchange organization
+- **Future Roadmap**: Support for custom Exchange instance configuration planned for upcoming releases
+
+---
+
 ## Release 2.0 - Enterprise Security Enhancement
 **Release Date**: August 2025
 

@@ -170,6 +170,7 @@ window.agentsTabInitialized = false;
 window.addAgentModal = null;
 window.skillDescModal = null;
 window.chatModal = null;
+window.exchangeModal = null;
 window.lastFocusedElement = null; // Store the element that had focus before modal opened
 
 // Chat state variables
@@ -183,12 +184,82 @@ window.addDefaultBtnListener = null;
 window.cancelBtnListener = null;
 window.closeBtnListener = null;
 
+// Function to load exchange modal
+function loadExchangeModal(callback) {
+    console.log('[Agents] Loading exchange modal');
+    
+    // Check if modal is already loaded
+    if (document.getElementById('exchangeModal')) {
+        console.log('[Agents] Exchange modal already loaded');
+        callback();
+        return;
+    }
+    
+    // Remove any existing modal to avoid stale state
+    const existingModal = document.getElementById('exchangeModal');
+    if (existingModal) { 
+        existingModal.remove(); 
+        console.log('[Agents] Removed old exchange modal'); 
+    }
+    
+    fetch('exchange-modal.html')
+        .then(resp => resp.text())
+        .then(html => {
+            console.log('[Agents] Fetched exchange-modal.html');
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = html;
+            
+            // Append modal to document.body for proper Bootstrap modal styling
+            const modalEl = tempDiv.querySelector('#exchangeModal');
+            if (modalEl) {
+                document.body.appendChild(modalEl);
+                console.log('[Agents] Appended exchange modal to document.body');
+            } else {
+                console.warn('[Agents] No exchange modal element found in fetched HTML');
+            }
+            
+            // Load the external JavaScript file
+            const scriptTag = tempDiv.querySelector('script');
+            if (scriptTag && scriptTag.src) {
+                const newScript = document.createElement('script');
+                newScript.src = scriptTag.src;
+                newScript.onload = function() {
+                    console.log('[Agents] Exchange modal script loaded successfully');
+                    // Wait a bit more for the function to be available
+                    setTimeout(function() {
+                        if (typeof window.renderExchangeModal === 'function') {
+                            console.log('[Agents] renderExchangeModal function is available, calling callback');
+                            callback();
+                        } else {
+                            console.error('[Agents] renderExchangeModal function still not available after script load');
+                            callback(); // Call callback anyway to avoid hanging
+                        }
+                    }, 50);
+                };
+                newScript.onerror = function() {
+                    console.error('[Agents] Failed to load exchange modal script:', scriptTag.src);
+                    callback(); // Call callback anyway to avoid hanging
+                };
+                document.body.appendChild(newScript);
+                console.log('[Agents] Loading exchange modal script:', scriptTag.src);
+            } else {
+                console.warn('[Agents] No script tag with src found in fetched HTML');
+                callback(); // Call callback anyway to avoid hanging
+            }
+        })
+        .catch(err => {
+            console.error('[Agents] Failed to load exchange-modal.html:', err);
+            alert('Could not load exchange modal.');
+        });
+}
+
 // Reset initialization state when content is reloaded
 function resetAgentsTabState() {
     window.agentsTabInitialized = false;
     window.addAgentModal = null;
     window.skillDescModal = null;
     window.chatModal = null;
+    window.exchangeModal = null;
     window.lastFocusedElement = null;
     
     // Remove old event listeners if they exist
@@ -243,6 +314,9 @@ function getUserSessionId() {
     }
     return getCookie('userSessionId') || '';
 }
+
+// Make getUserSessionId globally available
+window.getUserSessionId = getUserSessionId;
 
 // Generate a UUID v4 string
 function generateUUID() {
@@ -563,6 +637,30 @@ function initializeModals() {
             }
         });
         
+        // Add event listener for add agent modal hidden event
+        modalEl.addEventListener('hidden.bs.modal', function() {
+            // Restore focus
+            if (window.lastFocusedElement) {
+                window.lastFocusedElement.focus();
+            }
+        });
+        
+        // Add event listener for add agent modal shown event
+        modalEl.addEventListener('shown.bs.modal', function() {
+            // Focus the URL input field when modal opens for add mode
+            const agentUrlInput = document.getElementById('agentUrlInput');
+            if (agentUrlInput && !agentUrlInput.disabled) {
+                setTimeout(() => agentUrlInput.focus(), 100);
+            }
+        });
+        
+        // Add ESC key handler for add agent modal
+        modalEl.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                window.addAgentModal.hide();
+            }
+        });
+        
         console.log('Modals initialized successfully');
         // Reset retry counter on success
         window.modalInitRetryCount = 0;
@@ -604,8 +702,21 @@ window.attachAgentsTab = function() {
     // Initialize modals first
     initializeModals();
     
-    // Add authentication select event listener
+    // Initialize agent type field to be disabled initially
+    const agentTypeSelect = document.getElementById('agentTypeSelect');
+    if (agentTypeSelect) {
+        agentTypeSelect.disabled = true;
+        agentTypeSelect.style.backgroundColor = '#f8f9fa';
+    }
+    
+    // Initialize authentication field to be disabled initially (same behavior as agent type)
     const authenticationSelect = document.getElementById('authenticationSelect');
+    if (authenticationSelect) {
+        authenticationSelect.disabled = true;
+        authenticationSelect.style.backgroundColor = '#f8f9fa';
+    }
+    
+    // Add authentication select event listener
     if (authenticationSelect) {
         authenticationSelect.addEventListener('change', function() {
             const clientCredentialsFields = document.getElementById('clientCredentialsFields');
@@ -626,18 +737,36 @@ window.attachAgentsTab = function() {
         });
     }
     
-    // Add agent URL input event listener to handle authentication section visibility
+    // Add agent URL input event listener to handle authentication section visibility and agent type field state
     const agentUrlInput = document.getElementById('agentUrlInput');
     if (agentUrlInput) {
         agentUrlInput.addEventListener('input', function() {
+            const authenticationSelect = document.getElementById('authenticationSelect');
             const authenticationSection = document.querySelector('.mb-3:has(#authenticationSelect)');
             const authenticationLabel = document.querySelector('label[for="authenticationSelect"]');
             const authenticationHelpText = document.getElementById('authenticationHelpText');
+            const agentTypeSelect = document.getElementById('agentTypeSelect');
             
-            if (isPredefinedAgentUrl(this.value.trim())) {
-                // Hide authentication select and show help text for predefined agents
+            const urlValue = this.value.trim();
+            
+            // Enable/disable agent type field based on URL presence
+            if (agentTypeSelect) {
+                if (urlValue) {
+                    agentTypeSelect.disabled = false;
+                    agentTypeSelect.style.backgroundColor = '';
+                } else {
+                    agentTypeSelect.disabled = true;
+                    agentTypeSelect.style.backgroundColor = '#f8f9fa';
+                    agentTypeSelect.value = ''; // Clear the selection when URL is empty
+                }
+            }
+            
+            if (isPredefinedAgentUrl(urlValue)) {
+                // For predefined agents: hide authentication select, show help text, and keep disabled
                 if (authenticationSelect) {
                     authenticationSelect.style.display = 'none';
+                    authenticationSelect.disabled = true;
+                    authenticationSelect.style.backgroundColor = '#f8f9fa';
                 }
                 if (authenticationHelpText) {
                     authenticationHelpText.style.display = 'block';
@@ -647,28 +776,91 @@ window.attachAgentsTab = function() {
                 if (clientCredentialsFields) {
                     clientCredentialsFields.style.display = 'none';
                 }
+                
+                // Set default agent type for predefined URLs
+                // Try both the original urlValue and normalized version
+                const normalizedUrlValue = urlValue.replace(/\/$/, '');
+                const defaultAgentType = window.DEFAULT_AGENT_TYPES && (
+                    window.DEFAULT_AGENT_TYPES[urlValue] || 
+                    window.DEFAULT_AGENT_TYPES[normalizedUrlValue]
+                );
+                
+                if (defaultAgentType && agentTypeSelect) {
+                    agentTypeSelect.value = defaultAgentType;
+                    console.log('[Agents] Default agent type set for predefined URL:', defaultAgentType);
+                }
             } else {
-                // Show authentication select and hide help text for custom agents
+                // For custom agents: show authentication select, hide help text, and enable if URL is present
                 if (authenticationSelect) {
                     authenticationSelect.style.display = 'block';
+                    if (urlValue) {
+                        authenticationSelect.disabled = false;
+                        authenticationSelect.style.backgroundColor = '';
+                    } else {
+                        authenticationSelect.disabled = true;
+                        authenticationSelect.style.backgroundColor = '#f8f9fa';
+                        authenticationSelect.value = 'none'; // Reset to default when URL is empty
+                    }
                 }
                 if (authenticationHelpText) {
                     authenticationHelpText.style.display = 'none';
+                }
+                
+                // Clear agent type for custom URLs
+                if (agentTypeSelect) {
+                    agentTypeSelect.value = '';
                 }
             }
         });
     }
     
-    // Populate datalist with default URLs
-    const datalist = document.getElementById('agentUrlOptions');
-    if (datalist) {
-        datalist.innerHTML = '';
-        window.PREDEFINED_AGENT_URL.forEach(url => {
-            const option = document.createElement('option');
-            option.value = url;
-            datalist.appendChild(option);
+    // Add remove exchange asset button event listener
+    const removeExchangeAssetBtn = document.getElementById('removeExchangeAssetBtn');
+    if (removeExchangeAssetBtn) {
+        removeExchangeAssetBtn.addEventListener('click', function() {
+            // Hide the exchange asset pill and show the URL input
+            const exchangeAssetPill = document.getElementById('exchangeAssetPill');
+            const agentUrlInputGroup = document.getElementById('agentUrlInputGroup');
+            const agentUrlInput = document.getElementById('agentUrlInput');
+            
+            if (exchangeAssetPill && agentUrlInputGroup && agentUrlInput) {
+                // Clear the agent URL input
+                agentUrlInput.value = '';
+                
+                // Hide the pill and show the URL input
+                exchangeAssetPill.style.display = 'none';
+                agentUrlInputGroup.style.display = 'flex';
+                
+                // Trigger the input event to disable the agent type field and reset authentication visibility
+                const inputEvent = new Event('input', { bubbles: true });
+                agentUrlInput.dispatchEvent(inputEvent);
+                
+                console.log('[Agents] Exchange asset removed, URL input shown');
+            }
         });
     }
+    
+    // Add exchange icon button event listener
+    const exchangeIconBtn = document.getElementById('exchangeIconBtn');
+    if (exchangeIconBtn) {
+        exchangeIconBtn.addEventListener('click', function() {
+            // Close the Add New Agent modal
+            if (window.addAgentModal) {
+                window.addAgentModal.hide();
+            }
+            
+            // Load and show exchange modal
+            loadExchangeModal(function() {
+                if (typeof window.renderExchangeModal === 'function') {
+                    window.renderExchangeModal();
+                } else {
+                    console.error('renderExchangeModal function not available');
+                }
+            });
+        });
+    }
+    
+
 
     var skillDescModalBody = document.getElementById('skillDescModalBody');
     var skillDescModalLabel = document.getElementById('skillDescModalLabel');
@@ -701,6 +893,19 @@ window.attachAgentsTab = function() {
                 
                 return nameA.localeCompare(nameB);
             });
+            
+            // Store existing agent URLs for exchange modal comparison
+            window.existingAgentUrls = tools.map(tool => {
+                let agentInfo;
+                try {
+                    agentInfo = JSON.parse(tool.function.description);
+                } catch (e) {
+                    agentInfo = { agentName: tool.function.name, agentDescription: '', agentSkills: [] };
+                }
+                return tool.agentUrl || agentInfo.agentUrl || '';
+            }).filter(url => url); // Filter out empty URLs
+            
+            console.log('[Agents] Existing agent URLs stored:', window.existingAgentUrls);
             
             tools.forEach(tool => {
                 let agentInfo;
@@ -804,18 +1009,24 @@ window.attachAgentsTab = function() {
                     });
                 }
             });
-            // Add the + tile as the last tile
+            // Add the split tile as the last tile
             const addTile = document.createElement('div');
             addTile.className = 'agent-tile add-agent-tile';
             addTile.id = 'addAgentBtn';
-            addTile.title = 'Add new agent';
-            addTile.innerHTML = '+';
-            addTile.addEventListener('click', function() {
+            addTile.title = 'Add new agent / Exchange';
+            
+            // Create left half (add agent)
+            const leftHalf = document.createElement('div');
+            leftHalf.className = 'add-agent-left-half';
+            leftHalf.innerHTML = '+';
+            leftHalf.title = 'Add new agent';
+            leftHalf.addEventListener('click', function(e) {
+                e.stopPropagation();
                 // Store the currently focused element
                 window.lastFocusedElement = document.activeElement;
                 
                 // Reset modal to add mode
-                resetModalToAddMode();
+                window.resetModalToAddMode();
                 
                 if (window.addAgentModal) {
                     window.addAgentModal.show();
@@ -849,6 +1060,26 @@ window.attachAgentsTab = function() {
                             }
                         });
                         
+                        // Add ESC key handler for fallback modal
+                        const handleEscape = function(e) {
+                            if (e.key === 'Escape') {
+                                const modalEl = document.getElementById('addAgentModal');
+                                if (modalEl) {
+                                    modalEl.classList.remove('show');
+                                    modalEl.style.display = 'none';
+                                    modalEl.setAttribute('inert', '');
+                                    const backdrop = document.getElementById('modalBackdrop');
+                                    if (backdrop) backdrop.remove();
+                                    // Restore focus
+                                    if (window.lastFocusedElement) {
+                                        window.lastFocusedElement.focus();
+                                    }
+                                    document.removeEventListener('keydown', handleEscape);
+                                }
+                            }
+                        };
+                        document.addEventListener('keydown', handleEscape);
+                        
                         // Focus the input field when modal opens
                         const inputField = document.getElementById('agentUrlInput');
                         if (inputField) {
@@ -859,6 +1090,30 @@ window.attachAgentsTab = function() {
                     }
                 }
             });
+            
+            // Create right half (exchange)
+            const rightHalf = document.createElement('div');
+            rightHalf.className = 'add-agent-right-half';
+            rightHalf.title = 'Anypoint Exchange';
+            rightHalf.innerHTML = '<svg width="48" height="48" viewBox="0 0 242 242" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M32.5764 121C32.5764 101.621 38.8152 83.7022 49.3869 69.1305L39.4072 59.1514C26.362 76.3351 18.6149 97.7615 18.6149 121C18.6149 144.239 26.362 165.665 39.4072 182.848L49.3869 172.868C38.8152 158.298 32.5764 140.379 32.5764 121ZM192.613 69.1305L202.593 59.1514C215.639 76.3351 223.385 97.7615 223.385 121C223.385 144.239 215.639 165.665 202.593 182.848L192.613 172.868C203.185 158.298 209.424 140.379 209.424 121C209.424 101.621 203.185 83.7022 192.613 69.1305Z" fill="#114459"></path><path d="M202.593 59.1513L59.1519 202.592C51.7065 196.941 45.0597 190.294 39.4072 182.848L182.849 39.4077C190.294 45.0591 196.941 51.7059 202.593 59.1513Z" fill="#00A3E0"></path><path fill-rule="evenodd" clip-rule="evenodd" d="M107.837 88.0913L59.1514 39.4077C51.707 45.0591 45.0597 51.7059 39.4072 59.1513L88.093 107.836L107.837 88.0913ZM134.164 153.906L153.909 134.163L202.593 182.847C196.941 190.294 190.294 196.941 182.849 202.592L134.164 153.906Z" fill="#087299"></path></svg>';
+            rightHalf.addEventListener('click', function(e) {
+                e.stopPropagation();
+                // Store the currently focused element
+                window.lastFocusedElement = document.activeElement;
+                
+                // Load and show exchange modal
+                loadExchangeModal(function() {
+                    if (typeof window.renderExchangeModal === 'function') {
+                        window.renderExchangeModal();
+                    } else {
+                        console.error('renderExchangeModal function not available');
+                    }
+                });
+            });
+            
+            // Append both halves to the tile
+            addTile.appendChild(leftHalf);
+            addTile.appendChild(rightHalf);
             grid.appendChild(addTile);
 
             // Attach click listeners to skill pills
@@ -923,7 +1178,7 @@ window.attachAgentsTab = function() {
                             }
                             
                             // Reset modal to add mode
-                            resetModalToAddMode();
+                            window.resetModalToAddMode();
                             
                             // Hide the modal
                             if (window.addAgentModal) {
@@ -1238,7 +1493,7 @@ window.attachAgentsTab = function() {
             if (cancelBtn) {
                 window.cancelBtnListener = function() {
                     // Reset modal to add mode
-                    resetModalToAddMode();
+                    window.resetModalToAddMode();
                     
                     if (window.addAgentModal) {
                         window.addAgentModal.hide();
@@ -1267,7 +1522,7 @@ window.attachAgentsTab = function() {
             if (closeBtn) {
                 window.closeBtnListener = function() {
                     // Reset modal to add mode
-                    resetModalToAddMode();
+                    window.resetModalToAddMode();
                     
                     if (window.addAgentModal) {
                         window.addAgentModal.hide();
@@ -1471,11 +1726,19 @@ function openEditAgentModal(agentUrl, agentName, tileElement, agentInfo, tool) {
         agentUrlInput.style.backgroundColor = '#f8f9fa';
     }
     
-    // Pre-fill the agent type select with current value
+    // Hide the entire Agent URL section in edit mode since URL cannot be edited
+    const agentUrlSection = document.getElementById('agentUrlSection');
+    if (agentUrlSection) {
+        agentUrlSection.style.display = 'none';
+    }
+    
+    // Pre-fill the agent type select with current value and enable it since URL is present
     const agentTypeSelect = document.getElementById('agentTypeSelect');
     if (agentTypeSelect) {
         const currentAgentType = getAgentTypeForUrl(agentUrl);
         agentTypeSelect.value = currentAgentType || '';
+        agentTypeSelect.disabled = false;
+        agentTypeSelect.style.backgroundColor = '';
         console.log('Pre-filled agent type:', currentAgentType);
     }
     
@@ -1589,6 +1852,13 @@ function openEditAgentModal(agentUrl, agentName, tileElement, agentInfo, tool) {
         console.warn('Failed to activate General tab:', e);
     }
     
+    // Hide the Authentication tab in edit mode since only agent type can be edited
+    const authTabBtn = document.getElementById('authentication-tab');
+    if (authTabBtn) {
+        authTabBtn.style.display = 'none';
+        console.log('[Edit Mode] Authentication tab hidden');
+    }
+    
     // Store reference to the tile element for updating later
     window.currentEditingTile = tileElement;
     window.currentEditingAgentUrl = agentUrl;
@@ -1635,7 +1905,7 @@ function openEditAgentModal(agentUrl, agentName, tileElement, agentInfo, tool) {
 }
 
 // Function to reset modal to add mode
-function resetModalToAddMode() {
+window.resetModalToAddMode = function() {
     // Update modal title back to add mode
     const modalTitle = document.getElementById('addAgentModalLabel');
     if (modalTitle) {
@@ -1648,6 +1918,20 @@ function resetModalToAddMode() {
         agentUrlInput.value = '';
         agentUrlInput.disabled = false;
         agentUrlInput.style.backgroundColor = '';
+    }
+    
+    // Show the entire Agent URL section in add mode
+    const agentUrlSection = document.getElementById('agentUrlSection');
+    if (agentUrlSection) {
+        agentUrlSection.style.display = 'block';
+    }
+    
+    // Reset exchange asset pill state
+    const exchangeAssetPill = document.getElementById('exchangeAssetPill');
+    const agentUrlInputGroup = document.getElementById('agentUrlInputGroup');
+    if (exchangeAssetPill && agentUrlInputGroup) {
+        exchangeAssetPill.style.display = 'none';
+        agentUrlInputGroup.style.display = 'flex';
     }
     
     // Ensure the General tab is active by default
@@ -1678,10 +1962,19 @@ function resetModalToAddMode() {
         console.warn('Failed to activate General tab:', e);
     }
     
-    // Clear the agent type select
+    // Show the Authentication tab in add mode
+    const authTabBtn = document.getElementById('authentication-tab');
+    if (authTabBtn) {
+        authTabBtn.style.display = 'block';
+        console.log('[Add Mode] Authentication tab shown');
+    }
+    
+    // Clear and disable the agent type select
     const agentTypeSelect = document.getElementById('agentTypeSelect');
     if (agentTypeSelect) {
         agentTypeSelect.value = '';
+        agentTypeSelect.disabled = true;
+        agentTypeSelect.style.backgroundColor = '#f8f9fa';
     }
     
     // Reset authentication fields
@@ -1689,8 +1982,8 @@ function resetModalToAddMode() {
     if (authenticationSelect) {
         authenticationSelect.value = 'none';
         authenticationSelect.style.display = 'block'; // Ensure it's visible
-        authenticationSelect.disabled = false; // Re-enable in add mode
-        authenticationSelect.style.backgroundColor = ''; // Reset background color
+        authenticationSelect.disabled = true; // Keep disabled initially (same behavior as agent type)
+        authenticationSelect.style.backgroundColor = '#f8f9fa'; // Set disabled background color
     }
     
     const authenticationHelpText = document.getElementById('authenticationHelpText');
