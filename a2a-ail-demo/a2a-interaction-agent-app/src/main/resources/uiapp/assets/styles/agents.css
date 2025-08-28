@@ -1,21 +1,30 @@
 /* ===== AGENTS GRID ===== */
 .agents-tiles-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(400px, 550px));
     gap: 1rem;
     margin: 1rem 0;
 }
 
 /* Responsive grid layout */
-@media (max-width: 1500px) {
+@media (max-width: 1200px) {
     .agents-tiles-grid {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(auto-fit, minmax(400px, 500px));
     }
 }
 
-@media (max-width: 1000px) {
+@media (max-width: 800px) {
+    .agents-tiles-grid {
+        grid-template-columns: repeat(auto-fit, minmax(400px, 450px));
+    }
+}
+
+@media (max-width: 600px) {
     .agents-tiles-grid {
         grid-template-columns: 1fr;
+        max-width: 550px;
+        margin-left: auto;
+        margin-right: auto;
     }
 }
 
@@ -33,8 +42,8 @@
     cursor: pointer;
     transition: box-shadow 0.2s;
     border: 2px dashed #dee2e6;
-    min-width: 350px;
     width: 100%;
+    max-width: 550px;
     padding: 1rem;
     position: relative;
 }
