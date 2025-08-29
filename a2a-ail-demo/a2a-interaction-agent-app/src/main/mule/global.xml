@@ -77,7 +77,8 @@ http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/
 	
 	<os:object-store name="AgentObjectStore" doc:name="Object store" doc:id="202d801e-4c20-4b9d-8013-4c779cba5015" persistent="false"/>
 	<os:object-store name="ChatMessagesObjectStore" doc:name="Object store" doc:id="c6519eb1-bb67-4baf-aa2d-888e3b523c17" persistent="false" />
-	<os:object-store name="PlatformAPITokenObjectStore" doc:name="Object store" doc:id="07fa6bd9-3420-4744-be95-31ec74a5e944" persistent="false" />
+	<os:object-store name="PlatformAPITokenObjectStore" doc:name="Object store" doc:id="07fa6bd9-3420-4744-be95-31ec74a5e944" maxEntries="100" entryTtl="300"/>
+	<os:object-store name="A2AAgentsTokenObjectStore" doc:name="Object store" doc:id="4288eebc-bd57-41c8-97af-d049611029ee" maxEntries="100" entryTtl="300"/>
 	
 	<a2a:server-config name="A2A_Server" doc:name="A2A Server" doc:id="5eed4f53-1ed9-4943-810c-c604e310a4c1" >
 		<a2a:connection listenerConfig="HTTP_Listener_config" agentPath="/crm-domain-agent" />
@@ -104,5 +105,4 @@ http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/
 		<a2a:history taskHistoryEnabled="false" />
 	</a2a:server-config>
 	<file:config name="File_Config" doc:name="File Config" doc:id="ab5e7a0b-7171-4c93-af78-93a3fd16862b" />
-	<os:object-store name="A2AAgentsTokenObjectStore" doc:name="Object store" doc:id="4288eebc-bd57-41c8-97af-d049611029ee" persistent="false" />
 </mule>
