@@ -1,0 +1,20 @@
+# API specification
+api:
+  autodiscoveryID: "00000000"
+  
+# Listener configuration
+https:
+  host: "0.0.0.0"
+  port: "8082"
+  
+slack:
+  consumer_key: ""
+  consumer_secret: ""
+  verification_token: ""
+  oauth_token: ""
+  callback_url: "https://localhost:8081/callback"
+
+agent:
+  suggested_prompts:
+    title: "To help get you started, here are some items I can help you with"
+    prompts_path: "suggested_prompts.json"

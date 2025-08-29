@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:os="http://www.mulesoft.org/schema/mule/os"
+	xmlns:websocket="http://www.mulesoft.org/schema/mule/websocket" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/websocket http://www.mulesoft.org/schema/mule/websocket/current/mule-websocket.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<websocket:config name="WebSockets_Config" doc:name="WebSockets Config" doc:id="6a6e41c2-3e0b-4081-9e81-797d11efacab" >
+		<websocket:connection >
+			<websocket:server-settings listenerConfig="slack-ai-app-experience-api-httpListenerConfig" />
+			<websocket:client-settings host="a2a-agent-interaction-layer-app-fjrr5q.zm3ejw.usa-e2.cloudhub.io" basePath="/ws" protocol="WSS" port="443"/>
+		</websocket:connection>
+	</websocket:config>
+	<os:object-store name="SocketIdObjectStore" doc:name="Object store" doc:id="4b7a10a8-c9c5-49ee-b6c0-f7b612b9e6ff" persistent="false" />
+	<flow name="open-outbound-socket-and-send-message-flow" doc:id="094194cc-0cbb-46bf-b8f2-6d8498c749a4" >
+		<http:listener doc:name="Listener" doc:id="f6c0f2f0-7366-4b09-a458-c11f00d15cbd" config-ref="slack-ai-app-experience-api-httpListenerConfig" path="/test/send"/>
+		<set-variable value='#[attributes.queryParams.userSessionId default ""]' doc:name="Set userSessionId" doc:id="7486acc3-1ef4-41d3-8c8b-30e873cf60db" variableName="userSessionId" />
+		<set-variable value='#[attributes.queryParams.sessionId default ""]' doc:name="Set sessionId" doc:id="6dfc5de1-3859-4ee8-8ca4-1cc75e67e7d8" variableName="sessionId" />
+		<set-variable value="#[payload]" doc:name="Set payload" doc:id="978406fd-f59a-4461-b45e-9157d57dccc3" variableName="payload"/>
+		<os:contains doc:name="Contains" doc:id="ce9cd1f2-84b9-4ffd-a54f-4a4532b6a4c7" key='#[(vars.userSessionId default "") ++ "-webSocketConnectedId"]' objectStore="SocketIdObjectStore" target="webSocketConnected" />
+		<choice doc:name="Check if socket connection is already opened for session id" doc:id="c2ea5c55-d7b4-4466-862f-c35fa280296c">
+			<when expression="#[vars.webSocketConnected]">
+				<os:retrieve doc:name="Retrieve" doc:id="35c81476-c3f1-46d9-be8f-01f4ffa73bb8" key='#[(vars.userSessionId default "") ++ "-webSocketConnectedId"]' objectStore="SocketIdObjectStore" target="socketId" />
+				<logger level="INFO" doc:name="Log already opened socket" doc:id="773925cb-d46c-4ba8-b37b-fc608fb32f6f" message='#["\n\nSocket already opened for user session with id: " ++ (vars.userSessionId as String) ++ ". Socket id: " ++ (vars.socketId as String) ++ "\n\n"]' />
+				<choice doc:name="Check if session is  changed for the user" doc:id="fef0c991-212e-4ead-a394-ea51006a027c">
+			<when expression="#[vars.socketId != vars.sessionId]">
+				<logger level="INFO" doc:name="Log session is  changed for the usert" doc:id="c87d96ef-8773-4e73-831b-cc455f091859" message='#["\n\nSession/conversation is changed for user session with id: " ++ (vars.userSessionId as String) ++ ".Closing connection with socket id: " ++ (vars.socketId as String) ++"\n\n"]' />
+						<websocket:close-socket doc:name="Close socket" doc:id="5e3e048d-a272-4d61-821f-fa93eef62009" config-ref="WebSockets_Config" socketId="#[vars.socketId]" />
+			</when>
+		</choice>
+			</when>
+		</choice>
+		<choice doc:name="Check if new connection needs to be opened" doc:id="701c434a-0dd8-49d9-8910-4f67ee79d34a" >
+			<when expression="#[!vars.webSocketConnected or (vars.socketId != vars.sessionId)]">
+				<websocket:open-outbound-socket doc:name="Open outbound socket" doc:id="c57f8b7f-1fd0-4b8a-94f2-f29f582386fc" config-ref="WebSockets_Config" socketId="#[vars.sessionId]" path="/prompt">
+					<websocket:query-params><![CDATA[#[output application/java
+---
+{
+	"userSessionId" : vars.userSessionId,
+	"sessionId" : vars.sessionId
+}]]]></websocket:query-params>
+				</websocket:open-outbound-socket>
+				<set-variable value="#[attributes.socketId]" doc:name="Set socketId" doc:id="dd607f25-6ff4-4ba7-a1f1-503611d4bee4" variableName="socketId" />
+				<os:store doc:name="Store" doc:id="4265ecd6-9a83-45b4-8fe2-857cf01e9fb1" key='#[(vars.userSessionId default "") ++ "-webSocketConnectedId"]' objectStore="SocketIdObjectStore">
+					<os:value><![CDATA[#[vars.socketId]]]></os:value>
+				</os:store>
+				<logger level="INFO" doc:name="Log new socket connection" doc:id="93dafc6b-b389-4b92-9327-de48809c920b" message='#["\n\nNew socket connection for user session with id: " ++ (vars.userSessionId as String) ++ " opened. Socket id: " ++ (vars.socketId as String) ++"\n\n"]' />
+			</when>
+		</choice>
+		<ee:transform doc:name="Prepare message to send" doc:id="f5144f4c-d86d-4c5b-9e47-93d080dd8c6b" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+vars.payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Log message to send" doc:id="59545feb-a996-4527-9cae-07648a0ab1a5" message='#[output text&#10;---&#10;"\n\nMessage to send: \n" ++ write(payload, "application/json") ++ "\n\n"]' />
+		<websocket:send doc:name="Send message to host agent" doc:id="2ca098cd-abd4-4ccc-915d-29b5f0690819" config-ref="WebSockets_Config" socketId="#[vars.socketId]">
+			<websocket:content ><![CDATA[#[vars.payload]]]></websocket:content>
+		</websocket:send>
+	</flow>
+	<flow name="a2a-interaction-agent-websocketFlow" doc:id="0ca39362-d06a-4902-bf84-ab5e73d023fc" >
+		<websocket:outbound-listener doc:name="On New Outbound Message" doc:id="567ed37d-732e-462f-b531-6abe949680a0" config-ref="WebSockets_Config" path="/prompt"/>
+		<logger level="INFO" doc:name="Log received message" doc:id="876efea8-4b47-4f8c-8d0e-c15dabb850a2" message='#[output text&#10;---&#10;"\n\Received message: \n" ++ payload ++ "\n\n"]' />
+		<ee:transform doc:name="Transform Message" doc:id="ef47d07e-b8c3-490a-8838-0e22d06068ed">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+read(payload, "application/json")]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<choice doc:name="Check if the message is a status update or the final response." doc:id="dd50fc26-3591-4673-90bf-0c8d5b59d75a" >
+			<when expression='#[payload."type" == "update"]'>
+				<logger level="INFO" doc:name="Log update content" doc:id="4b97d3d6-427e-4a8d-979d-ab71fc8289f8" message='#[output text&#10;---&#10;"\n\nUpdate content: " ++ payload.content ++ "\n\n"]' />
+			</when>
+			<otherwise >
+				<logger level="INFO" doc:name="Log response" doc:id="ccac39fd-aef9-460a-82b0-39e5e807aed5" message='#[output text&#10;---&#10;"\n\nResponse: " ++ payload.response ++ "\n\n"]' />
+			</otherwise>
+		</choice>
+	</flow>
+	<flow name="on-socket-closed-flow" doc:id="00c4a614-5ac3-4dcd-8963-b9d32b327c4e" >
+		<websocket:on-socket-closed doc:name="On Socket Closed" doc:id="f756a747-2b4b-44dc-b80a-281d5e9b0376" config-ref="WebSockets_Config" path="/prompt"/>
+		<set-variable value='#[attributes.queryParams.userSessionId default ""]' doc:name="Set userSessionId" doc:id="88edd212-10e8-4018-896c-46eda0c7ba09" variableName="userSessionId" />
+		<os:remove doc:name="Remove" doc:id="ef480a42-de8b-425a-8608-a001ef2a0fc5" key='#[(vars.userSessionId default "") ++ "-webSocketConnectedId"]' objectStore="SocketIdObjectStore" />
+	</flow>
+</mule>
