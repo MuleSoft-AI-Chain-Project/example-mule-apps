@@ -25,7 +25,7 @@ http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/htt
 			</when>
 			<otherwise >
 				<try doc:name="Try" doc:id="a0a227c1-23c9-4e8b-a698-a1af7e3ef6b5">
-					<websocket:open-outbound-socket doc:name="Open outbound socket" doc:id="c57f8b7f-1fd0-4b8a-94f2-f29f582386fc" config-ref="WebSockets_Config" path="/prompt">
+					<websocket:open-outbound-socket doc:name="Open outbound socket" doc:id="c57f8b7f-1fd0-4b8a-94f2-f29f582386fc" config-ref="WebSockets_Config" path="/prompt" socketId="#[uuid()]">
 					<websocket:query-params><![CDATA[#[output application/java
 ---
 {
