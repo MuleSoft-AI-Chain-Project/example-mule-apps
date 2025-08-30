@@ -25,7 +25,7 @@ http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/htt
 			</when>
 			<otherwise >
 				<try doc:name="Try" doc:id="a0a227c1-23c9-4e8b-a698-a1af7e3ef6b5">
-					<websocket:open-outbound-socket doc:name="Open outbound socket" doc:id="c57f8b7f-1fd0-4b8a-94f2-f29f582386fc" config-ref="WebSockets_Config" path="/prompt" socketId="#[uuid()]">
+					<websocket:open-outbound-socket doc:name="Open outbound socket" doc:id="c57f8b7f-1fd0-4b8a-94f2-f29f582386fc" config-ref="WebSockets_Config" path="/prompt" socketId='#[vars.userSessionId ++ "::" ++ uuid()]'>
 					<websocket:query-params><![CDATA[#[output application/java
 ---
 {
@@ -121,5 +121,6 @@ output application/json
 		<websocket:on-socket-closed doc:name="On Socket Closed" doc:id="f756a747-2b4b-44dc-b80a-281d5e9b0376" config-ref="WebSockets_Config" path="/prompt"/>
 		<set-variable value='#[(attributes.socketId splitBy "::")[0]]' doc:name="Set userSessionId" doc:id="88edd212-10e8-4018-896c-46eda0c7ba09" variableName="userSessionId" />
 		<os:remove doc:name="Remove" doc:id="ef480a42-de8b-425a-8608-a001ef2a0fc5" key='#[(vars.userSessionId default "") ++ "-webSocketConnectedId"]' objectStore="SlackXAPIObjectStore" />
+		<logger level="INFO" doc:name="Log closed socket connection" doc:id="b9551e3e-65de-42d0-a5c4-54749734f9d1" message='#[%dw 2.0&#10;output application/json&#10;---&#10;"\n\nSocket connection for user session with id: " ++ (vars.userSessionId as String) ++ " closed. Socket id: " ++ (vars.socketId as String) ++"\n\n"]' />
 	</flow>
 </mule>
