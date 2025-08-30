@@ -728,6 +728,7 @@ payload]]></ee:set-variable>
 					<websocket:content ><![CDATA[#[output text
 var socketMessage =
 	{
+		"sessionId": vars.sessionId,
 		"content": vars.socketMessageContent,
 		"sender": "agent",
 		"type": "update",
