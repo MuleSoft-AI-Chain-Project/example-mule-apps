@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:os="http://www.mulesoft.org/schema/mule/os"
+	xmlns:websocket="http://www.mulesoft.org/schema/mule/websocket" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/websocket http://www.mulesoft.org/schema/mule/websocket/current/mule-websocket.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<websocket:config name="WebSockets_Config" doc:name="WebSockets Config" doc:id="6a6e41c2-3e0b-4081-9e81-797d11efacab" >
+		<websocket:connection >
+			<websocket:server-settings listenerConfig="slack-ai-app-experience-api-httpListenerConfig" />
+			<websocket:client-settings host="a2a-agent-interaction-layer-app-fjrr5q.zm3ejw.usa-e2.cloudhub.io" basePath="/ws" protocol="WSS" port="443"/>
+		</websocket:connection>
+	</websocket:config>
+	<os:object-store name="SlackXAPIObjectStore" doc:name="Object store" doc:id="4b7a10a8-c9c5-49ee-b6c0-f7b612b9e6ff" persistent="false" maxEntries="100"/>
+	<sub-flow name="open-outbound-socket-and-send-message-flow" doc:id="094194cc-0cbb-46bf-b8f2-6d8498c749a4" >
+		<set-variable value='#[output text&#10;---&#10;(vars.slack_event.event.channel default "" as String)]' doc:name="Set userSessionId" doc:id="7486acc3-1ef4-41d3-8c8b-30e873cf60db" variableName="userSessionId" />
+		<set-variable value='#[output text&#10;---&#10;(vars.slack_event.event.channel default "" as String) ++ "::" ++ (vars.slack_event.event.thread_ts default "" as String)]' doc:name="Set sessionId" doc:id="6dfc5de1-3859-4ee8-8ca4-1cc75e67e7d8" variableName="sessionId" />
+		<os:contains doc:name="Contains" doc:id="ce9cd1f2-84b9-4ffd-a54f-4a4532b6a4c7" key='#[(vars.userSessionId default "") ++ "-webSocketConnectedId"]' objectStore="SlackXAPIObjectStore" target="webSocketConnected" />
+		<choice doc:name="Check if socket connection is already opened for session id" doc:id="c2ea5c55-d7b4-4466-862f-c35fa280296c">
+			<when expression="#[vars.webSocketConnected]">
+				<os:retrieve doc:name="Retrieve" doc:id="35c81476-c3f1-46d9-be8f-01f4ffa73bb8" key='#[(vars.userSessionId default "") ++ "-webSocketConnectedId"]' objectStore="SlackXAPIObjectStore" target="socketId" />
+				<logger level="INFO" doc:name="Log already opened socket" doc:id="773925cb-d46c-4ba8-b37b-fc608fb32f6f" message='#[%dw 2.0&#10;output application/json&#10;---&#10;"\n\nSocket already opened for user session with id: " ++ (vars.userSessionId as String) ++ ". Socket id: " ++ (vars.socketId as String) ++ "\n\n"]' />
+			</when>
+			<otherwise >
+				<try doc:name="Try" doc:id="a0a227c1-23c9-4e8b-a698-a1af7e3ef6b5">
+					<websocket:open-outbound-socket doc:name="Open outbound socket" doc:id="c57f8b7f-1fd0-4b8a-94f2-f29f582386fc" config-ref="WebSockets_Config" path="/prompt">
+					<websocket:query-params><![CDATA[#[output application/java
+---
+{
+	"userSessionId" : vars.userSessionId
+}]]]></websocket:query-params>
+				</websocket:open-outbound-socket>
+					<set-variable value="#[attributes.socketId]" doc:name="Set socketId" doc:id="dd607f25-6ff4-4ba7-a1f1-503611d4bee4" variableName="socketId" />
+					<os:store doc:name="Store" doc:id="4265ecd6-9a83-45b4-8fe2-857cf01e9fb1" key='#[(vars.userSessionId default "") ++ "-webSocketConnectedId"]' objectStore="SlackXAPIObjectStore">
+					<os:value><![CDATA[#[vars.socketId]]]></os:value>
+				</os:store>
+					<logger level="INFO" doc:name="Log new socket connection" doc:id="93dafc6b-b389-4b92-9327-de48809c920b" message='#[%dw 2.0&#10;output application/json&#10;---&#10;"\n\nNew socket connection for user session with id: " ++ (vars.userSessionId as String) ++ " opened. Socket id: " ++ (vars.socketId as String) ++"\n\n"]' />
+					<error-handler>
+						<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue - Other WebSocket Errors" doc:id="websocket-other-errors" type="WEBSOCKET:*">
+							<logger level="ERROR" doc:name="Log WebSocket Error" doc:id="log-websocket-error" message='#["\n\nWebSocket Error: " ++ error.description ++ " for session: " ++ vars.sessionId ++ "\n\n"]' />
+						</on-error-continue>
+					</error-handler>
+				</try>
+			</otherwise>
+		</choice>
+		<ee:transform doc:name="Prepare message to send" doc:id="f5144f4c-d86d-4c5b-9e47-93d080dd8c6b" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  "sessionId": vars.sessionId,
+  "useTrustLayer": false,
+  "prompt": (vars.slack_event.event.text default "" as String)
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Log message to send" doc:id="59545feb-a996-4527-9cae-07648a0ab1a5" message='#[output text&#10;---&#10;"\n\nMessage to send: \n" ++ write(payload, "application/json") ++ "\n\n"]' />
+		<choice doc:name="Check if socketId is available before sending" doc:id="check-socketid-before-send">
+			<when expression="#[vars.socketId != null and vars.socketId != '']">
+				<websocket:send doc:name="Send message to host agent" doc:id="2ca098cd-abd4-4ccc-915d-29b5f0690819" config-ref="WebSockets_Config" socketId="#[vars.socketId]">
+				</websocket:send>
+			</when>
+			<otherwise>
+				<logger level="ERROR" doc:name="Log socketId not available" doc:id="log-socketid-not-available" message='#["\n\nError: Cannot send message - no valid socketId available for session: " ++ vars.sessionId ++ "\n\n"]'/>
+			</otherwise>
+		</choice>
+	</sub-flow>
+	<flow name="a2a-interaction-agent-websocketFlow" doc:id="0ca39362-d06a-4902-bf84-ab5e73d023fc" >
+		<websocket:outbound-listener doc:name="On New Outbound Message" doc:id="567ed37d-732e-462f-b531-6abe949680a0" config-ref="WebSockets_Config" path="/prompt"/>
+		<logger level="INFO" doc:name="Log received message" doc:id="876efea8-4b47-4f8c-8d0e-c15dabb850a2" message='#[output text&#10;---&#10;"\n\Received message: \n" ++ payload ++ "\n\n"]' />
+		<ee:transform doc:name="Transform Message" doc:id="ef47d07e-b8c3-490a-8838-0e22d06068ed">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+read(payload, "application/json")]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<set-variable value="#[payload.sessionId]" doc:name="Set sessionId" doc:id="3f59bd11-c028-4fac-8fd2-1a8d5e66d6cf" variableName="sessionId" />
+		<set-variable value='#[(vars.sessionId splitBy "::")[0]]' doc:name="Set channel" doc:id="105166f4-a849-4eb7-947c-87f6e8899c7d" variableName="channel" />
+		<set-variable value='#[(vars.sessionId splitBy "::")[1]]' doc:name="Set thread_ts" doc:id="2852bf39-b0b2-4964-b95b-4189ddbc009a" variableName="thread_ts" />
+		<choice doc:name="Check if the message is a status update or the final response." doc:id="dd50fc26-3591-4673-90bf-0c8d5b59d75a" >
+			<when expression='#["update" == payload."type"]'>
+				<logger level="INFO" doc:name="Log update content" doc:id="4b97d3d6-427e-4a8d-979d-ab71fc8289f8" message='#[output text&#10;---&#10;"\n\nUpdate: " ++ payload.content ++ "\n\n"]' />
+				<!-- [STUDIO:"Prepare slack payload"]<ee:transform doc:name="Prepare slack payload" doc:id="8c45f073-098d-49b7-a67b-9d8a8358e6ab">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+&#45;&#45;-
+{
+  "channel": vars.channel,
+  "thread_ts": vars.thread_ts,
+  "status": (payload as Object).content as String
+}&#93;&#93;></ee:set-payload>
+					</ee:message>
+				</ee:transform> [STUDIO] -->
+				<!-- [STUDIO:"Send status update back to Slack Thread"]<flow-ref doc:name="Send status update back to Slack Thread" doc:id="92c2047b-3187-4126-be03-aa65de15ff6d" name="post:\agent\status:application\json:slack-ai-app-experience-api-config"/> [STUDIO] -->
+			</when>
+			<otherwise >
+				<logger level="INFO" doc:name="Log response" doc:id="ccac39fd-aef9-460a-82b0-39e5e807aed5" message='#[output text&#10;---&#10;"\n\nResponse: " ++ payload.response ++ "\n\n"]' />
+				<ee:transform doc:name="Prepare slack payload" doc:id="f5c292c8-501e-4f24-865f-ee7918b8e281">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  "channel": vars.channel,
+  "thread_ts": vars.thread_ts,
+  "text": (payload as Object).response as String
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<flow-ref doc:name="Send message back to Slack Thread" doc:id="9e45cc54-8578-42f2-8c2c-660cb2ccb798" name="post:\agent\message:slack-ai-app-experience-api-config"/>
+			</otherwise>
+		</choice>
+	</flow>
+	<flow name="on-socket-closed-flow" doc:id="00c4a614-5ac3-4dcd-8963-b9d32b327c4e" >
+		<websocket:on-socket-closed doc:name="On Socket Closed" doc:id="f756a747-2b4b-44dc-b80a-281d5e9b0376" config-ref="WebSockets_Config" path="/prompt"/>
+		<set-variable value='#[(attributes.socketId splitBy "::")[0]]' doc:name="Set userSessionId" doc:id="88edd212-10e8-4018-896c-46eda0c7ba09" variableName="userSessionId" />
+		<os:remove doc:name="Remove" doc:id="ef480a42-de8b-425a-8608-a001ef2a0fc5" key='#[(vars.userSessionId default "") ++ "-webSocketConnectedId"]' objectStore="SlackXAPIObjectStore" />
+	</flow>
+</mule>

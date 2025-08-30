@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:tls="http://www.mulesoft.org/schema/mule/tls" xmlns:file="http://www.mulesoft.org/schema/mule/file"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd">
+	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="e5327a6b-5b87-42fc-a533-b7d1b2ed6bb5" >
+		<http:request-connection protocol="HTTPS">
+			<tls:context >
+				<tls:trust-store insecure="true" />
+			</tls:context>
+		</http:request-connection>
+	</http:request-config>
+	<sub-flow name="set_title" doc:id="06f92d4d-3c11-49d6-88ca-13f7de241ad0" >
+		<http:request method="POST" doc:name="Set Title" doc:id="6486e42a-87e3-4f66-ad4c-6c18dfc16827" config-ref="HTTP_Request_configuration" url="https://slack.com/api/assistant.threads.setTitle">
+			<http:headers ><![CDATA[#[output application/json
+---
+{
+	Authorization: "Bearer " ++ p('slack.oauth_token')
+}]]]></http:headers>
+		</http:request>
+	</sub-flow>
+	<sub-flow name="set_suggested_prompts" doc:id="5607e9d7-79f6-4728-9eb5-04c90a1f9769" >
+		<!-- [STUDIO:"Load Suggested Prompts"]<file:read doc:name="Load Suggested Prompts" doc:id="470c487f-071d-49f2-baf9-a68fb8439887" config-ref="File_Config" path="#[p('agent.suggested_prompts.prompts_path')&#93;" target="prompts" targetValue="#[read(payload, 'application/json').prompts&#93;"/> [STUDIO] -->
+		<http:request method="POST" doc:name="Set Suggested Prompts" doc:id="a321de2e-6b5a-4066-83ab-c86f9f7aeb52" config-ref="HTTP_Request_configuration" url="https://slack.com/api/assistant.threads.setSuggestedPrompts">
+			<http:headers ><![CDATA[#[output application/json
+---
+{
+	Authorization: "Bearer " ++ p('slack.oauth_token')
+}]]]></http:headers>
+		</http:request>
+	</sub-flow>
+	<sub-flow name="set_status" doc:id="78f54256-2817-4675-9004-c489c3585251" >
+		<http:request method="POST" doc:name="Set Status" doc:id="2c26cdf1-9f27-448b-88bc-96e80c5bfcb1" config-ref="HTTP_Request_configuration" url="https://slack.com/api/assistant.threads.setStatus">
+			<http:body ><![CDATA[#[payload update {
+	case .status -> "- " ++ $
+}]]]></http:body>
+			<http:headers ><![CDATA[#[output application/json
+---
+{
+	Authorization: "Bearer " ++ p('slack.oauth_token')
+}]]]></http:headers>
+		</http:request>
+	</sub-flow>
+</mule>
