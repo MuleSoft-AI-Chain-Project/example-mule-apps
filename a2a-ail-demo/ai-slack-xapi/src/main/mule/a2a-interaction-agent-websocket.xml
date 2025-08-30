@@ -85,19 +85,19 @@ read(payload, "application/json")]]></ee:set-payload>
 		<choice doc:name="Check if the message is a status update or the final response." doc:id="dd50fc26-3591-4673-90bf-0c8d5b59d75a" >
 			<when expression='#["update" == payload."type"]'>
 				<logger level="INFO" doc:name="Log update content" doc:id="4b97d3d6-427e-4a8d-979d-ab71fc8289f8" message='#[output text&#10;---&#10;"\n\nUpdate: " ++ payload.content ++ "\n\n"]' />
-				<!-- [STUDIO:"Prepare slack payload"]<ee:transform doc:name="Prepare slack payload" doc:id="8c45f073-098d-49b7-a67b-9d8a8358e6ab">
+				<ee:transform doc:name="Prepare slack payload" doc:id="8c45f073-098d-49b7-a67b-9d8a8358e6ab">
 					<ee:message>
 						<ee:set-payload><![CDATA[%dw 2.0
 output application/json
-&#45;&#45;-
+---
 {
   "channel": vars.channel,
   "thread_ts": vars.thread_ts,
   "status": (payload as Object).content as String
-}&#93;&#93;></ee:set-payload>
+}]]></ee:set-payload>
 					</ee:message>
-				</ee:transform> [STUDIO] -->
-				<!-- [STUDIO:"Send status update back to Slack Thread"]<flow-ref doc:name="Send status update back to Slack Thread" doc:id="92c2047b-3187-4126-be03-aa65de15ff6d" name="post:\agent\status:application\json:slack-ai-app-experience-api-config"/> [STUDIO] -->
+				</ee:transform>
+				<flow-ref doc:name="Send status update back to Slack Thread" doc:id="92c2047b-3187-4126-be03-aa65de15ff6d" name="post:\agent\status:application\json:slack-ai-app-experience-api-config"/>
 			</when>
 			<otherwise >
 				<logger level="INFO" doc:name="Log response" doc:id="ccac39fd-aef9-460a-82b0-39e5e807aed5" message='#[output text&#10;---&#10;"\n\nResponse: " ++ payload.response ++ "\n\n"]' />
