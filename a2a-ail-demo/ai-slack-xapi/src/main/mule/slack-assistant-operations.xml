@@ -40,7 +40,8 @@ http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/
 			<http:headers ><![CDATA[#[output application/json
 ---
 {
-	Authorization: "Bearer " ++ p('slack.oauth_token')
+	Authorization: "Bearer " ++ p('slack.oauth_token'),
+	"Content-Type": "application/json; charset=utf-8"
 }]]]></http:headers>
 		</http:request>
 	</sub-flow>

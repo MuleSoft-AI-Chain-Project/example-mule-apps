@@ -1,0 +1,455 @@
+#%RAML 1.0
+title: Slack AI Experience API
+mediaType:
+  - application/json
+protocols:
+  - HTTPS
+/agent: {}
+/events:
+  post:
+    displayName: Inbound Slack Events
+    body:
+      type: SlackEvent
+    responses:
+      "200": {}
+      "302": {}
+      "301": {}
+/agent/message:
+  post:
+    displayName: Send a Message
+    body:
+      type: Message
+    responses:
+      "200":
+        body:
+          type: object
+/agent/replies:
+  get:
+    queryParameters:
+      ts:
+        example: Example
+        type: string
+      channel:
+        example: C1234567890
+        type: string
+      cursor?:
+        description: Paginate through collections of data by setting the cursor parameter to a next_cursor attribute returned by a previous request's response_metadata. Default value fetches the first "page" of the collection.
+        example: dXNlcjpVMDYxTkZUVDI=
+        type: string
+      include_all_metadata?:
+        description: Return all metadata associated with this message.
+        default: false
+        example: true
+        type: boolean
+      inclusive?:
+        description: Include messages with oldest or latest timestamps in results. Ignored unless either timestamp is specified.
+        default: false
+        example: true
+        type: boolean
+      latest?:
+        description: Only messages before this Unix timestamp will be included in results.
+        example: "1234567890.123456"
+        type: string
+      limit?:
+        description: The maximum number of items to return. Fewer than the requested number of items may be returned, even if the end of the users list hasn't been reached.
+        example: 100
+        type: number
+        format: int
+      oldest?:
+        description: Only messages after this Unix timestamp will be included in results.
+        example: "1234567890.123456"
+        type: string
+/agent/status:
+  post:
+    displayName: Update Agent Status
+    body:
+      type: AgentStatus
+    responses:
+      "204": {}
+/agent/suggested_prompts:
+  post:
+    displayName: Set Suggested Prompts
+    body:
+      type: SuggestedPrompts
+    responses:
+      "200":
+        body:
+          type: SuggestedPromptResponse
+/agent/title:
+  post:
+    displayName: Update Thread Title
+    body:
+      type: ThreadTitle
+    responses:
+      "200":
+        body:
+          type: SuggestedPromptResponse
+/agent/conversation_info:
+  get:
+    displayName: Get information about a conversation
+    queryParameters:
+      token:
+        example: abcefg-12345
+        type: string
+      channel:
+        example: C1234567890
+        type: string
+      include_locale?:
+        example: true
+        type: boolean
+      include_num_members?:
+        example: true
+        type: boolean
+types:
+  prompt:
+    properties:
+      title:
+        example: Generate ideas
+        type: string
+      message:
+        example: Pretend you are a marketing associate and you need new ideas for an enterprise productivity feature. Generate 10 ideas for a new feature launch.
+        type: string
+  ThreadTitle:
+    properties:
+      channel_id:
+        example: D324567865
+        type: string
+      thread_ts:
+        example: "1786543.345678"
+        type: string
+      title:
+        example: Holidays this year
+        type: string
+  SuggestedPromptResponse:
+    properties:
+      ok:
+        example: false
+        type: boolean
+      error?:
+        example: invalid_thread_ts
+        type: string
+      detail?:
+        example: Thread not found
+        type: string
+  SuggestedPrompts:
+    properties:
+      channel_id:
+        example: D2345SFDG
+        type: string
+      thread_ts:
+        example: "1724264405.531769"
+        type: string
+      title?:
+        example: Welcome. What can I do for you?
+        type: string
+      prompts:
+        items:
+          type: prompt
+  Message:
+    properties:
+      channel:
+        example: C1234567890
+        type: string
+      attachments?:
+        items:
+          type: object
+      blocks?:
+        items:
+          type: object
+      text?:
+        example: Hello World
+        type: string
+      agent_message_source_type?:
+        example: Example
+        type: string
+      as_user?:
+        example: true
+        type: boolean
+      icon_emoji?:
+        example: ":chart_with_upwards_trend:"
+        type: string
+      icon_url?:
+        example: http://lorempixel.com/48/48
+        type: string
+      link_names?:
+        example: true
+        type: boolean
+      markdown_text?:
+        example: "**This is bold text**"
+        type: string
+      metadata?:
+        example: "{\"event_type\": \"task_created\", \"event_payload\": { \"id\": \"11223\", \"title\": \"Redesign Homepage\"}}"
+        type: string
+      mrkdown?:
+        example: true
+        type: boolean
+      parse?:
+        example: full
+        type: string
+      reply_broadcast?:
+        example: true
+        type: boolean
+      thread_ts?:
+        example: "12345.6789"
+        type: string
+      unfurl_links?:
+        example: true
+        type: boolean
+      unfurl_media?:
+        example: true
+        type: boolean
+      username?:
+        example: My Bot
+        type: string
+  SlackEvent:
+    properties:
+      type:
+        example: event_callback
+        type: string
+      token:
+        example: XXYYZZ
+        type: string
+      team_id?:
+        example: T123ABC456
+        type: string
+      api_app_id?:
+        example: A123ABC456
+        type: string
+      event_context?:
+        example: EC123ABC456
+        type: string
+      event_id?:
+        example: Ev123ABC456
+        type: string
+      event_time?:
+        example: 1234567890
+        type: number
+        format: int
+      authorizations?:
+        items:
+          type: object
+      event?:
+        type: SlackEventType
+      challenge?:
+        example: Example
+        type: string
+  AgentStatus:
+    properties:
+      status:
+        example: Thinking...
+        type: string
+      channel_id:
+        example: D08QE2N63G9
+        type: string
+      thread_ts:
+        example: "1746742896.943629"
+        type: string
+  SlackEventType:
+    properties:
+      type?:
+        example: reaction_added
+        type: string
+      event_ts?:
+        example: "1465244570.336841"
+        type: string
+      user?:
+        example: U123ABC456
+        type: string
+      ts?:
+        example: "1464196127.000002"
+        type: string
+      item?:
+        example:
+          strict: true
+          value:
+            type: message
+            channel: C123ABC456
+            ts: "1464196127.000002"
+        type: object
+      assistant_thread?:
+        properties:
+          user_id:
+            example: U123ABC456
+            type: string
+          context:
+            type: object
+          channel_id:
+            example: D123ABC456
+            type: string
+          thread_ts:
+            example: "1729999327.187299"
+            type: string
+  ChannelInfo:
+    properties:
+      id:
+        example: C012AB3CD
+        type: string
+      name:
+        example: general
+        type: string
+      is_channel:
+        example: true
+        type: boolean
+      is_group:
+        example: true
+        type: boolean
+      is_im:
+        example: true
+        type: boolean
+      is_mpim:
+        example: true
+        type: boolean
+      is_private:
+        example: true
+        type: boolean
+      created:
+        example: 1654868334
+        type: number
+        format: int
+      is_archived:
+        example: true
+        type: boolean
+      is_general:
+        example: true
+        type: boolean
+      unlinked?:
+        example: 1
+        type: number
+        format: int
+      name_normalized?:
+        example: general
+        type: string
+      is_shared?:
+        example: true
+        type: boolean
+      is_frozen?:
+        example: true
+        type: boolean
+      is_org_shared?:
+        example: true
+        type: boolean
+      is_pending_ext_shared?:
+        example: true
+        type: boolean
+      pending_shared?:
+        items:
+          example: Example
+          type: string
+      context_team_id?:
+        example: T123ABC456
+        type: string
+      updated:
+        example: 1723130875818
+        type: number
+        format: int
+      parent_conversation?:
+        example: Example
+        type: string
+      creator:
+        example: U123ABC456
+        type: string
+      is_ext_shared?:
+        example: true
+        type: boolean
+      shared_team_ids?:
+        items:
+          example: T123ABC456
+          type: string
+      pending_connected_team_ids?:
+        items:
+          example: Example
+          type: string
+      topic?:
+        properties:
+          value:
+            example: For public discussion of generalities
+            type: string
+          creator:
+            example: W012A3BCD
+            type: string
+          last_set:
+            example: 1449709364
+            type: number
+            format: int
+      purpose?:
+        properties:
+          value:
+            example: This part of the workspace is for fun. Make fun here.
+            type: string
+          creator:
+            example: W012A3BCD
+            type: string
+          last_set:
+            example: 1449709364
+            type: number
+            format: int
+      properties?:
+        properties:
+          tabs:
+            items:
+              properties:
+                id:
+                  example: workflows
+                  type: string
+                label:
+                  example: some label
+                  type: string
+                type:
+                  example: workflows
+                  type: string
+      previous_names?:
+        items:
+          example: Example
+          type: string
+      user?:
+        example: U27FFLNF4
+        type: string
+      last_read?:
+        example: "1513718191.000038"
+        type: string
+      latest?:
+        properties:
+          type:
+            example: message
+            type: string
+          user:
+            example: U5R3PALPN
+            type: string
+          text:
+            example: hello world
+            type: string
+          ts:
+            example: "1513718191.000038"
+            type: string
+      unread_count?:
+        example: 1
+        type: number
+        format: int
+      unread_count_display?:
+        example: 1
+        type: number
+        format: int
+      is_open?:
+        example: true
+        type: boolean
+      locale?:
+        example: en-US
+        type: string
+      priority?:
+        example: 0.043016851216706
+        type: number
+        format: float
+      num_members?:
+        example: 1
+        type: number
+        format: int
+      error?:
+        example: Example
+        type: string
+  ConversationInfoResponse:
+    properties:
+      ok:
+        example: true
+        type: boolean
+      channel?:
+        type: ChannelInfo
