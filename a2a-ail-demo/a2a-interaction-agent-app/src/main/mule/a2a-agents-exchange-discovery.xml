@@ -45,7 +45,7 @@ write(attributes, "application/json")]' />
 write(attributes, "application/json")]' />
 		<flow-ref doc:name="Set initial variables for mulesoft anypoint platform apis" doc:id="2f30530b-466e-490a-ab45-38d467d5d45a" name="set-initial-ms-platform-apis-vars" />
 		<flow-ref doc:name="Get all apis by environment" doc:id="6a3b8681-bee2-4c74-8d86-3fae887a0b5a" name="get-all-apis-by-environment-impl-flow" />
-		<parallel-foreach doc:name="Iterate over all apis inside environment" doc:id="f5e7b5bf-e3fa-4cec-8f53-01a5a8236c78" collection="#[payload.assets]">
+		<parallel-foreach doc:name="Iterate over all apis inside environment" doc:id="f5e7b5bf-e3fa-4cec-8f53-01a5a8236c78" collection="#[(payload as Object).assets as Array]">
 			<set-variable value="#[output text
 ---
 (((payload as Object).apis as Array)[-1] as Object).id as String]" doc:name="Set apiId" doc:id="3bb9747d-7561-4244-8854-62ac50663ff1" variableName="apiId"/>
