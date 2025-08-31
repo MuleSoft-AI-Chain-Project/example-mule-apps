@@ -81,46 +81,6 @@ output application/json
             </when>
         </choice>
     </flow>
-    <!-- [STUDIO:"slack-ai-app-experience-apiFlow1"]<flow name="slack-ai-app-experience-apiFlow1" doc:id="12019a6a-ce4a-403a-8fdf-882156fcb3f5" >
-		<scheduler doc:name="Scheduler" doc:id="4edf524e-ebdd-456e-b9b6-538dd1759396" >
-			<scheduling-strategy >
-				<fixed-frequency timeUnit="HOURS"/>
-			</scheduling-strategy>
-		</scheduler>
-		<logger level="INFO" doc:name="Logger" doc:id="ebf3100c-a495-4edf-923f-dc4c0ab9cdc0" message="#[%dw 2.0&#10;//import * from dw::Runtime&#10;//import java!org::mule::runtime::core::api::util::NetworkUtils&#10;output application/json&#10;&#45;&#45;-&#10;//{ &quot;host&quot; : prop(&quot;server.host&quot;) }&#10;//{ &quot;props&quot; : props() }&#10;//{ &quot;host&quot;: (NetworkUtils::getLocalHost()).hostName}&#10;{ host: p('ail.callback.url') }&#93;"/>
-		<set-variable variableName="callback_template" value="#[readUrl(p('ail.callback.schema_url'))&#93;" doc:name="Read Callback Template"/>
-    	<http:request method="GET" doc:name="Request" doc:id="4c804c1a-5615-48a1-ba81-b6fe74e15fc3" config-ref="HTTP_Request_configuration" url="#[p('ail.callback.schema_url')&#93;" target="callback_template"/>
-		<file:write path="callback_template" content="#[vars.content&#93;" config-ref="File_Config">
-			<file:content ><![CDATA[#[vars.callback_template&#93;&#93;&#93;></file:content>
-		</file:write>
-		<set-payload value='#[output application/json&#10;&#45;&#45;-&#10;{&#10;	channel: "ABCDEFG",&#10;	text: "Template Text"&#10;}&#93;' doc:name="Set Payload" doc:id="ae7042ad-ff88-4b80-87da-0168fbba5ffe" />
-		<ee:transform doc:name="Transform Message" doc:id="3ec3cd41-a707-4124-ad10-71a4bbea1db6" >
-			<ee:message >
-				<ee:set-payload ><![CDATA[%dw 2.0
-import * from dw::core::Strings
-output text/plain
-var template = vars.callback_template
-//var t = readUrl("https://localhost:8081/template")
-&#45;&#45;-
-keysOf(payload) reduce ((value, acc = template) -> 
-    replaceAll (acc, "{{" ++ value ++ "}}", payload[value&#93; as String)
-)&#93;&#93;></ee:set-payload>
-			</ee:message>
-		</ee:transform>
-		<parse-template doc:name="Parse Template" doc:id="7e02d946-9837-49c6-8799-187dc8f27a82" targetValue="#[payload&#93;" target="callback_payload">
-			<content >{
-	&quot;channel&quot;: #[payload['channel'&#93;&#93;,
-	&quot;blocks&quot;: [{
-		&quot;type&quot;: &quot;section&quot;,
-		&quot;text&quot;: {
-			&quot;type&quot;: &quot;mrkdwn&quot;,
-			&quot;text&quot;: #[payload['text'&#93;&#93;
-		}
-	}&#93;
-}</content>
-		</parse-template>
-		<logger level="INFO" doc:name="Logger" doc:id="a8680230-a3da-4142-915e-03a952a63c2e" />
-	</flow> [STUDIO] -->
 	<flow name="slack-ai-app-experience-apiFlow2" doc:id="104c2eaa-ad17-4351-9404-bd3475d2ae04" >
 		<http:listener doc:name="/template" doc:id="8481198c-f87f-4f7e-bf8d-f3ec8c152084" config-ref="slack-ai-app-experience-api-httpListenerConfig" path="/template"/>
 		<set-payload value="#[output text/plain&#10;---&#10;write(&#10;{&#10;	&quot;channel&quot;: &quot;{{channel}}&quot;,&#10;	&quot;blocks&quot;: [{&#10;		&quot;type&quot;: &quot;section&quot;,&#10;		&quot;text&quot;: {&#10;			&quot;type&quot;: &quot;mrkdwn&quot;,&#10;			&quot;text&quot;: &quot;{{text}}&quot;&#10;		}&#10;	}]&#10;}&#10;,&#10;'application/json'&#10;)]" doc:name="Return Callback Schema Payload" doc:id="59b10529-d0a0-492e-a504-4b53bb823b5a" />

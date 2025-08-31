@@ -597,11 +597,7 @@ output text/plain
     ) as Object
 ).agentName as String]' doc:name="Set agentToCallDisplayName" doc:id="2efbb23d-6407-4b4d-8bdc-86fa9d37825f" variableName="agentToCallDisplayName" />
 		<try doc:name="Try send update over socket" doc:id="7b070b92-acfe-4759-95b5-e80633652bde" >
-			<set-variable value='#[output text
----
-"Asking agent **" ++ 
-(vars.agentToCallDisplayName default "") ++ 
-"**: \"" ++ (vars.agentPrompt default "") ++ "\""]' doc:name="Set socketMessageContent" doc:id="aa4c24b9-07cc-487d-b862-eb9e2c7da8e2" variableName="socketMessageContent"/>
+			<set-variable value='#[output application/json&#10;---&#10;{&#10;	content: "Asking agent **" ++ (vars.agentToCallDisplayName as String default "") ++ "**: \"" ++ (vars.agentPrompt as String default "") ++ "\"",&#10;	unicodeContent: "📞 Sending request to agent 🤖 " ++ upper(vars.agentToCallDisplayName default "")&#10;}]' doc:name="Set socketMessage" doc:id="aa4c24b9-07cc-487d-b862-eb9e2c7da8e2" variableName="socketMessage"/>
 			<flow-ref doc:name="send-update-over-socket-connection" doc:id="e68b0ceb-93bf-4269-bb39-0b9664b47d6e" name="send-update-over-socket-connection" target="socketSendMessageResponse" targetValue="#[null]"/>
 			<error-handler >
 				<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="61926938-f84d-4eb6-85fd-c5e02e718105" >
@@ -663,11 +659,7 @@ write(payload default {}, "application/json") ++ "\n" ++
 				</otherwise>
 			</choice>
 			<try doc:name="Try send update over socket" doc:id="47de575d-ead3-4dd4-9f0e-73e81c1dbb82" >
-				<set-variable value='#[output text
----
-"Collecting response from agent **" ++ 
-(vars.agentToCallDisplayName default "") ++ 
-"**: \"" ++ (payload.artifacts[0].parts[0].text as String default "") ++ "\""]' doc:name="Set socketMessageContent" doc:id="7dde1e8d-1eb5-4b5e-ad5c-98da4fef9fac" variableName="socketMessageContent" />
+				<set-variable value='#[output application/json&#10;---&#10;{&#10;	content: "Collecting response from agent **" ++ (vars.agentToCallDisplayName as String default "") ++ "**: \"" ++ (payload.artifacts[0].parts[0].text as String default "") ++ "\"",&#10;	unicodeContent: "📥 Collecting response from agent 🤖 " ++ upper(vars.agentToCallDisplayName default "")&#10;}]' doc:name="Set socketMessage" doc:id="7dde1e8d-1eb5-4b5e-ad5c-98da4fef9fac" variableName="socketMessage" />
 				<flow-ref doc:name="send-update-over-socket-connection" doc:id="361b0c7f-1b66-473e-ba1f-8ecc6263a94c" name="send-update-over-socket-connection" target="socketSendMessageResponse" targetValue="#[null]" />
 				<error-handler >
 					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="c5fe8a15-173d-44ec-bbf3-499542a94ff3" >
@@ -727,9 +719,9 @@ payload]]></ee:set-variable>
 				<websocket:send doc:name="Send update..." doc:id="c7e36ad6-e48e-4ebb-874e-e9f4f2dbf748" config-ref="WebSockets_Config" socketId="#[vars.socketId]" >
 					<websocket:content ><![CDATA[#[output text
 var socketMessage =
+	vars.socketMessage default {} ++
 	{
 		"sessionId": vars.sessionId,
-		"content": vars.socketMessageContent,
 		"sender": "agent",
 		"type": "update",
 		"timestamp": now() as String {format: "yyyy-MM-dd'T'HH:mm:ss.SSSXXX"}
