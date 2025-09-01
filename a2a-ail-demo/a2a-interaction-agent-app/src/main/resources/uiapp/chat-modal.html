@@ -1,0 +1,26 @@
+<!-- Chat Modal Component -->
+<!-- NOTE: For correct Bootstrap styling, this modal should be appended to document.body, not inside a flex container. -->
+<div class="modal fade chat-modal" id="chatModal" tabindex="-1" aria-labelledby="chatModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="chatModalLabel">Chat with Agent</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="chat-container" id="chatContainer">
+                    <!-- Chat messages will appear here -->
+                </div>
+                <div class="chat-input-container">
+                    <form class="chat-input-form" id="chatForm">
+                        <textarea class="chat-input" id="chatInput" placeholder="Type your message..." rows="1"></textarea>
+                        <button type="submit" class="chat-send-btn" id="chatSendBtn">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="assets/js/modal/chat-modal.js"></script>

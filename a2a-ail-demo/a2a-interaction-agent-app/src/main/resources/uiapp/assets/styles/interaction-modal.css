@@ -1,0 +1,121 @@
+/* ===== INTERACTION MODAL STYLES ===== */
+#interactionModal .interaction-plan-tile {
+    background: #f8f9fa;
+    border-radius: 1rem;
+    margin-bottom: 1.5rem;
+    padding: 1rem 1.5rem;
+    box-shadow: 0 2px 8px rgba(44,62,80,0.07);
+}
+
+#interactionModal .interaction-plan-title {
+    font-weight: bold;
+    font-size: 1.1rem;
+    margin-bottom: 0.7rem;
+    color: #000000;
+}
+
+#interactionModal .interaction-task-tile {
+    background: #fff;
+    border-radius: 0.7rem;
+    margin-bottom: 1rem;
+    padding: 0.7rem 1rem;
+    box-shadow: 0 1px 4px rgba(44,62,80,0.04);
+    border-left: 4px solid #ff8a00;
+}
+
+#interactionModal .interaction-task-request-tile {
+    background: #f4faff;
+    border-radius: 0.5rem;
+    margin-bottom: 0.5rem;
+    padding: 0.5rem 0.9rem;
+    border-left: 4px solid #00a2ff;
+}
+
+#interactionModal .interaction-task-response-tile {
+    background: #f6fff4;
+    border-radius: 0.5rem;
+    margin-bottom: 0.5rem;
+    padding: 0.5rem 0.9rem;
+    border-left: 4px solid #28a745;
+}
+
+#interactionModal .interaction-task-title {
+    font-weight: 500;
+    color: #222;
+    margin-bottom: 0.3rem;
+}
+
+#interactionModal .interaction-task-section {
+    margin-bottom: 0.5rem;
+}
+
+#interactionModal .interaction-task-label {
+    font-weight: 500;
+    color: #555;
+    margin-right: 0.3rem;
+}
+
+#interactionModal .interaction-task-value {
+    color: #333;
+}
+
+/* ===== SESSION MODAL STYLES (Legacy - kept for compatibility) ===== */
+.session-plan-tile {
+    background: #f8f9fa;
+    border-radius: 1rem;
+    margin-bottom: 1.5rem;
+    padding: 1rem 1.5rem;
+    box-shadow: 0 2px 8px rgba(44,62,80,0.07);
+}
+
+.session-plan-title {
+    font-weight: bold;
+    font-size: 1.1rem;
+    margin-bottom: 0.7rem;
+    color: #000000;
+}
+
+.session-task-tile {
+    background: #fff;
+    border-radius: 0.7rem;
+    margin-bottom: 1rem;
+    padding: 0.7rem 1rem;
+    box-shadow: 0 1px 4px rgba(44,62,80,0.04);
+    border-left: 4px solid #ff8a00;
+}
+
+.session-task-request-tile {
+    background: #f4faff;
+    border-radius: 0.5rem;
+    margin-bottom: 0.5rem;
+    padding: 0.5rem 0.9rem;
+    border-left: 4px solid #00a2ff;
+}
+
+.session-task-response-tile {
+    background: #f6fff4;
+    border-radius: 0.5rem;
+    margin-bottom: 0.5rem;
+    padding: 0.5rem 0.9rem;
+    border-left: 4px solid #28a745;
+}
+
+.session-task-title {
+    font-weight: 500;
+    color: #222;
+    margin-bottom: 0.3rem;
+}
+
+.session-task-section {
+    margin-bottom: 0.5rem;
+}
+
+.session-task-label {
+    font-weight: 500;
+    color: #555;
+    margin-right: 0.3rem;
+}
+
+.session-task-value {
+    color: #333;
+}
