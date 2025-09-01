@@ -10,10 +10,8 @@ window.PREDEFINED_AGENT_URL = window.PREDEFINED_AGENT_URL || [
 // Function to load add agent modal
 function loadAddAgentModal(callback) {
     console.log('[Agents] Loading add agent modal');
-    
     // Check if modal is already loaded
     if (document.getElementById('addAgentModal')) {
-        console.log('[Agents] Add agent modal already loaded');
         callback();
         return;
     }
@@ -22,13 +20,11 @@ function loadAddAgentModal(callback) {
     const existingModal = document.getElementById('addAgentModal');
     if (existingModal) { 
         existingModal.remove(); 
-        console.log('[Agents] Removed old add agent modal'); 
     }
     
     fetch('add-agent-modal.html')
         .then(resp => resp.text())
         .then(html => {
-            console.log('[Agents] Fetched add-agent-modal.html');
             const tempDiv = document.createElement('div');
             tempDiv.innerHTML = html;
             
@@ -36,7 +32,6 @@ function loadAddAgentModal(callback) {
             const modalEl = tempDiv.querySelector('#addAgentModal');
             if (modalEl) {
                 document.body.appendChild(modalEl);
-                console.log('[Agents] Appended add agent modal to document.body');
             } else {
                 console.warn('[Agents] No add agent modal element found in fetched HTML');
             }
@@ -47,16 +42,11 @@ function loadAddAgentModal(callback) {
                 const newScript = document.createElement('script');
                 newScript.src = scriptTag.src;
                 newScript.onload = function() {
-                    console.log('[Agents] Add agent modal script loaded successfully');
-                    
                     // Also load the exchange modal to ensure it's available
-                    console.log('[Agents] Loading exchange modal to ensure availability');
                     loadExchangeModal(function() {
-                        console.log('[Agents] Exchange modal loaded, now calling add agent modal callback');
                         // Wait a bit more for the function to be available
                         setTimeout(function() {
                             if (typeof window.initializeAddAgentModal === 'function') {
-                                console.log('[Agents] initializeAddAgentModal function is available, calling callback');
                                 callback();
                             } else {
                                 console.error('[Agents] initializeAddAgentModal function still not available after script load');
@@ -70,7 +60,6 @@ function loadAddAgentModal(callback) {
                     callback(); // Call callback anyway to avoid hanging
                 };
                 document.head.appendChild(newScript);
-                console.log('[Agents] Loading add agent modal script:', scriptTag.src);
             } else {
                 console.warn('[Agents] No script tag with src found in fetched HTML');
                 callback(); // Call callback anyway to avoid hanging
@@ -85,10 +74,8 @@ function loadAddAgentModal(callback) {
 // Function to load skill description modal
 function loadSkillDescriptionModal(callback) {
     console.log('[Agents] Loading skill description modal');
-    
     // Check if modal is already loaded
     if (document.getElementById('skillDescModal')) {
-        console.log('[Agents] Skill description modal already loaded');
         callback();
         return;
     }
@@ -97,13 +84,11 @@ function loadSkillDescriptionModal(callback) {
     const existingModal = document.getElementById('skillDescModal');
     if (existingModal) { 
         existingModal.remove(); 
-        console.log('[Agents] Removed old skill description modal'); 
     }
     
     fetch('skill-description-modal.html')
         .then(resp => resp.text())
         .then(html => {
-            console.log('[Agents] Fetched skill-description-modal.html');
             const tempDiv = document.createElement('div');
             tempDiv.innerHTML = html;
             
@@ -111,7 +96,6 @@ function loadSkillDescriptionModal(callback) {
             const modalEl = tempDiv.querySelector('#skillDescModal');
             if (modalEl) {
                 document.body.appendChild(modalEl);
-                console.log('[Agents] Appended skill description modal to document.body');
             } else {
                 console.warn('[Agents] No skill description modal element found in fetched HTML');
             }
@@ -122,11 +106,9 @@ function loadSkillDescriptionModal(callback) {
                 const newScript = document.createElement('script');
                 newScript.src = scriptTag.src;
                 newScript.onload = function() {
-                    console.log('[Agents] Skill description modal script loaded successfully');
                     // Wait a bit more for the function to be available
                     setTimeout(function() {
                         if (typeof window.initializeSkillDescriptionModal === 'function') {
-                            console.log('[Agents] initializeSkillDescriptionModal function is available, calling callback');
                             callback();
                         } else {
                             console.error('[Agents] initializeSkillDescriptionModal function still not available after script load');
@@ -139,7 +121,6 @@ function loadSkillDescriptionModal(callback) {
                     callback(); // Call callback anyway to avoid hanging
                 };
                 document.body.appendChild(newScript);
-                console.log('[Agents] Loading skill description modal script:', scriptTag.src);
             } else {
                 console.warn('[Agents] No script tag with src found in fetched HTML');
                 callback(); // Call callback anyway to avoid hanging
@@ -154,10 +135,8 @@ function loadSkillDescriptionModal(callback) {
 // Function to load chat modal
 function loadChatModal(callback) {
     console.log('[Agents] Loading chat modal');
-    
     // Check if modal is already loaded
     if (document.getElementById('chatModal')) {
-        console.log('[Agents] Chat modal already loaded');
         callback();
         return;
     }
@@ -166,13 +145,11 @@ function loadChatModal(callback) {
     const existingModal = document.getElementById('chatModal');
     if (existingModal) { 
         existingModal.remove(); 
-        console.log('[Agents] Removed old chat modal'); 
     }
     
     fetch('chat-modal.html')
         .then(resp => resp.text())
         .then(html => {
-            console.log('[Agents] Fetched chat-modal.html');
             const tempDiv = document.createElement('div');
             tempDiv.innerHTML = html;
             
@@ -180,7 +157,6 @@ function loadChatModal(callback) {
             const modalEl = tempDiv.querySelector('#chatModal');
             if (modalEl) {
                 document.body.appendChild(modalEl);
-                console.log('[Agents] Appended chat modal to document.body');
             } else {
                 console.warn('[Agents] No chat modal element found in fetched HTML');
             }
@@ -191,11 +167,9 @@ function loadChatModal(callback) {
                 const newScript = document.createElement('script');
                 newScript.src = scriptTag.src;
                 newScript.onload = function() {
-                    console.log('[Agents] Chat modal script loaded successfully');
                     // Wait a bit more for the function to be available
                     setTimeout(function() {
                         if (typeof window.initializeChatModal === 'function') {
-                            console.log('[Agents] initializeChatModal function is available, calling callback');
                             callback();
                         } else {
                             console.error('[Agents] initializeChatModal function still not available after script load');
@@ -208,7 +182,6 @@ function loadChatModal(callback) {
                     callback(); // Call callback anyway to avoid hanging
                 };
                 document.body.appendChild(newScript);
-                console.log('[Agents] Loading chat modal script:', scriptTag.src);
             } else {
                 console.warn('[Agents] No script tag with src found in fetched HTML');
                 callback(); // Call callback anyway to avoid hanging
@@ -256,13 +229,10 @@ function saveAgentTypesToStorage(agentTypes) {
 }
 
 function addAgentTypeToStorage(agentUrl, agentType) {
-    console.log('addAgentTypeToStorage called with:', { agentUrl, agentType });
+    console.log('[Agents] Adding agent type to storage:', agentType, 'for URL:', agentUrl);
     const agentTypes = getAgentTypesFromStorage();
-    console.log('Current agent types in storage:', agentTypes);
     agentTypes[agentUrl] = agentType;
-    console.log('Updated agent types:', agentTypes);
     saveAgentTypesToStorage(agentTypes);
-    console.log('Agent type saved to storage');
 }
 
 function removeAgentTypeFromStorage(agentUrl) {
@@ -278,9 +248,7 @@ function removeAgentTypesFromStorage(agentUrls) {
 }
 
 function clearAllAgentTypesFromStorage() {
-    console.log('Clearing all agent types from storage');
     localStorage.removeItem(AGENT_TYPES_STORAGE_KEY);
-    console.log('All agent types cleared from storage');
 }
 
 function getAgentTypeForFunction(agentFunctionName) {
@@ -340,13 +308,10 @@ function hideLoadingBackdrop() {
 
 // New function to get agent type by URL
 function getAgentTypeForUrl(agentUrl) {
-    console.log('getAgentTypeForUrl called with:', agentUrl);
     const agentTypes = getAgentTypesFromStorage();
-    console.log('All agent types in storage:', agentTypes);
     
     // Try exact match first
     if (agentTypes[agentUrl]) {
-        console.log('Found exact match for URL:', agentUrl);
         return agentTypes[agentUrl];
     }
     
@@ -355,7 +320,6 @@ function getAgentTypeForUrl(agentUrl) {
     for (const [storedUrl, agentType] of Object.entries(agentTypes)) {
         const normalizedStoredUrl = storedUrl.replace(/\/$/, '');
         if (normalizedStoredUrl === normalizedUrl) {
-            console.log('Found normalized match for URL:', agentUrl, '->', storedUrl);
             return agentType;
         }
     }
@@ -363,12 +327,11 @@ function getAgentTypeForUrl(agentUrl) {
     // Try partial URL matching (in case of protocol differences)
     for (const [storedUrl, agentType] of Object.entries(agentTypes)) {
         if (agentUrl.includes(storedUrl) || storedUrl.includes(agentUrl)) {
-            console.log('Found partial match for URL:', agentUrl, '->', storedUrl);
             return agentType;
         }
     }
     
-    console.log('No agent type found for URL:', agentUrl);
+    console.log('[Agents] No agent type found for URL:', agentUrl);
     return null;
 }
 
@@ -412,10 +375,8 @@ window.closeBtnListener = null;
 // Function to load exchange modal
 function loadExchangeModal(callback) {
     console.log('[Agents] Loading exchange modal');
-    
     // Check if modal is already loaded
     if (document.getElementById('exchangeModal')) {
-        console.log('[Agents] Exchange modal already loaded');
         callback();
         return;
     }
@@ -424,13 +385,11 @@ function loadExchangeModal(callback) {
     const existingModal = document.getElementById('exchangeModal');
     if (existingModal) { 
         existingModal.remove(); 
-        console.log('[Agents] Removed old exchange modal'); 
     }
     
     fetch('exchange-modal.html')
         .then(resp => resp.text())
         .then(html => {
-            console.log('[Agents] Fetched exchange-modal.html');
             const tempDiv = document.createElement('div');
             tempDiv.innerHTML = html;
             
@@ -438,7 +397,6 @@ function loadExchangeModal(callback) {
             const modalEl = tempDiv.querySelector('#exchangeModal');
             if (modalEl) {
                 document.body.appendChild(modalEl);
-                console.log('[Agents] Appended exchange modal to document.body');
             } else {
                 console.warn('[Agents] No exchange modal element found in fetched HTML');
             }
@@ -449,11 +407,9 @@ function loadExchangeModal(callback) {
                 const newScript = document.createElement('script');
                 newScript.src = scriptTag.src;
                 newScript.onload = function() {
-                    console.log('[Agents] Exchange modal script loaded successfully');
                     // Wait a bit more for the function to be available
                     setTimeout(function() {
                         if (typeof window.renderExchangeModal === 'function') {
-                            console.log('[Agents] renderExchangeModal function is available, calling callback');
                             callback();
                         } else {
                             console.error('[Agents] renderExchangeModal function still not available after script load');
@@ -466,7 +422,6 @@ function loadExchangeModal(callback) {
                     callback(); // Call callback anyway to avoid hanging
                 };
                 document.body.appendChild(newScript);
-                console.log('[Agents] Loading exchange modal script:', scriptTag.src);
             } else {
                 console.warn('[Agents] No script tag with src found in fetched HTML');
                 callback(); // Call callback anyway to avoid hanging
@@ -547,34 +502,26 @@ function generateUUID() {
 
 // Function to get agent icon HTML
 function getAgentIconHtml(agentUrl) {
-    console.log('getAgentIconHtml called with agentUrl:', agentUrl);
-    
     if (!agentUrl || agentUrl.trim() === '') {
-        console.log('No agent URL provided, using default robot icon');
         return `<i class='fas fa-robot tile-robot-icon'></i>`;
     }
     
     const agentType = getAgentTypeForUrl(agentUrl);
-    console.log('Found agent type for URL:', agentType);
-    
     const iconUrl = window.AGENT_TYPE_ICONS[agentType];
-    console.log('Icon URL for agent type:', iconUrl);
     
     if (!agentType || agentType === "Custom") {
-        console.log('Using default robot icon for agent type:', agentType);
         return `<i class='fas fa-robot tile-robot-icon'></i>`;
     } else if (iconUrl) {
-        console.log('Using custom icon for agent type:', agentType);
         return `<img src="${iconUrl}" alt="${agentType}" class="agent-type-icon" style="width: clamp(32px, 2vw, 60px); height: auto;" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
                 <i class='fas fa-robot tile-robot-icon' style="display:none;"></i>`;
     } else {
-        console.log('No icon URL found, using default robot icon');
         return `<i class='fas fa-robot tile-robot-icon'></i>`;
     }
 }
 
 // Function to start a chat with a specific agent
 function startChatWithAgent(agentId, agentName) {
+    console.log('[Agents] Starting chat with agent:', agentName, 'ID:', agentId);
     // Store the currently focused element for later restoration
     window.lastFocusedElement = document.activeElement;
     
@@ -721,6 +668,7 @@ function addChatMessage(message, isUser = false) {
 
 // Function to send a message to the agent
 async function sendMessageToAgent(message) {
+    console.log('[Agents] Sending message to agent:', message.substring(0, 50) + (message.length > 50 ? '...' : ''));
     if (!window.currentChatAgent) {
         console.error('No agent selected for chat');
         return;
@@ -729,7 +677,6 @@ async function sendMessageToAgent(message) {
     // Show typing indicator
     const typingIndicator = document.getElementById('typingIndicator');
     if (typingIndicator) {
-        console.log('Showing typing indicator');
         typingIndicator.style.display = 'flex';
         // Ensure it's visible and scroll to it
         const chatContainer = document.getElementById('chatContainer');
@@ -797,17 +744,14 @@ async function sendMessageToAgent(message) {
 
 // Initialize modals using the new modal loading system
 function initializeModals() {
-    console.log('[Agents] Initializing modals using new loading system');
-    
+    console.log('[Agents] Initializing modals');
     // Load all modals in parallel
     Promise.all([
         new Promise((resolve) => {
             if (typeof window.loadAddAgentModal === 'function') {
                 window.loadAddAgentModal(() => {
-                    console.log('[Agents] Add agent modal loaded and initialized');
                     // Actually call the initialization function
                     if (typeof window.initializeAddAgentModal === 'function') {
-                        console.log('[Agents] Calling initializeAddAgentModal');
                         window.initializeAddAgentModal();
                     } else {
                         console.error('[Agents] initializeAddAgentModal function not available');
@@ -822,7 +766,6 @@ function initializeModals() {
         new Promise((resolve) => {
             if (typeof window.loadSkillDescriptionModal === 'function') {
                 window.loadSkillDescriptionModal(() => {
-                    console.log('[Agents] Skill description modal loaded and initialized');
                     resolve();
                 });
             } else {
@@ -833,7 +776,6 @@ function initializeModals() {
         new Promise((resolve) => {
             if (typeof window.loadChatModal === 'function') {
                 window.loadChatModal(() => {
-                    console.log('[Agents] Chat modal loaded and initialized');
                     resolve();
                 });
             } else {
@@ -842,8 +784,6 @@ function initializeModals() {
             }
         })
     ]).then(() => {
-        console.log('[Agents] All modals loaded and initialized');
-        
         // Initialize Bootstrap modal instances after all modals are loaded
         setTimeout(() => {
             try {
@@ -924,7 +864,6 @@ function initializeModals() {
             }
         });
         
-                            console.log('[Agents] Bootstrap modal instances created successfully');
                         } catch (error) {
                             console.error('[Agents] Error creating Bootstrap modal instances:', error);
                         }
@@ -946,7 +885,6 @@ function initializeModals() {
 window.attachAgentsTab = function() {
     // Prevent multiple simultaneous calls
     if (window.attachAgentsTab.isRunning) {
-        console.log('[Agents] attachAgentsTab already running, skipping duplicate call');
         return;
     }
     
@@ -1039,8 +977,7 @@ window.attachAgentsTab = function() {
                 return tool.agentUrl || agentInfo.agentUrl || '';
             }).filter(url => url); // Filter out empty URLs
             
-            console.log('[Agents] Existing agent URLs stored:', window.existingAgentUrls);
-            
+            console.log('[Agents] Processing', tools.length, 'agents');
             tools.forEach(tool => {
                 let agentInfo;
                 try {
@@ -1051,7 +988,6 @@ window.attachAgentsTab = function() {
                 
                 // Get agent URL from the tool object directly
                 const agentUrl = tool.agentUrl || agentInfo.agentUrl || '';
-                console.log('Processing agent:', tool.function.name, 'with URL:', agentUrl);
                 
                 const tile = document.createElement('div');
                 tile.className = 'agent-tile';
@@ -1474,7 +1410,7 @@ window.attachAgentsTab = function() {
         
         // Reset the running flag so it can be called again
         window.attachAgentsTab.isRunning = false;
-        console.log('[Agents] attachAgentsTab completed, flag reset');
+        console.log('[Agents] attachAgentsTab completed');
 }
 
 // Initialize chat functionality
@@ -1574,10 +1510,8 @@ function handleChatSubmit() {
 function testTypingIndicator() {
     const typingIndicator = document.getElementById('typingIndicator');
     if (typingIndicator) {
-        console.log('Testing typing indicator - showing it');
         typingIndicator.style.display = 'flex';
         setTimeout(() => {
-            console.log('Hiding typing indicator');
             typingIndicator.style.display = 'none';
         }, 3000);
     } else {
@@ -1590,18 +1524,12 @@ window.testTypingIndicator = testTypingIndicator;
 
 // Function to debug agent types storage
 function debugAgentTypesStorage() {
-    console.log('=== Agent Types Storage Debug ===');
-    const agentTypes = getAgentTypesFromStorage();
-    console.log('All stored agent types:', agentTypes);
-    console.log('Default agent types mapping:', window.DEFAULT_AGENT_TYPES);
-    console.log('Predefined agent URLs:', window.PREDEFINED_AGENT_URL);
-    console.log('================================');
+    console.log('[Agents] Debug: Agent types in storage:', Object.keys(getAgentTypesFromStorage()).length);
 }
 
 // Function to open edit agent modal
 function openEditAgentModal(agentUrl, agentName, tileElement, agentInfo, tool) {
-    console.log('Opening edit modal for agent:', agentName, 'with URL:', agentUrl, 'agentInfo:', agentInfo, 'tool:', tool);
-    
+    console.log('[Agents] Opening edit modal for agent:', agentName);
     // Store the currently focused element
     window.lastFocusedElement = document.activeElement;
     
@@ -1632,7 +1560,6 @@ function openEditAgentModal(agentUrl, agentName, tileElement, agentInfo, tool) {
         agentTypeSelect.value = currentAgentType || '';
         agentTypeSelect.disabled = false;
         agentTypeSelect.style.backgroundColor = '';
-        console.log('Pre-filled agent type:', currentAgentType);
     }
     
     // Pre-fill authentication parameters with current values
@@ -1646,23 +1573,18 @@ function openEditAgentModal(agentUrl, agentName, tileElement, agentInfo, tool) {
         
         if (authenticationSelect && tool.agentAuthentication.type) {
             authenticationSelect.value = tool.agentAuthentication.type;
-            console.log('Pre-filled authentication type:', tool.agentAuthentication.type);
         }
         if (clientIdInput && tool.agentAuthentication.clientId) {
             clientIdInput.value = tool.agentAuthentication.clientId;
-            console.log('Pre-filled client ID');
         }
         if (clientSecretInput && tool.agentAuthentication.clientSecret) {
             clientSecretInput.value = tool.agentAuthentication.clientSecret;
-            console.log('Pre-filled client secret');
         }
         if (tokenUrlInput && tool.agentAuthentication.tokenUrl) {
             tokenUrlInput.value = tool.agentAuthentication.tokenUrl;
-            console.log('Pre-filled token URL');
         }
         if (encodeClientCredentialsInBodySelect && tool.agentAuthentication.encodeClientCredentialsInBody !== undefined) {
             encodeClientCredentialsInBodySelect.value = tool.agentAuthentication.encodeClientCredentialsInBody ? 'true' : 'false';
-            console.log('Pre-filled encode client credentials in body:', tool.agentAuthentication.encodeClientCredentialsInBody);
         }
         
         // Show/hide client credentials fields based on authentication type
@@ -1749,7 +1671,6 @@ function openEditAgentModal(agentUrl, agentName, tileElement, agentInfo, tool) {
     const authTabBtn = document.getElementById('authentication-tab');
     if (authTabBtn) {
         authTabBtn.style.display = 'none';
-        console.log('[Edit Mode] Authentication tab hidden');
     }
     
     // Store reference to the tile element for updating later
@@ -1859,7 +1780,6 @@ window.resetModalToAddMode = function() {
     const authTabBtn = document.getElementById('authentication-tab');
     if (authTabBtn) {
         authTabBtn.style.display = 'block';
-        console.log('[Add Mode] Authentication tab shown');
     }
     
     // Clear and disable the agent type select
@@ -1921,8 +1841,7 @@ window.resetModalToAddMode = function() {
 
 // Function to add a new agent
 function addAgent(agentData) {
-    console.log('[Agents] addAgent called with data:', agentData);
-    
+    console.log('[Agents] Adding new agent:', agentData.agentUrl);
     // Prepare the agent data for the API call in the format expected by the backend
     const agentObject = {
         url: agentData.agentUrl,
@@ -1966,8 +1885,6 @@ function addAgent(agentData) {
         return response.json();
     })
     .then(data => {
-        console.log('[Agents] Agent added successfully:', data);
-        
         // Hide loading backdrop
         if (typeof window.hideLoadingBackdrop === 'function') {
             window.hideLoadingBackdrop();
