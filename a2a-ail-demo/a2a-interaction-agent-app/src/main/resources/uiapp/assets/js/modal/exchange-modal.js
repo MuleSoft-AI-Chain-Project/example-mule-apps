@@ -17,9 +17,12 @@ if (!window.getUserSessionId) {
 // Function to render the exchange modal
 window.renderExchangeModal = function() {
     console.log('[Exchange Modal] renderExchangeModal called');
+    console.log('[Exchange Modal] Bootstrap available:', typeof bootstrap);
+    console.log('[Exchange Modal] bootstrap.Modal available:', typeof bootstrap?.Modal);
     
     // Get the modal element
     const modalEl = document.getElementById('exchangeModal');
+    console.log('[Exchange Modal] Modal element found:', modalEl);
     if (!modalEl) {
         console.error('[Exchange Modal] Exchange modal element not found');
         return;
@@ -27,12 +30,18 @@ window.renderExchangeModal = function() {
     
     // Initialize Bootstrap modal if not already done
     if (!window.exchangeModal) {
-        window.exchangeModal = new bootstrap.Modal(modalEl);
-        console.log('[Exchange Modal] Bootstrap modal initialized');
+        if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+            window.exchangeModal = new bootstrap.Modal(modalEl);
+            console.log('[Exchange Modal] Bootstrap modal initialized');
+        } else {
+            console.error('[Exchange Modal] Bootstrap not available, cannot initialize modal');
+            return;
+        }
     }
     
     // Show the modal
     if (window.exchangeModal) {
+        console.log('[Exchange Modal] Attempting to show modal');
         window.exchangeModal.show();
         console.log('[Exchange Modal] Exchange modal shown');
         
