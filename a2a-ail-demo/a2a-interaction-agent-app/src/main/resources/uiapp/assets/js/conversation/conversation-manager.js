@@ -42,14 +42,12 @@ window.ConversationManager = (function() {
     // ----------------------------------------------------------------------------
 
     function createWebSocketConnection(sessionId, messageHandler) {
-        if (websocket && (websocket.readyState === WebSocket.CLOSED || websocket.readyState === WebSocket.CLOSING)) {
-            websocket = null;
-        }
-        
+        // Close any existing connection before creating a new one
         if (websocket && websocket.readyState === WebSocket.OPEN) {
-            console.log('Reusing existing WebSocket connection');
-            return websocket;
+            console.log('Closing existing WebSocket before creating new connection');
+            websocket.close();
         }
+        websocket = null;
         
         function getCookie(name) {
             const value = `; ${document.cookie}`;
@@ -93,6 +91,11 @@ window.ConversationManager = (function() {
         
         websocket.onerror = function(error) {
             console.error('WebSocket error:', error);
+            // Close the connection on error to ensure clean state
+            if (websocket && websocket.readyState === WebSocket.OPEN) {
+                websocket.close();
+                websocket = null;
+            }
             if (messageHandler) {
                 messageHandler({ data: JSON.stringify({ error: 'Connection error' }) });
             }
@@ -147,6 +150,13 @@ window.ConversationManager = (function() {
                     localStorage.setItem('agent_sessions', JSON.stringify(sessionHistory));
                     
                     currentReasoningUpdates = [];
+                    
+                    // Close WebSocket immediately after receiving final response
+                    if (websocket && websocket.readyState === WebSocket.OPEN) {
+                        console.log('Closing WebSocket connection after final response');
+                        websocket.close();
+                        websocket = null;
+                    }
                 }
             } catch (error) {
                 console.error('Error parsing WebSocket message:', error);
@@ -681,9 +691,8 @@ window.ConversationManager = (function() {
         // Mark as initialized
         window.ConversationManager._initialized = true;
 
-        // Initialize WebSocket connection
+        // Initialize session ID (WebSocket connection will be created when user sends first message)
         let a2aSessionId = generateUUID();
-        createWebSocketConnection(a2aSessionId, handleWebSocketMessage);
 
         // Setup New Conversation button
         if (newConversationBtn) {
@@ -698,7 +707,7 @@ window.ConversationManager = (function() {
                 chatMessages.innerHTML = '';
                 addMessage("Hello! I'm your Host Agent. How can I help you today?", false);
                 if (promptInput) promptInput.value = '';
-                createWebSocketConnection(a2aSessionId, handleWebSocketMessage);
+                // WebSocket connection will be created when user sends first message
             });
         }
 
@@ -726,19 +735,26 @@ window.ConversationManager = (function() {
             
             currentReasoningUpdates = [];
             
+            // Create WebSocket connection if it doesn't exist or is closed
             if (!websocket || websocket.readyState === WebSocket.CLOSED || websocket.readyState === WebSocket.CLOSING) {
+                console.log('Creating fresh WebSocket connection for new request');
                 createWebSocketConnection(a2aSessionId, handleWebSocketMessage);
-            }
-            
-            if (websocket.readyState === WebSocket.OPEN) {
-                sendPromptMessage(prompt);
-            } else if (websocket.readyState === WebSocket.CONNECTING) {
+                
+                // Send message once connection is established
                 websocket.onopen = function() {
+                    console.log('WebSocket connection established, sending message');
                     sendPromptMessage(prompt);
                 };
-            } else {
-                console.error('WebSocket is not in a valid state:', websocket.readyState);
-                addMessage('Sorry, there was an error with the connection.', false, null, true);
+            } else if (websocket.readyState === WebSocket.OPEN) {
+                // Connection is already open, send message immediately
+                console.log('Using existing WebSocket connection');
+                sendPromptMessage(prompt);
+            } else if (websocket.readyState === WebSocket.CONNECTING) {
+                // Connection is still connecting, wait for it to open
+                websocket.onopen = function() {
+                    console.log('WebSocket connection established, sending message');
+                    sendPromptMessage(prompt);
+                };
             }
         }
 
