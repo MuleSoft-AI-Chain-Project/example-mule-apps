@@ -18,6 +18,7 @@
 	    <link href="assets/styles/add-agent-modal.css" rel="stylesheet">
 	    <link href="assets/styles/skill-description-modal.css" rel="stylesheet">
 	    <link href="assets/styles/release-notes.css" rel="stylesheet">
+	    <link href="assets/styles/settings.css" rel="stylesheet">
 	</head>
 	<body>
 	    <nav class="navbar navbar-expand-lg navbar-light">
@@ -56,12 +57,18 @@
 	                    <i class="fas fa-sync-alt"></i>
 	                </button>
 	            </div>
-	            <div class="sidebar-link-group" id="sessionsSidebarGroup">
-	                <a href="#sessions" class="sidebar-item" data-content="sessions">
-	                    <i class="fas fa-clock"></i>
-	                    <span class="sidebar-label">Sessions</span>
-	                </a>
-	            </div>
+	                        <div class="sidebar-link-group" id="sessionsSidebarGroup">
+                <a href="#sessions" class="sidebar-item" data-content="sessions">
+                    <i class="fas fa-clock"></i>
+                    <span class="sidebar-label">Sessions</span>
+                </a>
+            </div>
+            <div class="sidebar-link-group" id="settingsSidebarGroup">
+                <a href="#settings" class="sidebar-item" data-content="settings">
+                    <i class="fas fa-cog"></i>
+                    <span class="sidebar-label">Settings</span>
+                </a>
+            </div>
 	            <button class="sidebar-toggle-btn" id="sidebarToggleBtn" aria-label="Toggle sidebar" tabindex="0">
 	                <i class="fas fa-bars"></i>
 	            </button>
@@ -75,9 +82,12 @@
 	            <div id="agents-content" class="agents-content">
 	                <!-- Agents content will be loaded here -->
 	            </div>
-	            <div id="sessions-content" class="sessions-content hidden">
-	                <!-- Sessions content will be loaded here -->
-	            </div>
+	                        <div id="sessions-content" class="sessions-content hidden">
+                <!-- Sessions content will be loaded here -->
+            </div>
+            <div id="settings-content" class="settings-content hidden">
+                <!-- Settings content will be loaded here -->
+            </div>
 	        </div>
 	    </div>
 	    
