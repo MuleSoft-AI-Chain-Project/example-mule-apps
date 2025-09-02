@@ -374,10 +374,12 @@ function setupSidebarNavigation() {
     const conversationContent = document.getElementById('conversation-content');
     const agentsContent = document.getElementById('agents-content');
     const sessionsContent = document.getElementById('sessions-content');
+    const settingsContent = document.getElementById('settings-content');
     const refreshAgentsBtn = document.getElementById('refreshAgentsBtn');
     const agentsSidebarGroup = document.getElementById('agentsSidebarGroup');
     const conversationSidebarGroup = document.getElementById('conversationSidebarGroup');
     const sessionsSidebarGroup = document.getElementById('sessionsSidebarGroup');
+    const settingsSidebarGroup = document.getElementById('settingsSidebarGroup');
     const newConversationBtn = document.getElementById('newConversationBtn');
 
     sidebarItems.forEach(item => {
@@ -398,9 +400,11 @@ function setupSidebarNavigation() {
             conversationContent.classList.add('hidden');
             agentsContent.classList.add('hidden');
             sessionsContent.classList.add('hidden');
+            settingsContent.classList.add('hidden');
             conversationSidebarGroup.classList.remove('active');
             agentsSidebarGroup.classList.remove('active');
             sessionsSidebarGroup.classList.remove('active');
+            settingsSidebarGroup.classList.remove('active');
             
             if (content === 'conversation') {
                 conversationContent.classList.remove('hidden');
@@ -643,6 +647,14 @@ function setupReasoningEngineHandlers() {
     if (navbarBrand) {
         navbarBrand.addEventListener('click', function(e) {
             e.preventDefault();
+            
+            // Check if settings page is active - if so, don't open the modal
+            const settingsContent = document.getElementById('settings-content');
+            if (settingsContent && !settingsContent.classList.contains('hidden')) {
+                console.log('[Index] Settings page is active, preventing reasoning engine modal from opening');
+                return;
+            }
+            
             openReasoningEngineModal();
         });
     }
