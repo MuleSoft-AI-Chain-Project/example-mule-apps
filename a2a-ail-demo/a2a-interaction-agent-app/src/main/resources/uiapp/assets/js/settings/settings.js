@@ -225,10 +225,16 @@ window.SettingsManager = (function() {
             }
         }
 
-        // Show/hide custom fields based on selection
+        // Show/hide custom fields and instructions based on selection
         const customFields = document.getElementById('customExchangeFields');
+        const customInstructions = document.getElementById('customExchangeInstructions');
+        
         if (customFields) {
             customFields.style.display = exchangeConfig.type === 'custom' ? 'block' : 'none';
+        }
+        
+        if (customInstructions) {
+            customInstructions.style.display = exchangeConfig.type === 'custom' ? 'block' : 'none';
         }
 
         // Populate custom fields if they exist
@@ -322,10 +328,16 @@ window.SettingsManager = (function() {
         const selectedType = event.target.value;
         exchangeConfig.type = selectedType;
         
-        // Update UI to show/hide custom fields
+        // Update UI to show/hide custom fields and instructions
         const customFields = document.getElementById('customExchangeFields');
+        const customInstructions = document.getElementById('customExchangeInstructions');
+        
         if (customFields) {
             customFields.style.display = selectedType === 'custom' ? 'block' : 'none';
+        }
+        
+        if (customInstructions) {
+            customInstructions.style.display = selectedType === 'custom' ? 'block' : 'none';
         }
         
         console.log('[Settings] Exchange type changed to:', selectedType);

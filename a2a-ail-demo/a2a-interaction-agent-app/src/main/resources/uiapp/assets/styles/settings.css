@@ -445,6 +445,57 @@
     margin-left: 2.25rem;
 }
 
+/* Exchange Instructions Styles */
+.settings-exchange-instructions {
+    margin-top: 1.5rem;
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    border: 1px solid #e9ecef;
+    border-radius: 0.5rem;
+    background: #f8f9fa;
+    border-left: 4px solid #17a2b8;
+}
+
+.settings-exchange-instructions h5 {
+    color: #2c3e50;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+}
+
+.settings-exchange-instructions h5 i {
+    color: #17a2b8;
+}
+
+.settings-exchange-instructions p {
+    color: #495057;
+    margin-bottom: 1rem;
+    line-height: 1.5;
+}
+
+.settings-exchange-instructions ul {
+    color: #495057;
+    margin-bottom: 0;
+    padding-left: 1.5rem;
+}
+
+.settings-exchange-instructions ul ul {
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.settings-exchange-instructions li {
+    margin-bottom: 0.5rem;
+    line-height: 1.4;
+}
+
+.settings-exchange-instructions strong {
+    color: #2c3e50;
+    font-weight: 600;
+}
+
 .settings-custom-exchange-fields {
     margin-top: 2rem;
     margin-bottom: 2rem;
@@ -588,5 +639,30 @@
         background: #404040;
         color: #b0b0b0;
         border-right-color: #555;
+    }
+    
+    .settings-exchange-instructions {
+        background: #2d2d2d;
+        border-color: #404040;
+    }
+    
+    .settings-exchange-instructions h5 {
+        color: #e9ecef;
+    }
+    
+    .settings-exchange-instructions h5 i {
+        color: #64b5f6;
+    }
+    
+    .settings-exchange-instructions p {
+        color: #d1d1d1;
+    }
+    
+    .settings-exchange-instructions ul {
+        color: #d1d1d1;
+    }
+    
+    .settings-exchange-instructions strong {
+        color: #e9ecef;
     }
 }

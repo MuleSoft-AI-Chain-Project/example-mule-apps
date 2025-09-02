@@ -102,6 +102,22 @@
                                  </div>
                              </div>
                              
+                             <!-- Instructions for custom configuration (shown only when custom is selected) -->
+                             <div id="customExchangeInstructions" class="settings-exchange-instructions" style="display: none;">
+                                 <h5><i class="fas fa-info-circle me-2"></i>Custom Configuration Instructions</h5>
+                                 <p>To use a custom Anypoint Exchange, you need to create a Connected App in Anypoint Platform with the following specifications:</p>
+                                 <ul>
+                                     <li><strong>App Type:</strong> App acts on its own behalf (Client Credentials)</li>
+                                     <li><strong>Required Permissions:</strong></li>
+                                     <ul>
+                                         <li><strong>API Manager:</strong> View APIs Configuration</li>
+                                         <li><strong>Exchange:</strong> Exchange Viewer</li>
+                                         <li><strong>General:</strong> View Environment</li>
+                                     </ul>
+                                 </ul>
+                                 <p><strong>Important:</strong> The exchange integration will only retrieve A2A Agents that are managed under Flex Gateway.</p>
+                             </div>
+                             
                              <div id="customExchangeFields" class="settings-custom-exchange-fields" style="display: none;">
                                  <h4>Custom Configuration</h4>
                                  <div class="settings-form-group">
