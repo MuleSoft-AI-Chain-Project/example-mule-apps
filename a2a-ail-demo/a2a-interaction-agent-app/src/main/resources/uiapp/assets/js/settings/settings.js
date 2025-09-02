@@ -120,13 +120,15 @@ window.SettingsManager = (function() {
         }
     }
 
-    // Test Anypoint Exchange credentials
+    // Test Anypoint Exchange credentials (transparent - no user notifications)
     async function testExchangeCredentials() {
         try {
             if (exchangeConfig.type !== 'custom') {
-                showNotification('No custom credentials to test', 'info');
-                return false;
+                return true; // Default type doesn't need testing
             }
+
+            // Show spinner
+            showSpinner('Processing...');
 
             // Build the test URL
             const testUrl = `/platform/a2a-agents?url=${encodeURIComponent(exchangeConfig.url)}&organizationId=${exchangeConfig.organizationId}&environmentId=${exchangeConfig.environmentId}`;
@@ -146,23 +148,23 @@ window.SettingsManager = (function() {
             if (response.ok) {
                 const data = await response.json();
                 console.log('[Settings] Credentials test successful:', data);
-                showNotification('Credentials validated successfully!', 'success');
                 return true;
             } else {
                 const errorText = await response.text();
                 console.error('[Settings] Credentials test failed:', response.status, errorText);
-                showNotification(`Credentials validation failed: ${response.status} ${response.statusText}`, 'error');
                 return false;
             }
         } catch (error) {
             console.error('[Settings] Error testing credentials:', error);
-            showNotification(`Error testing credentials: ${error.message}`, 'error');
             return false;
+        } finally {
+            // Hide spinner
+            hideSpinner();
         }
     }
 
     // Save exchange configuration to localStorage
-    function saveExchangeConfig() {
+    async function saveExchangeConfig() {
         try {
             // For custom type, validate all required fields are filled
             if (exchangeConfig.type === 'custom') {
@@ -182,8 +184,19 @@ window.SettingsManager = (function() {
                     return false;
                 }
                 
-                // Test credentials after saving
-                testExchangeCredentials();
+                // Show spinner for credential testing
+                showSpinner('Validating credentials...');
+                
+                // Test credentials before saving - abort if test fails
+                const credentialsValid = await testExchangeCredentials();
+                if (!credentialsValid) {
+                    hideSpinner();
+                    showNotification('Credentials validation failed. Please check your Anypoint Exchange configuration and try again.', 'error');
+                    return false;
+                }
+                
+                // Hide spinner after successful validation
+                hideSpinner();
             }
             
             localStorage.setItem('exchange_credentials', JSON.stringify(exchangeConfig));
@@ -191,6 +204,7 @@ window.SettingsManager = (function() {
             return true;
         } catch (error) {
             console.error('[Settings] Error saving exchange config:', error);
+            hideSpinner();
             return false;
         }
     }
@@ -257,7 +271,7 @@ window.SettingsManager = (function() {
         }
     }
 
-    function handleSaveButtonClick() {
+    async function handleSaveButtonClick() {
         // Determine which section is currently active
         const activeNavItem = document.querySelector('.settings-nav-item.active');
         const settingType = activeNavItem ? activeNavItem.getAttribute('data-setting') : 'host-agent-engine';
@@ -265,27 +279,35 @@ window.SettingsManager = (function() {
         let success = false;
         let message = '';
 
-        if (settingType === 'host-agent-engine') {
-            // Save only engine selection
-            if (saveEngineSelection()) {
-                success = true;
-                message = 'Engine selection saved successfully!';
-                
-                // Dispatch custom event for other components
-                window.dispatchEvent(new CustomEvent('engineChanged', { 
-                    detail: { engine: selectedEngine } 
-                }));
-            } else {
-                message = 'Failed to save engine selection. Please try again.';
+        // Show spinner for save operation
+        showSpinner('Saving...');
+
+        try {
+            if (settingType === 'host-agent-engine') {
+                // Save only engine selection
+                if (saveEngineSelection()) {
+                    success = true;
+                    message = 'Engine selection saved successfully!';
+                    
+                    // Dispatch custom event for other components
+                    window.dispatchEvent(new CustomEvent('engineChanged', { 
+                        detail: { engine: selectedEngine } 
+                    }));
+                } else {
+                    message = 'Failed to save engine selection. Please try again.';
+                }
+            } else if (settingType === 'anypoint-exchange') {
+                // Save only exchange configuration
+                success = await saveExchangeConfig();
+                if (success) {
+                    message = 'Exchange configuration saved successfully!';
+                } else {
+                    message = 'Failed to save exchange configuration. Please try again.';
+                }
             }
-        } else if (settingType === 'anypoint-exchange') {
-            // Save only exchange configuration
-            if (saveExchangeConfig()) {
-                success = true;
-                message = 'Exchange configuration saved successfully!';
-            } else {
-                message = 'Failed to save exchange configuration. Please try again.';
-            }
+        } finally {
+            // Hide spinner
+            hideSpinner();
         }
 
         if (success) {
@@ -336,7 +358,7 @@ window.SettingsManager = (function() {
     }
 
     // Handle test credentials button click
-    function handleTestCredentials() {
+    async function handleTestCredentials() {
         // Update exchangeConfig with current field values before testing
         const urlField = document.getElementById('exchangeUrl');
         const clientIdField = document.getElementById('exchangeClientId');
@@ -350,8 +372,13 @@ window.SettingsManager = (function() {
         if (envIdField) exchangeConfig.environmentId = envIdField.value;
         if (clientSecretField) exchangeConfig.clientSecret = clientSecretField.value;
 
-        // Test the credentials
-        testExchangeCredentials();
+        // Test the credentials and show result to user
+        const credentialsValid = await testExchangeCredentials();
+        if (credentialsValid) {
+            showNotification('Credentials validated successfully!', 'success');
+        } else {
+            showNotification('Credentials validation failed. Please check your configuration.', 'error');
+        }
     }
 
     // Handle settings navigation clicks
@@ -382,6 +409,29 @@ window.SettingsManager = (function() {
         }
         
         console.log('[Settings] Switched to:', settingType);
+    }
+
+    // ----------------------------------------------------------------------------
+    // SPINNER UTILITIES
+    // ----------------------------------------------------------------------------
+
+    function showSpinner(message = 'Processing...') {
+        const backdrop = document.getElementById('settingsLoadingBackdrop');
+        const loadingText = backdrop ? backdrop.querySelector('.loading-text') : null;
+        
+        if (backdrop) {
+            if (loadingText) {
+                loadingText.textContent = message;
+            }
+            backdrop.style.display = 'flex';
+        }
+    }
+
+    function hideSpinner() {
+        const backdrop = document.getElementById('settingsLoadingBackdrop');
+        if (backdrop) {
+            backdrop.style.display = 'none';
+        }
     }
 
     // ----------------------------------------------------------------------------
