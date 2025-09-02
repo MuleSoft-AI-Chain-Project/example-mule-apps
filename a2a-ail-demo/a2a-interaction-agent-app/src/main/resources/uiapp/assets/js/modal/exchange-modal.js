@@ -14,6 +14,8 @@ if (!window.getUserSessionId) {
     };
 }
 
+
+
 // Function to render the exchange modal
 window.renderExchangeModal = function() {
     console.log('[Exchange Modal] renderExchangeModal called');
@@ -260,6 +262,20 @@ function populateModalWithAgents(agents) {
             
             // Open the add agent modal and prefill the agent URL
             setTimeout(() => {
+                // Ensure the add agent modal is initialized before proceeding
+                if (typeof window.initializeAddAgentModal === 'function' && !window.addAgentModalInitialized) {
+                    window.initializeAddAgentModal();
+                }
+                
+                // Ensure the Bootstrap modal instance is created
+                if (!window.addAgentModal) {
+                    const modalEl = document.getElementById('addAgentModal');
+                    if (modalEl && typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+                        window.addAgentModal = new bootstrap.Modal(modalEl);
+                        console.log('[Exchange Modal] Created Bootstrap modal instance');
+                    }
+                }
+                
                 // Reset modal to add mode first
                 if (typeof window.resetModalToAddMode === 'function') {
                     window.resetModalToAddMode();
