@@ -11,6 +11,14 @@ window.SettingsManager = (function() {
     let settingsLoaded = false;
     let eventListeners = new Map(); // Track event listeners for cleanup
     let selectedEngine = 'inference'; // Default engine
+    let exchangeConfig = {
+        type: 'default',
+        url: '',
+        clientId: '',
+        clientSecret: '',
+        organizationId: '',
+        environmentId: ''
+    };
 
     // ----------------------------------------------------------------------------
     // UTILITY FUNCTIONS
@@ -97,6 +105,99 @@ window.SettingsManager = (function() {
         }
     }
 
+    // Load exchange configuration from localStorage
+    function loadExchangeConfig() {
+        try {
+            const stored = localStorage.getItem('exchange_credentials');
+            if (stored) {
+                const config = JSON.parse(stored);
+                exchangeConfig = { ...exchangeConfig, ...config };
+            }
+            return exchangeConfig;
+        } catch (error) {
+            console.error('[Settings] Error loading exchange config:', error);
+            return exchangeConfig;
+        }
+    }
+
+    // Save exchange configuration to localStorage
+    function saveExchangeConfig() {
+        try {
+            // For custom type, validate all required fields are filled
+            if (exchangeConfig.type === 'custom') {
+                const requiredFields = [
+                    { field: 'url', name: 'URL' },
+                    { field: 'clientId', name: 'Client ID' },
+                    { field: 'clientSecret', name: 'Client Secret' },
+                    { field: 'organizationId', name: 'Organization ID' },
+                    { field: 'environmentId', name: 'Environment ID' }
+                ];
+                
+                const missingFields = requiredFields.filter(req => !exchangeConfig[req.field] || exchangeConfig[req.field].trim() === '');
+                
+                if (missingFields.length > 0) {
+                    const fieldNames = missingFields.map(req => req.name).join(', ');
+                    showNotification(`Please fill in all required fields: ${fieldNames}`, 'error');
+                    return false;
+                }
+            }
+            
+            localStorage.setItem('exchange_credentials', JSON.stringify(exchangeConfig));
+            console.log('[Settings] Exchange config saved:', exchangeConfig);
+            return true;
+        } catch (error) {
+            console.error('[Settings] Error saving exchange config:', error);
+            return false;
+        }
+    }
+
+    // Update exchange configuration UI
+    function updateExchangeConfigUI() {
+        // Update radio button selection
+        const defaultRadio = document.getElementById('exchangeDefault');
+        const customRadio = document.getElementById('exchangeCustom');
+        
+        if (defaultRadio && customRadio) {
+            if (exchangeConfig.type === 'default') {
+                defaultRadio.checked = true;
+                customRadio.checked = false;
+            } else {
+                defaultRadio.checked = false;
+                customRadio.checked = true;
+            }
+        }
+
+        // Show/hide custom fields based on selection
+        const customFields = document.getElementById('customExchangeFields');
+        if (customFields) {
+            customFields.style.display = exchangeConfig.type === 'custom' ? 'block' : 'none';
+        }
+
+        // Populate custom fields if they exist
+        if (exchangeConfig.type === 'custom') {
+            const urlField = document.getElementById('exchangeUrl');
+            const clientIdField = document.getElementById('exchangeClientId');
+            const clientSecretField = document.getElementById('exchangeClientSecret');
+            const orgIdField = document.getElementById('exchangeOrgId');
+            const envIdField = document.getElementById('exchangeEnvId');
+
+            if (urlField) {
+                // Remove https:// from the beginning if it exists for display
+                let displayUrl = exchangeConfig.url || '';
+                if (displayUrl.startsWith('https://')) {
+                    displayUrl = displayUrl.substring(8);
+                } else if (displayUrl.startsWith('http://')) {
+                    displayUrl = displayUrl.substring(7);
+                }
+                urlField.value = displayUrl;
+            }
+            if (clientIdField) clientIdField.value = exchangeConfig.clientId || '';
+            if (clientSecretField) clientSecretField.value = exchangeConfig.clientSecret || '';
+            if (orgIdField) orgIdField.value = exchangeConfig.organizationId || '';
+            if (envIdField) envIdField.value = exchangeConfig.environmentId || '';
+        }
+    }
+
     // ----------------------------------------------------------------------------
     // EVENT HANDLERS
     // ----------------------------------------------------------------------------
@@ -113,16 +214,111 @@ window.SettingsManager = (function() {
     }
 
     function handleSaveButtonClick() {
-        if (saveEngineSelection()) {
-            showNotification('Engine selection saved successfully!', 'success');
-            
-            // Dispatch custom event for other components
-            window.dispatchEvent(new CustomEvent('engineChanged', { 
-                detail: { engine: selectedEngine } 
-            }));
-        } else {
-            showNotification('Failed to save engine selection. Please try again.', 'error');
+        // Determine which section is currently active
+        const activeNavItem = document.querySelector('.settings-nav-item.active');
+        const settingType = activeNavItem ? activeNavItem.getAttribute('data-setting') : 'host-agent-engine';
+        
+        let success = false;
+        let message = '';
+
+        if (settingType === 'host-agent-engine') {
+            // Save only engine selection
+            if (saveEngineSelection()) {
+                success = true;
+                message = 'Engine selection saved successfully!';
+                
+                // Dispatch custom event for other components
+                window.dispatchEvent(new CustomEvent('engineChanged', { 
+                    detail: { engine: selectedEngine } 
+                }));
+            } else {
+                message = 'Failed to save engine selection. Please try again.';
+            }
+        } else if (settingType === 'anypoint-exchange') {
+            // Save only exchange configuration
+            if (saveExchangeConfig()) {
+                success = true;
+                message = 'Exchange configuration saved successfully!';
+            } else {
+                message = 'Failed to save exchange configuration. Please try again.';
+            }
         }
+
+        if (success) {
+            showNotification(message, 'success');
+        } else {
+            showNotification(message, 'error');
+        }
+    }
+
+    // Handle exchange type radio button changes
+    function handleExchangeTypeChange(event) {
+        const selectedType = event.target.value;
+        exchangeConfig.type = selectedType;
+        
+        // Update UI to show/hide custom fields
+        const customFields = document.getElementById('customExchangeFields');
+        if (customFields) {
+            customFields.style.display = selectedType === 'custom' ? 'block' : 'none';
+        }
+        
+        console.log('[Settings] Exchange type changed to:', selectedType);
+    }
+
+    // Handle custom field input changes
+    function handleCustomFieldChange(event) {
+        const field = event.target;
+        const value = field.value;
+        
+        switch (field.id) {
+            case 'exchangeUrl':
+                exchangeConfig.url = value;
+                break;
+            case 'exchangeClientId':
+                exchangeConfig.clientId = value;
+                break;
+            case 'exchangeClientSecret':
+                exchangeConfig.clientSecret = value;
+                break;
+            case 'exchangeOrgId':
+                exchangeConfig.organizationId = value;
+                break;
+            case 'exchangeEnvId':
+                exchangeConfig.environmentId = value;
+                break;
+        }
+        
+        console.log('[Settings] Custom field updated:', field.id, value);
+    }
+
+    // Handle settings navigation clicks
+    function handleSettingsNavigation(event) {
+        event.preventDefault();
+        
+        const clickedItem = event.currentTarget;
+        const settingType = clickedItem.getAttribute('data-setting');
+        
+        // Remove active class from all nav items
+        const allNavItems = document.querySelectorAll('.settings-nav-item');
+        allNavItems.forEach(item => item.classList.remove('active'));
+        
+        // Add active class to clicked item
+        clickedItem.classList.add('active');
+        
+        // Hide all content sections
+        const allContentSections = document.querySelectorAll('.setting-content');
+        allContentSections.forEach(section => section.classList.remove('active'));
+        
+        // Show the selected content section
+        if (settingType === 'host-agent-engine') {
+            const hostAgentContent = document.getElementById('host-agent-engine-content');
+            if (hostAgentContent) hostAgentContent.classList.add('active');
+        } else if (settingType === 'anypoint-exchange') {
+            const exchangeContent = document.getElementById('anypoint-exchange-content');
+            if (exchangeContent) exchangeContent.classList.add('active');
+        }
+        
+        console.log('[Settings] Switched to:', settingType);
     }
 
     // ----------------------------------------------------------------------------
@@ -157,10 +353,28 @@ window.SettingsManager = (function() {
     // ----------------------------------------------------------------------------
 
     function setupEventListeners() {
+        // Settings navigation clicks
+        const settingsNavItems = document.querySelectorAll('.settings-nav-item');
+        settingsNavItems.forEach(item => {
+            addTrackedEventListener(item, 'click', handleSettingsNavigation);
+        });
+        
         // Engine option clicks
         const engineOptions = document.querySelectorAll('.engine-option');
         engineOptions.forEach(option => {
             addTrackedEventListener(option, 'click', handleEngineOptionClick);
+        });
+        
+        // Exchange type radio buttons
+        const exchangeTypeRadios = document.querySelectorAll('input[name="exchangeType"]');
+        exchangeTypeRadios.forEach(radio => {
+            addTrackedEventListener(radio, 'change', handleExchangeTypeChange);
+        });
+        
+        // Custom exchange field inputs
+        const customFields = document.querySelectorAll('#exchangeUrl, #exchangeClientId, #exchangeClientSecret, #exchangeOrgId, #exchangeEnvId');
+        customFields.forEach(field => {
+            addTrackedEventListener(field, 'input', handleCustomFieldChange);
         });
         
         // Save button
@@ -190,6 +404,10 @@ window.SettingsManager = (function() {
         // Load current engine and update UI
         loadCurrentEngine();
         updateEngineSelectionUI();
+        
+        // Load exchange configuration and update UI
+        loadExchangeConfig();
+        updateExchangeConfigUI();
         
         // Setup event listeners
         setupEventListeners();
