@@ -120,6 +120,47 @@ window.SettingsManager = (function() {
         }
     }
 
+    // Test Anypoint Exchange credentials
+    async function testExchangeCredentials() {
+        try {
+            if (exchangeConfig.type !== 'custom') {
+                showNotification('No custom credentials to test', 'info');
+                return false;
+            }
+
+            // Build the test URL
+            const testUrl = `/platform/a2a-agents?url=${encodeURIComponent(exchangeConfig.url)}&organizationId=${exchangeConfig.organizationId}&environmentId=${exchangeConfig.environmentId}`;
+            
+            console.log('[Settings] Testing credentials with URL:', testUrl);
+            
+            // Make the API call
+            const response = await fetch(testUrl, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'client_id': exchangeConfig.clientId,
+                    'client_secret': exchangeConfig.clientSecret
+                }
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                console.log('[Settings] Credentials test successful:', data);
+                showNotification('Credentials validated successfully!', 'success');
+                return true;
+            } else {
+                const errorText = await response.text();
+                console.error('[Settings] Credentials test failed:', response.status, errorText);
+                showNotification(`Credentials validation failed: ${response.status} ${response.statusText}`, 'error');
+                return false;
+            }
+        } catch (error) {
+            console.error('[Settings] Error testing credentials:', error);
+            showNotification(`Error testing credentials: ${error.message}`, 'error');
+            return false;
+        }
+    }
+
     // Save exchange configuration to localStorage
     function saveExchangeConfig() {
         try {
@@ -140,6 +181,9 @@ window.SettingsManager = (function() {
                     showNotification(`Please fill in all required fields: ${fieldNames}`, 'error');
                     return false;
                 }
+                
+                // Test credentials after saving
+                testExchangeCredentials();
             }
             
             localStorage.setItem('exchange_credentials', JSON.stringify(exchangeConfig));
@@ -291,6 +335,25 @@ window.SettingsManager = (function() {
         console.log('[Settings] Custom field updated:', field.id, value);
     }
 
+    // Handle test credentials button click
+    function handleTestCredentials() {
+        // Update exchangeConfig with current field values before testing
+        const urlField = document.getElementById('exchangeUrl');
+        const clientIdField = document.getElementById('exchangeClientId');
+        const clientSecretField = document.getElementById('exchangeClientSecret');
+        const orgIdField = document.getElementById('exchangeOrgId');
+        const envIdField = document.getElementById('exchangeEnvId');
+
+        if (urlField) exchangeConfig.url = urlField.value;
+        if (clientIdField) exchangeConfig.clientId = clientIdField.value;
+        if (orgIdField) exchangeConfig.organizationId = orgIdField.value;
+        if (envIdField) exchangeConfig.environmentId = envIdField.value;
+        if (clientSecretField) exchangeConfig.clientSecret = clientSecretField.value;
+
+        // Test the credentials
+        testExchangeCredentials();
+    }
+
     // Handle settings navigation clicks
     function handleSettingsNavigation(event) {
         event.preventDefault();
@@ -376,6 +439,12 @@ window.SettingsManager = (function() {
         customFields.forEach(field => {
             addTrackedEventListener(field, 'input', handleCustomFieldChange);
         });
+        
+        // Test credentials button
+        const testCredentialsBtn = document.getElementById('testCredentialsBtn');
+        if (testCredentialsBtn) {
+            addTrackedEventListener(testCredentialsBtn, 'click', handleTestCredentials);
+        }
         
         // Save button
         const saveBtn = document.getElementById('saveEngineSettingsBtn');
