@@ -103,7 +103,65 @@ function fetchAgentsAndPopulateModal() {
     // Show loading spinner
     showExchangeLoadingSpinner();
     
-    fetch('../platform/a2a-agents')
+    // Check for custom exchange credentials
+    let fetchOptions = {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    };
+    
+    try {
+        const exchangeCredentials = localStorage.getItem('exchange_credentials');
+        if (exchangeCredentials) {
+            const config = JSON.parse(exchangeCredentials);
+            if (config.type === 'custom' && config.url && config.organizationId && config.environmentId) {
+                // Build the URL with custom credentials as query parameters
+                const customUrl = `/platform/a2a-agents?url=${encodeURIComponent(config.url)}&organizationId=${config.organizationId}&environmentId=${config.environmentId}`;
+                
+                // Add custom headers for authentication
+                fetchOptions.headers['client_id'] = config.clientId || '';
+                fetchOptions.headers['client_secret'] = config.clientSecret || '';
+                
+                console.log('[Exchange Modal] Using custom exchange credentials for:', customUrl);
+                
+                // Use custom URL instead of relative path
+                fetch(customUrl, fetchOptions)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                        return response.json();
+                    })
+                    .then(agents => {
+                        console.log('[Exchange Modal] Agents fetched successfully from custom endpoint:', agents);
+                        hideExchangeLoadingSpinner();
+                        populateModalWithAgents(agents);
+                    })
+                    .catch(error => {
+                        console.error('[Exchange Modal] Error fetching agents from custom endpoint:', error);
+                        hideExchangeLoadingSpinner();
+                        // Show error message in modal
+                        const modalBody = document.getElementById('exchangeModalBody');
+                        if (modalBody) {
+                            modalBody.innerHTML = `
+                                <div class="alert alert-danger" role="alert">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                    Failed to load a2a assets from custom endpoint. Please check your exchange credentials.
+                                </div>
+                            `;
+                        }
+                    });
+                return; // Exit early since we're using custom endpoint
+            }
+        }
+    } catch (error) {
+        console.error('[Exchange Modal] Error parsing exchange credentials:', error);
+    }
+    
+    // Fallback to default endpoint if no custom credentials or error
+    console.log('[Exchange Modal] Using default endpoint');
+    fetch('../platform/a2a-agents', fetchOptions)
         .then(response => {
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -111,12 +169,12 @@ function fetchAgentsAndPopulateModal() {
             return response.json();
         })
         .then(agents => {
-            console.log('[Exchange Modal] Agents fetched successfully:', agents);
+            console.log('[Exchange Modal] Agents fetched successfully from default endpoint:', agents);
             hideExchangeLoadingSpinner();
             populateModalWithAgents(agents);
         })
         .catch(error => {
-            console.error('[Exchange Modal] Error fetching agents:', error);
+            console.error('[Exchange Modal] Error fetching agents from default endpoint:', error);
             hideExchangeLoadingSpinner();
             // Show error message in modal
             const modalBody = document.getElementById('exchangeModalBody');
