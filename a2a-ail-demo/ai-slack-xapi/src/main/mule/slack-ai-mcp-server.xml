@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:slack="http://www.mulesoft.org/schema/mule/slack" xmlns:mcp="http://www.mulesoft.org/schema/mule/mcp"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/mcp http://www.mulesoft.org/schema/mule/mcp/current/mule-mcp.xsd
+http://www.mulesoft.org/schema/mule/slack http://www.mulesoft.org/schema/mule/slack/current/mule-slack.xsd">
+	<flow name="mcp_send_message">
+        <mcp:tool-listener doc:name="MCP Server - Tool Listener" doc:id="aee4419f-1e38-4e9b-ad6a-11616fc3aeb0" config-ref="MCP_Server" name="send_message">
+            <mcp:description ><![CDATA[This tool sends a response to a conversation in Slack. A conversation is denoted by a combination of a channel ID and a thread timestamp (thread_ts).]]></mcp:description>
+            <mcp:parameters-schema ><![CDATA[{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SlackMessagePayload",
+  "type": "object",
+  "properties": {
+    "channel": {
+      "type": "string",
+      "description": "Slack channel ID where the message will be posted."
+    },
+    "thread_ts": {
+      "type": "string",
+      "description": "Timestamp of the thread to which the message is a reply."
+    },
+    "blocks": {
+      "type": "array",
+      "description": "An array of Block Kit layout blocks.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["section"],
+            "description": "The type of block, e.g. 'section'."
+          },
+          "expand": {
+            "type": "boolean",
+            "description": "Whether this block should be expanded or not."
+          },
+          "text": {
+            "type": "object",
+            "description": "Text object within the block.",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": ["mrkdwn"],
+                "description": "Type of text formatting, e.g. 'mrkdwn'."
+              },
+              "text": {
+                "type": "string",
+                "description": "Text content in markdown."
+              }
+            },
+            "required": ["type", "text"]
+          }
+        },
+        "required": ["type", "text"]
+      }
+    }
+  },
+  "required": ["channel", "thread_ts", "blocks"]
+}]]></mcp:parameters-schema>
+            <mcp:responses >
+                <mcp:text-tool-response-content text="#[payload.^raw]" priority="1" >
+                    <mcp:audience >
+                        <mcp:audience-item value="ASSISTANT" />
+                    </mcp:audience>
+                </mcp:text-tool-response-content>
+            </mcp:responses>
+        </mcp:tool-listener>
+        <logger level="INFO" message="post:\agent\message:application\json:slack-ai-app-experience-api-config" />
+        <logger level="INFO" doc:name="Log Message Payload" doc:id="068acf03-0084-40ca-b5fc-9c33fe49e89d" message="#[output application/json
+---
+payload]"/>
+        <slack:create-chatpost-message doc:name="Send Message" doc:id="71b7a060-38e5-4ed6-91c0-36c8da6de6fa" config-ref="Slack_Connector_Config" >
+            <slack:chatpost-message-content ><![CDATA[#[payload  update {
+    case .blocks -> $  map ((block) -> block update {
+    case .expand! -> true
+})
+}]]]></slack:chatpost-message-content>
+        </slack:create-chatpost-message>
+    </flow>
+    
+</mule>

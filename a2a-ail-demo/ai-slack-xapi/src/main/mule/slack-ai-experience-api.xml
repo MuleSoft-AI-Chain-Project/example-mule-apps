@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:mcp="http://www.mulesoft.org/schema/mule/mcp" xmlns:scripting="http://www.mulesoft.org/schema/mule/scripting" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:os="http://www.mulesoft.org/schema/mule/os" xmlns:slack="http://www.mulesoft.org/schema/mule/slack" xmlns:tls="http://www.mulesoft.org/schema/mule/tls" xmlns:vm="http://www.mulesoft.org/schema/mule/vm" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd  http://www.mulesoft.org/schema/mule/slack http://www.mulesoft.org/schema/mule/slack/current/mule-slack.xsd http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/current/mule-vm.xsd http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+http://www.mulesoft.org/schema/mule/scripting http://www.mulesoft.org/schema/mule/scripting/current/mule-scripting.xsd
+http://www.mulesoft.org/schema/mule/mcp http://www.mulesoft.org/schema/mule/mcp/current/mule-mcp.xsd">
+    
+    <flow name="slack-ai-app-experience-api-main">
+        <http:listener config-ref="slack-ai-app-experience-api-httpListenerConfig" path="/api/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:router config-ref="slack-ai-app-experience-api-config" />
+        <error-handler>
+            <on-error-propagate type="APIKIT:BAD_REQUEST">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Bad request"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">400</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Resource not found"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:METHOD_NOT_ALLOWED">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Method not allowed"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">405</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_ACCEPTABLE">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Not acceptable"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">406</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:UNSUPPORTED_MEDIA_TYPE">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Unsupported media type"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">415</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_IMPLEMENTED">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Not Implemented"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">501</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+    
+    <flow name="slack-ai-app-experience-api-console">
+        <http:listener config-ref="slack-ai-app-experience-api-httpListenerConfig" path="/console/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:console config-ref="slack-ai-app-experience-api-config" />
+        <error-handler>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Resource not found"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+    
+    <flow name="post:\events:application\json:slack-ai-app-experience-api-config">
+		<logger level="INFO" message="post:\events:application\json:slack-ai-app-experience-api-config" />
+		<logger level="INFO" doc:name="Log Message Payload" doc:id="d954bfa8-3ff4-41ed-a968-5a25a92c5aae" message="#[output application/json&#10;---&#10;payload]" />
+        <flow-ref doc:name="Publish Slack Event" doc:id="e153e852-5821-41c1-859f-f931f60e6f49" name="publish_event"/>
+		<error-handler>
+            <on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="50b20009-cc56-47a6-bbc9-2fc12f067347" type="SLACK_EVT:INVALID_TOKEN">
+                <set-variable value="401" doc:name="Set Variable" doc:id="a1725184-6ae5-4a30-bcf7-19513673b940" variableName="httpStatus" />
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+    
+    <flow name="slack-ai-app-experience-apiFlow2" doc:id="33b38e94-31c0-41fb-af7c-95c88bed3f72" >
+        <http:listener doc:name="/template" doc:id="71c1e1fb-8ae5-4051-859b-32f1bf035b78" config-ref="slack-ai-app-experience-api-httpListenerConfig" path="/template"/>
+        <set-payload value="#[output text/plain
+---
+write(
+{
+	&quot;channel&quot;: &quot;{{channel}}&quot;,
+	&quot;blocks&quot;: [{
+		&quot;type&quot;: &quot;section&quot;,
+		&quot;text&quot;: {
+			&quot;type&quot;: &quot;mrkdwn&quot;,
+			&quot;text&quot;: &quot;{{text}}&quot;
+		}
+	}]
+}
+,
+'application/json'
+)]" doc:name="Return Callback Schema Payload" doc:id="45cb5065-dceb-4a74-832d-b8d24da24387" />
+    </flow>
+    
+    <flow name="get:\agent\conversation_info:slack-ai-app-experience-api-config">
+        <logger level="INFO" message="get:\agent\conversation_info:slack-ai-app-experience-api-config" />
+        <logger level="INFO" doc:name="Log Message Payload" doc:id="5e58e19f-070f-4489-80aa-1b679230cd28" message="#[output application/json
+---
+payload]" />
+        <flow-ref doc:name="Get Conversation Info" doc:id="723d3acc-83b8-4527-8b19-4ac43f95b753" name="get_conversation_info"/>
+    </flow>
+    
+    <flow name="get:\agent\replies:slack-ai-app-experience-api-config">
+        <logger level="INFO" message="get:\agent\replies:slack-ai-app-experience-api-config" />
+        <logger level="INFO" doc:name="Log Message Payload" doc:id="e03ff67f-58bd-4881-b0c1-3d30cf9974f6" message="#[output application/json
+---
+payload]" />
+        <flow-ref doc:name="Get Conversation Replies" doc:id="f6276d67-061c-42c6-9076-ccfa316e7ce7" name="get_replies"/>
+    </flow>
+    
+    <flow name="post:\agent\message:slack-ai-app-experience-api-config" doc:id="c6fa3327-4551-429e-af32-d37ab1c8193e">
+        <logger level="INFO" message="post:\agent\message:slack-ai-app-experience-api-config" />
+        <logger level="INFO" doc:name="Log Message Payload" doc:id="7527d117-956f-4ad0-8c7f-4f80fc845df1" message="#[output application/json
+---
+payload]" />
+        <flow-ref doc:name="Send Message" doc:id="d7370af3-205b-4c74-99ff-15894e45513b" name="send_message"/>
+    </flow>
+    
+    <flow name="post:\agent\status:application\json:slack-ai-app-experience-api-config" doc:id="94906d70-a825-4ef7-8ae4-044bf6cafa3d">
+        <logger level="INFO" message="post:\agent\status:application\json:slack-ai-app-experience-api-config" />
+        <logger level="INFO" doc:name="Log Message Payload" doc:id="1c5e4f27-a3eb-46f1-8777-e5bb4d89474c" message="#[output application/json
+---
+payload]" />
+        <flow-ref doc:name="Set Status" doc:id="9d77b9d0-7306-4a48-a78c-5a78b5d5b913" name="set_status" />
+    </flow>
+    
+    <flow name="post:\agent\suggested_prompts:application\json:slack-ai-app-experience-api-config">
+        <logger level="INFO" message="post:\agent\suggested_prompts:application\json:slack-ai-app-experience-api-config" />
+        <logger level="INFO" doc:name="Log Message Payload" doc:id="375ad7d0-e87a-4c82-a7f8-28c8bfcedcbb" message="#[output application/json
+---
+payload]" />
+        <flow-ref doc:name="Set Suggested Prompts" doc:id="3a6fa4dc-ba2b-4ccd-a4c4-1511a6718d5c" name="set_suggested_prompts" />
+    </flow>
+    
+    <flow name="post:\agent\title:application\json:slack-ai-app-experience-api-config">
+        <logger level="INFO" message="post:\agent\title:application\json:slack-ai-app-experience-api-config" />
+        <logger level="INFO" doc:name="Log Message Payload" doc:id="09cfaa9f-098f-43c1-8cd3-262872aeddef" message="#[output application/json
+---
+payload]" />
+        <flow-ref doc:name="Set Title" doc:id="180897d3-08b7-4d21-a844-dc1174266334" name="set_title" />
+    </flow>
+    
+</mule>

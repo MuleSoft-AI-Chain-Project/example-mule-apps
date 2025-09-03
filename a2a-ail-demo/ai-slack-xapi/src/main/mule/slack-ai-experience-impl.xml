@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:slack="http://www.mulesoft.org/schema/mule/slack"
+	xmlns:vm="http://www.mulesoft.org/schema/mule/vm"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:file="http://www.mulesoft.org/schema/mule/file"
+      xmlns:http="http://www.mulesoft.org/schema/mule/http" 
+      xmlns="http://www.mulesoft.org/schema/mule/core" 
+      xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" 
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/current/mule-vm.xsd 
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd 
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/slack http://www.mulesoft.org/schema/mule/slack/current/mule-slack.xsd">
+	
+	<sub-flow name="publish_event" doc:id="fde39a28-a13b-415b-af7d-0f3adc1cb4dc">
+        <logger level="INFO" message="post:\events:application\json:slack-ai-app-experience-api-config" />
+        <choice doc:name="Vaildate Request" doc:id="78a3f3cd-afa9-4c73-b79b-1a429a17de29">
+            <when expression="#[!(payload.token as String == p('slack.verification_token'))]">
+                <raise-error doc:name="Token is Invalid" doc:id="cc11c383-0888-4949-8016-28906447b294" type="SLACK_EVT:INVALID_TOKEN" description="Authorization Error: Invalid Token" />
+            </when>
+        </choice>
+        <choice doc:name="Determine Event Type" doc:id="5d6b2db9-efbc-4ac2-9c27-1327c698a68f">
+            <when expression="#[&quot;url_verification&quot; == payload.&quot;type&quot; as String]">
+                <ee:transform doc:name="Send Verification Response" doc:id="f2b9ba75-7646-4ce4-be99-7731353e6834">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	challenge: payload.challenge
+}]]></ee:set-payload>
+                    </ee:message>
+                </ee:transform>
+            </when>
+            <otherwise>
+                <vm:publish doc:name="Publish to Event Dispatch Queue" doc:id="de8d338d-632e-4b9d-835e-4030fdd9b226" config-ref="VM_Config" queueName="slack_dispatch" />
+                <ee:transform doc:name="Generate Response" doc:id="b38eb80e-495a-40b3-a71f-e5db06dbec24">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	status: "Queued for Processing"
+}]]></ee:set-payload>
+                    </ee:message>
+                </ee:transform>
+            </otherwise>
+        </choice>
+    </sub-flow>
+    
+    <flow name="event-dispatch-processor" doc:id="12c64f64-f31d-4676-9aa1-b53f19141dcd">
+        <vm:listener doc:name="Listener" doc:id="07e25da4-8772-4900-bd41-4c730e687f35" config-ref="VM_Config" queueName="slack_dispatch" />
+        <logger level="INFO" doc:name="Logger" doc:id="82346519-cab8-44d8-8681-338d7c9bbe5c" message="#[&quot;\n\n=====GOT SLACK EVENT=====\n\n$(write(payload, 'application/json'))&quot;]" />
+        <choice doc:name="Choice" doc:id="f215a8c5-22ce-471c-8f60-e5506ac33b05">
+            <when expression='#["message" == payload.event."type" and  isEmpty(payload.event.subtype) and isEmpty(payload.event.bot_id)]'>
+                <set-variable value="#[payload]" doc:name="Save Slack Payload" doc:id="a678b9c9-0466-4f19-b725-623b9c9e18ed" variableName="slack_event" />
+                <flow-ref doc:name="Send message through WebSocket" doc:id="1a8cfac4-e60c-4e6d-9ea1-7f90b517ba9a" name="open-outbound-socket-and-send-message-flow"/>
+            </when>
+            <when expression="#[&quot;bot_message&quot; == payload.message.subtype]">
+                <logger level="INFO" doc:name="Ignore Bot Events - for now" doc:id="52e29ca3-497e-46bd-85c0-34fbfb422826" message="#[&quot;\n\nIGNORING BOT EVENT\n\n&quot;]" />
+            </when>
+        </choice>
+    </flow>
+	
+	<sub-flow name="get_conversation_info" doc:id="a899ba5f-a79e-4db4-ac00-bc91ab95a9ad" >
+		<slack:get-conversationsinfo doc:name="Conversations info" doc:id="bbc1382e-b356-4bda-966e-799d47fce8c6" config-ref="Slack_Connector_Config" includeNumMembers="#[attributes.queryParams.include_num_members]" channel="#[attributes.queryParams.channel]" includeLocale="#[attributes.queryParams.include_locale]" />
+	</sub-flow>
+	<sub-flow name="get_replies" doc:id="09a66757-1974-41e5-b5c7-feee4fc04e34" >
+		<slack:get-conversationsreplies doc:name="Conversations replies" doc:id="101dc9a7-1348-481f-b18a-36ce783975bb" config-ref="Slack_Connector_Config" />
+	</sub-flow>
+	<sub-flow name="send_message" doc:id="52128e2a-4ac7-4c0d-9ccd-e8ba9ee20c39" >
+		<slack:create-chatpost-message doc:name="Send Message" doc:id="1212e708-1aed-433a-852d-cd0b87236861" config-ref="Slack_Connector_Config" />
+	</sub-flow>
+	<sub-flow name="set_title" doc:id="ec6e85c8-79d8-47ca-921a-dd8d93df027e" >
+		<http:request method="POST" doc:name="Set Title" doc:id="d7e0735f-18bd-482a-8f28-512d139838cc" config-ref="HTTP_Request_configuration" url="https://slack.com/api/assistant.threads.setTitle">
+			<http:headers ><![CDATA[#[output application/json
+---
+{
+	Authorization: "Bearer " ++ p('slack.oauth_token')
+}]]]></http:headers>
+		</http:request>
+	</sub-flow>
+	<sub-flow name="set_suggested_prompts" doc:id="b97ed03c-3f50-45ca-97fa-b5409ae4037d" >
+		<!-- [STUDIO:"Load Suggested Prompts"]<file:read doc:name="Load Suggested Prompts" doc:id="0a9ba2b3-19b7-419a-ba4d-fcaa243d5261" config-ref="File_Config" path="#[p('agent.suggested_prompts.prompts_path')&#93;" target="prompts" targetValue="#[read(payload, 'application/json').prompts&#93;"/> [STUDIO] -->
+		<http:request method="POST" doc:name="Set Suggested Prompts" doc:id="de226e28-bc48-4dad-91bf-1257bc67eee2" config-ref="HTTP_Request_configuration" url="https://slack.com/api/assistant.threads.setSuggestedPrompts">
+			<http:headers ><![CDATA[#[output application/json
+---
+{
+	Authorization: "Bearer " ++ p('slack.oauth_token')
+}]]]></http:headers>
+		</http:request>
+	</sub-flow>
+	<sub-flow name="set_status" doc:id="f1a1a278-68d7-4c3f-9db3-889a72b925f7" >
+		<http:request method="POST" doc:name="Set Status" doc:id="bcd6014d-1c6d-484a-9c7d-fa3d7bef910e" config-ref="HTTP_Request_configuration" url="https://slack.com/api/assistant.threads.setStatus">
+			<http:body ><![CDATA[#[payload update {
+	case .status -> "- " ++ $
+}]]]></http:body>
+			<http:headers ><![CDATA[#[output application/json
+---
+{
+	Authorization: "Bearer " ++ p('slack.oauth_token'),
+	"Content-Type": "application/json; charset=utf-8"
+}]]]></http:headers>
+		</http:request>
+	</sub-flow>
+</mule>
