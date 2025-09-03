@@ -66,6 +66,9 @@ generated-test-sources/
 .project
 .settings/
 
+# Application configuration files
+a2a-ail-demo/ai-slack-xapi/src/main/resources/config.properties
+
 # Miscellaneous
 *.bak
 *.tmp

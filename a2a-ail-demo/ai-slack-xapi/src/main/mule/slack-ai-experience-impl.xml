@@ -15,7 +15,6 @@ http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/htt
 http://www.mulesoft.org/schema/mule/slack http://www.mulesoft.org/schema/mule/slack/current/mule-slack.xsd">
 	
 	<sub-flow name="publish_event" doc:id="fde39a28-a13b-415b-af7d-0f3adc1cb4dc">
-        <logger level="INFO" message="post:\events:application\json:slack-ai-app-experience-api-config" />
         <choice doc:name="Vaildate Request" doc:id="78a3f3cd-afa9-4c73-b79b-1a429a17de29">
             <when expression="#[!(payload.token as String == p('slack.verification_token'))]">
                 <raise-error doc:name="Token is Invalid" doc:id="cc11c383-0888-4949-8016-28906447b294" type="SLACK_EVT:INVALID_TOKEN" description="Authorization Error: Invalid Token" />
@@ -58,6 +57,10 @@ output application/json
                 <set-variable value="#[payload]" doc:name="Save Slack Payload" doc:id="a678b9c9-0466-4f19-b725-623b9c9e18ed" variableName="slack_event" />
                 <flow-ref doc:name="Send message through WebSocket" doc:id="1a8cfac4-e60c-4e6d-9ea1-7f90b517ba9a" name="open-outbound-socket-and-send-message-flow"/>
             </when>
+			<when expression='#["app_home_opened" == payload.event."type"]'>
+				<set-variable value="#[payload]" doc:name="Save Slack Payload" doc:id="9200b820-72bb-4b82-a7e0-0c1e48f56b1f" variableName="slack_event" />
+				<flow-ref doc:name="Build App Home" doc:id="010dcbc0-c158-43eb-b850-42ae3a459ee9" name="on-app-home-opened"/>
+			</when>
             <when expression="#[&quot;bot_message&quot; == payload.message.subtype]">
                 <logger level="INFO" doc:name="Ignore Bot Events - for now" doc:id="52e29ca3-497e-46bd-85c0-34fbfb422826" message="#[&quot;\n\nIGNORING BOT EVENT\n\n&quot;]" />
             </when>

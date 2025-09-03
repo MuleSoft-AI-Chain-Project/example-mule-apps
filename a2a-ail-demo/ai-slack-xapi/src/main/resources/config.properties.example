@@ -1,0 +1,17 @@
+# API specification
+api.autodiscoveryID=00000000
+
+# Listener configuration
+https.host=0.0.0.0
+https.port=8082
+
+# Slack configuration
+slack.consumer_key=
+slack.consumer_secret=
+slack.verification_token=
+slack.oauth_token=
+slack.callback_url=https://localhost:8081/callback
+
+# Agent configuration
+agent.suggested_prompts.title=To help get you started, here are some items I can help you with
+agent.suggested_prompts.prompts_path=suggested_prompts.json

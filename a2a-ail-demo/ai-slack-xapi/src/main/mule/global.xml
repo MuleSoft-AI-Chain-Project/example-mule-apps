@@ -45,7 +45,7 @@ http://www.mulesoft.org/schema/mule/websocket http://www.mulesoft.org/schema/mul
     <websocket:config name="WebSockets_Config" doc:name="WebSockets Config" doc:id="6a6e41c2-3e0b-4081-9e81-797d11efacab">
         <websocket:connection>
             <websocket:server-settings listenerConfig="slack-ai-app-experience-api-httpListenerConfig" />
-            <websocket:client-settings host="a2a-agent-interaction-layer-app-fjrr5q.zm3ejw.usa-e2.cloudhub.io" basePath="/ws" protocol="WSS" port="443"/>
+            <websocket:client-settings host="${websocket.client.host}" basePath="${websocket.client.basePath}" protocol="${websocket.client.protocol}" port="${websocket.client.port}"/>
         </websocket:connection>
     </websocket:config>
 
@@ -75,6 +75,6 @@ http://www.mulesoft.org/schema/mule/websocket http://www.mulesoft.org/schema/mul
     </mcp:server-config>
 
     <!-- Global Configuration Properties -->
-    <configuration-properties doc:name="Configuration properties" doc:id="87348abc-de8f-4503-8a43-7c62a89256a5" file="config.yaml" />
+    <configuration-properties doc:name="Configuration properties" doc:id="87348abc-de8f-4503-8a43-7c62a89256a5" file="config.properties" />
 
 </mule>

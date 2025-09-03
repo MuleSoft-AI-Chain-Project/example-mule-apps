@@ -154,4 +154,179 @@ output text/plain
 ---
 "\n\nSocket connection for user session with id: " ++ (vars.userSessionId as String) ++ " closed. Socket id: " ++ (vars.socketId as String) ++"\n\n"]' />
 	</flow>
+	<sub-flow name="on-app-home-opened" doc:id="1cdf85c4-f9c5-44c1-ba31-5744a6640727">
+		<try doc:name="Try" doc:id="app-home-try">
+			<logger level="INFO" doc:name="Log app home opened event" doc:id="app-home-logger" message='#[output text
+---
+"App home opened event received. Channel: " ++ (payload.event.channel default "" as String) ++ "\n\n"]' />
+			
+			<!-- Extract channel ID as userSessionId -->
+			<set-variable value="#[payload.event.channel]" doc:name="Set userSessionId from channel" doc:id="set-user-session-id" variableName="userSessionId" />
+			
+			<!-- Save Slack user ID for later use -->
+			<set-variable value="#[payload.event.user]" doc:name="Save Slack user ID" doc:id="save-slack-user-id" variableName="slackUserId" />
+			
+			<!-- Build the agents API URL -->
+			<set-variable value='#[output text
+---
+"https://" ++ p("websocket.client.host") ++ "/agents?userSessionId=" ++ vars.userSessionId]' doc:name="Build agents API URL" doc:id="build-agents-url" variableName="agentsApiUrl" />
+			
+			<!-- Call agents API to get agent information -->
+			<http:request method="GET" doc:name="Get agents from AIL" doc:id="get-agents-request" config-ref="HTTP_Request_configuration" url="#[vars.agentsApiUrl]">
+				<http:query-params>
+					<![CDATA[#[output application/java
+---
+{
+	"userSessionId" : vars.userSessionId
+}]]]>
+				</http:query-params>
+			</http:request>
+			
+			<logger level="INFO" doc:name="Log agents response" doc:id="log-agents-response" message='#[output text
+---
+"Agents response received: \n" ++ write(payload, "application/json") ++ "\n\n"]' />
+			
+			<!-- Transform agents response to Slack app home view -->
+			<ee:transform doc:name="Transform to Slack app home view" doc:id="transform-to-app-home">
+				<ee:message>
+					<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+var tools = payload.tools default []
+var total = sizeOf(tools)
+
+// Create header block
+var headerBlock = [
+  {
+    "type": "header",
+    "text": {
+      "type": "plain_text",
+      "text": "Available Agents",
+      "emoji": true
+    }
+  }
+]
+
+// Create agent blocks
+var agentBlocks = flatten(
+  tools map ((agent, index) ->
+    (
+      [
+        {
+          "type": "section",
+          "text": {
+            "type": "mrkdwn",
+            "text": "*" ++ (read(agent.function.description, "application/json").agentName 
+                             default ("Agent " ++ (index + 1))) ++ "*\n"
+                    ++ (read(agent.function.description, "application/json").agentDescription 
+                             default "Specialized agent")
+          },
+          "accessory": {
+            "type": "image",
+            "image_url": "https://cdn-icons-png.flaticon.com/256/7626/7626825.png",
+            "alt_text": (read(agent.function.description, "application/json").agentName 
+                            default ("Agent " ++ (index + 1)))
+          }
+        }
+      ]
+      ++ ((read(agent.function.description, "application/json").agentSkills default []) map (skill) -> {
+        "type": "context",
+        "elements": [
+          {
+            "type": "mrkdwn",
+            "text": "`" ++ (skill.name default "Skill") ++ "` — " 
+                    ++ (skill.description default "No description available")
+          }
+        ]
+      })
+      ++ (if (index < total - 1) [ { "type": "divider" } ] else [])
+    )
+  )
+)
+
+---
+
+// Concatenate header and agent blocks
+headerBlock ++ agentBlocks]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+			
+			<!-- Prepare Slack views.publish payload -->
+			<ee:transform doc:name="Prepare Slack views.publish payload" doc:id="prepare-slack-payload">
+				<ee:message>
+					<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"user_id": vars.slackUserId,
+	"view": {
+		"type": "home",
+		"blocks": payload
+	}
+}]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+			
+			<logger level="INFO" doc:name="Log Slack payload" doc:id="log-slack-payload" message='#[output text
+---
+"Slack views.publish payload: \n" ++ write(payload, "application/json") ++ "\n\n"]' />
+			
+			<!-- Publish view to Slack -->
+			<http:request method="POST" doc:name="Publish app home view to Slack" doc:id="publish-slack-view" config-ref="HTTP_Request_configuration" url="https://slack.com/api/views.publish">
+				<http:headers><![CDATA[#[output application/java
+---
+{
+	"Authorization" : "Bearer " ++ p('slack.oauth_token'),
+	"Content-Type" : "application/json"
+}]]]>
+				</http:headers>
+			</http:request>
+			
+			<logger level="INFO" doc:name="Log Slack response" doc:id="log-slack-response" message='#[output text
+---
+"Slack views.publish response: \n" ++ write(payload, "application/json") ++ "\n\n"]' />
+			
+			<error-handler>
+				<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="app-home-error-handler">
+					<logger level="ERROR" doc:name="Log app home error" doc:id="log-app-home-error" message='#[output text
+---
+"Error in app home opened flow: " ++ (error.detailedDescription default "") ++ "\nError type: " ++ (error.errorType default "") ++ "\nError description: " ++ (error.description default "")]' />
+					
+					<!-- Try to send a simple error message to Slack -->
+					<ee:transform doc:name="Prepare error message for Slack" doc:id="prepare-error-message">
+						<ee:message>
+							<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"user_id": vars.slackUserId,
+	"view": {
+		"type": "home",
+		"blocks": [
+			{
+				"type": "section",
+				"text": {
+					"type": "mrkdwn",
+					"text": "❌ *Sorry, there was an error loading your agents*\n\nPlease try again later or contact support if the issue persists."
+				}
+			}
+		]
+	}
+}]]></ee:set-payload>
+						</ee:message>
+					</ee:transform>
+					
+					<!-- Send error message to Slack -->
+					<http:request method="POST" doc:name="Send error message to Slack" doc:id="send-error-message" config-ref="HTTP_Request_configuration" url="https://slack.com/api/views.publish">
+						<http:headers><![CDATA[#[output application/java
+---
+{
+	"Authorization" : "Bearer " ++ p('slack.oauth_token'),
+	"Content-Type" : "application/json"
+}]]]>
+						</http:headers>
+					</http:request>
+				</on-error-continue>
+			</error-handler>
+		</try>
+	</sub-flow>
 </mule>
