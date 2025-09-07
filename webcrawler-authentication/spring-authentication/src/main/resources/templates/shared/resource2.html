@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shared Resource 2</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <div class="container">
+        <nav class="nav-menu">
+            <a th:href="@{/}">← Back to Home</a>
+            <a th:href="@{/shared/resource1}">Resource 1</a>
+        </nav>
+        
+        <h1>Shared Resource 2</h1>
+        <div class="success-message">
+            <p>Welcome, <strong th:text="${username}">User</strong>!</p>
+            <p>This is another shared resource, accessible to all authenticated users.</p>
+        </div>
+        
+        <div class="auth-info">
+            <h3>Consistent Access</h3>
+            <p>No matter how you logged in, you can access this page. This demonstrates how Spring Security can protect resources uniformly across different authentication mechanisms.</p>
+        </div>
+        
+        <div class="navigation">
+            <a th:href="@{/shared/resource1}" class="btn">Go to Resource 1</a>
+            <a th:href="@{/}" class="btn btn-secondary">Back to Home</a>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form Login</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <div class="container">
+        <nav class="nav-menu">
+            <a th:href="@{/}">← Back to Home</a>
+        </nav>
+        
+        <div class="login-form">
+            <h1>Form-based Authentication</h1>
+            
+            <div th:if="${param.error}" class="error-message">
+                Invalid username or password.
+            </div>
+            
+            <div th:if="${param.logout}" class="success-message">
+                You have been logged out successfully.
+            </div>
+            
+            <form th:action="@{/form/login}" method="post">
+                <div class="form-group">
+                    <label for="username">Username:</label>
+                    <input type="text" id="username" name="username" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Password:</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                
+                <button type="submit" class="btn btn-primary">Login</button>
+            </form>
+            
+            <div class="credentials-hint">
+                <p><strong>Test Credentials:</strong></p>
+                <p>Username: user</p>
+                <p>Password: password</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

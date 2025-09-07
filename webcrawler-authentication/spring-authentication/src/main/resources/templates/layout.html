@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${title} ?: 'Spring Auth Demo'">Spring Auth Demo</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a th:href="@{/}" class="nav-brand">Spring Auth Demo</a>
+            <div class="nav-links">
+                <a th:href="@{/}">Home</a>
+                <a th:href="@{/shared/resource1}">Shared Resources</a>
+            </div>
+        </div>
+    </nav>
+    
+    <main class="main-content">
+        <div layout:fragment="content"></div>
+    </main>
+    
+    <footer class="footer">
+        <p>&copy; 2024 Spring Auth Demo</p>
+    </footer>
+</body>
+</html>

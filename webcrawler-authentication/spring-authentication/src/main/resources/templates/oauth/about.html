@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About OAuth 2.0</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <div class="container">
+        <nav class="nav-menu">
+            <a th:href="@{/}">← Back to Home</a>
+            <a th:href="@{/oauth/home}">OAuth 2.0 Home</a>
+            <a th:href="@{/shared/resource1}">Shared Resources</a>
+        </nav>
+        
+        <h1>OAuth 2.0 Authorization Framework</h1>
+        
+        <div class="info-section">
+            <h3>Overview</h3>
+            <p>OAuth 2.0 is the industry-standard protocol for authorization. It focuses on client developer simplicity while providing specific authorization flows for web applications, desktop applications, mobile phones, and living room devices.</p>
+            
+            <h3>Implementation Details</h3>
+            <ul>
+                <li><strong>Roles:</strong> Resource Owner, Client, Authorization Server, Resource Server</li>
+                <li><strong>Tokens:</strong> Access Tokens are issued to third-party clients by an authorization server with the approval of the resource owner.</li>
+                <li><strong>Security:</strong> Relies on HTTPS for all communication. Bearer tokens are the most common type.</li>
+                <li><strong>Flows:</strong> Authorization Code, Implicit, Resource Owner Password Credentials, and Client Credentials grant types.</li>
+            </ul>
+            
+            <h3>Use Cases</h3>
+            <ul>
+                <li>Third-party application access (e.g., "Login with Google")</li>
+                <li>Securing APIs</li>
+                <li>Single Sign-On (SSO) across multiple applications</li>
+                <li>Providing scoped access to resources</li>
+            </ul>
+        </div>
+        
+        <div class="navigation">
+            <a th:href="@{/oauth/home}" class="btn">Back to OAuth 2.0</a>
+            <a th:href="@{/}" class="btn btn-secondary">Try Other Methods</a>
+        </div>
+    </div>
+</body>
+</html>

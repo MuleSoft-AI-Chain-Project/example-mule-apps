@@ -1,0 +1,4 @@
+org.mule.extension.webcrawler.api.authenticator.BasicOrDigestAuthenticator
+org.mule.extension.webcrawler.api.authenticator.FormCookieAuthenticator
+org.mule.extension.webcrawler.api.authenticator.JwtAuthenticator
+org.mule.extension.webcrawler.api.authenticator.OAuthBearerTokenAuthenticator

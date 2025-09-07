@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Basic Authentication</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <div class="container">
+        <nav class="nav-menu">
+            <a th:href="@{/}">← Back to Home</a>
+            <a th:href="@{/basic/home}">Basic Auth Home</a>
+            <a th:href="@{/shared/resource1}">Shared Resources</a>
+        </nav>
+        
+        <h1>HTTP Basic Authentication</h1>
+        
+        <div class="info-section">
+            <h3>Overview</h3>
+            <p>HTTP Basic Authentication is a simple authentication scheme built into the HTTP protocol. The client sends HTTP requests with the Authorization header that contains the word Basic followed by a space and a base64-encoded string username:password.</p>
+            
+            <h3>Implementation Details</h3>
+            <ul>
+                <li><strong>Header Format:</strong> Authorization: Basic <credentials></li>
+                <li><strong>Credentials:</strong> base64(username:password)</li>
+                <li><strong>Security:</strong> Requires HTTPS to prevent credential interception</li>
+                <li><strong>Session:</strong> Stateless - credentials sent with every request</li>
+            </ul>
+            
+            <h3>Use Cases</h3>
+            <ul>
+                <li>API authentication</li>
+                <li>Simple web services</li>
+                <li>Internal systems with trusted networks</li>
+                <li>Quick prototyping and development</li>
+            </ul>
+            
+            <h3>Testing</h3>
+            <p>You can test this endpoint using curl:</p>
+            <code>curl -u user:password http://localhost:8080/basic/home</code>
+        </div>
+        
+        <div class="navigation">
+            <a th:href="@{/basic/home}" class="btn">Back to Basic Auth</a>
+            <a th:href="@{/}" class="btn btn-secondary">Try Other Methods</a>
+        </div>
+    </div>
+</body>
+</html>
