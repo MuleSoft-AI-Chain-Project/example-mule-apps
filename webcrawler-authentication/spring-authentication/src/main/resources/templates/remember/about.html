@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Remember-Me Authentication</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <div class="container">
+        <nav class="nav-menu">
+            <a th:href="@{/}">← Back to Home</a>
+            <a th:href="@{/remember/home}">Remember-Me Home</a>
+            <a th:href="@{/shared/resource1}">Shared Resources</a>
+        </nav>
+        
+        <h1>Remember-Me Authentication</h1>
+        
+        <div class="info-section">
+            <h3>Overview</h3>
+            <p>Remember-Me authentication allows users to be remembered across browser sessions. If the user closes their browser and re-opens it, they will still be authenticated.</p>
+            
+            <h3>Implementation Details</h3>
+            <ul>
+                <li><strong>Cookie:</strong> A cookie is sent to the browser to remember the user's identity.</li>
+                <li><strong>Token-Based:</strong> A secure token is stored in the cookie, which is used to authenticate the user.</li>
+                <li><strong>Persistent:</strong> The cookie has a long expiration time.</li>
+            </ul>
+            
+            <h3>Use Cases</h3>
+            <ul>
+                <li>User-friendly applications where re-authentication is cumbersome.</li>
+                <li>Consumer-facing websites.</li>
+                <li>Applications where security is not as critical as user experience.</li>
+            </ul>
+        </div>
+        
+        <div class="navigation">
+            <a th:href="@{/remember/home}" class="btn">Back to Remember-Me Home</a>
+            <a th:href="@{/}" class="btn btn-secondary">Try Other Methods</a>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Form Authentication</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <div class="container">
+        <nav class="nav-menu">
+            <a th:href="@{/}">← Back to Home</a>
+            <a th:href="@{/form/home}">Form Auth Home</a>
+            <a th:href="@{/shared/resource1}">Shared Resources</a>
+            <form th:action="@{/form/logout}" method="post" style="display: inline;">
+                <button type="submit" class="btn btn-logout">Logout</button>
+            </form>
+        </nav>
+        
+        <h1>Form-based Authentication</h1>
+        
+        <div class="info-section">
+            <h3>Overview</h3>
+            <p>Form-based authentication is the most common authentication method for web applications. Users enter their credentials in an HTML form, and the server validates them and maintains a session.</p>
+            
+            <h3>Implementation Details</h3>
+            <ul>
+                <li><strong>Login Process:</strong> User submits credentials via POST to login endpoint</li>
+                <li><strong>Session Management:</strong> Server creates and maintains user session</li>
+                <li><strong>Cookies:</strong> Session ID stored in HTTP-only cookie</li>
+                <li><strong>CSRF Protection:</strong> Built-in CSRF token validation</li>
+            </ul>
+            
+            <h3>Security Features</h3>
+            <ul>
+                <li>CSRF token protection</li>
+                <li>Session fixation protection</li>
+                <li>Automatic logout on session timeout</li>
+                <li>Password-based authentication</li>
+            </ul>
+            
+            <h3>Use Cases</h3>
+            <ul>
+                <li>Traditional web applications</li>
+                <li>User-facing websites</li>
+                <li>Content management systems</li>
+                <li>E-commerce platforms</li>
+            </ul>
+        </div>
+        
+        <div class="navigation">
+            <a th:href="@{/form/home}" class="btn">Back to Form Auth</a>
+            <a th:href="@{/}" class="btn btn-secondary">Try Other Methods</a>
+        </div>
+    </div>
+</body>
+</html>

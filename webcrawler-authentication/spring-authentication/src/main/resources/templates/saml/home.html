@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAML - Home</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <div class="container">
+        <nav class="nav-menu">
+            <a th:href="@{/}">← Back to Home</a>
+            <a th:href="@{/saml/about}">About SAML</a>
+            <a th:href="@{/shared/resource1}">Shared Resources</a>
+            <form th:action="@{/logout}" method="post" style="display: inline;">
+                <button type="submit" class="btn btn-logout">Logout</button>
+            </form>
+        </nav>
+        
+        <h1>SAML 2.0 Authentication Success</h1>
+        <div class="success-message">
+            <p>Welcome, <strong th:text="${username}">User</strong>!</p>
+            <p>You have successfully authenticated using SAML 2.0.</p>
+        </div>
+        
+        <div class="auth-info">
+            <h3>How SAML Authentication Works:</h3>
+            <ul>
+                <li>User attempts to access a protected resource</li>
+                <li>Service Provider (SP) redirects to Identity Provider (IdP)</li>
+                <li>IdP authenticates user and sends SAML assertion</li>
+                <li>SP validates assertion and grants access</li>
+            </ul>
+        </div>
+        
+        <div class="navigation">
+            <a th:href="@{/saml/about}" class="btn">Learn More</a>
+            <a th:href="@{/shared/resource1}" class="btn btn-secondary">Access Shared Resources</a>
+        </div>
+    </div>
+</body>
+</html>

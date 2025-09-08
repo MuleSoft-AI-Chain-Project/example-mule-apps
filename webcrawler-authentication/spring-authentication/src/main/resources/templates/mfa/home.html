@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MFA Authentication - Home</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <div class="container">
+        <nav class="nav-menu">
+            <a th:href="@{/}">← Back to Home</a>
+            <form th:action="@{/mfa/logout}" method="post" style="display: inline;">
+                <button type="submit" class="btn btn-logout">Logout</button>
+            </form>
+        </nav>
+        
+        <h1>MFA Authentication Success</h1>
+        <div class="success-message">
+            <p>Welcome, <strong th:text="${#authentication.principal.username}">User</strong>!</p>
+            <p>You have successfully authenticated using Multi-Factor Authentication with an Email OTP.</p>
+        </div>
+        
+        <div class="auth-info">
+            <h3>How MFA with Email OTP Works:</h3>
+            <ul>
+                <li>First, you authenticate with your username and password.</li>
+                <li>If your credentials are correct, a one-time password (OTP) is sent to your registered email address.</li>
+                <li>You are then prompted to enter the OTP to complete the authentication process.</li>
+                <li>This provides an extra layer of security by requiring you to have access to your email account.</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

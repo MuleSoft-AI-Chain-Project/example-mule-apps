@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About LDAP Authentication</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <div class="container">
+        <nav class="nav-menu">
+            <a th:href="@{/}">← Back to Home</a>
+            <a th:href="@{/ldap/home}">LDAP Auth Home</a>
+            <a th:href="@{/shared/resource1}">Shared Resources</a>
+        </nav>
+        
+        <h1>LDAP Authentication</h1>
+        
+        <div class="info-section">
+            <h3>Overview</h3>
+            <p>LDAP (Lightweight Directory Access Protocol) is a protocol for accessing and maintaining distributed directory information services over an IP network. It's often used for centralized authentication.</p>
+            
+            <h3>Implementation Details</h3>
+            <ul>
+                <li><strong>Server:</strong> Requires an LDAP server (like OpenLDAP or ApacheDS).</li>
+                <li><strong>Configuration:</strong> Spring Security is configured to connect to the LDAP server.</li>
+                <li><strong>Binding:</strong> Authenticates by attempting to bind to the LDAP server with the user's credentials.</li>
+            </ul>
+            
+            <h3>Use Cases</h3>
+            <ul>
+                <li>Enterprise applications with central user directories.</li>
+                <li>Single Sign-On (SSO) solutions.</li>
+                <li>Applications requiring integration with corporate user management systems.</li>
+            </ul>
+        </div>
+        
+        <div class="navigation">
+            <a th:href="@{/ldap/home}" class="btn">Back to LDAP Auth</a>
+            <a th:href="@{/}" class="btn btn-secondary">Try Other Methods</a>
+        </div>
+    </div>
+</body>
+</html>

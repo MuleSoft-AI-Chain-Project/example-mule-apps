@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form Authentication - Home</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <div class="container">
+        <nav class="nav-menu">
+            <a th:href="@{/}">← Back to Home</a>
+            <a th:href="@{/form/about}">About Form Auth</a>
+            <a th:href="@{/shared/resource1}">Shared Resources</a>
+            <form th:action="@{/form/logout}" method="post" style="display: inline;">
+                <button type="submit" class="btn btn-logout">Logout</button>
+            </form>
+        </nav>
+        
+        <h1>Form Authentication Success</h1>
+        <div class="success-message">
+            <p>Welcome, <strong th:text="${username}">User</strong>!</p>
+            <p>You have successfully authenticated using form-based login.</p>
+        </div>
+        
+        <div class="auth-info">
+            <h3>How Form Authentication Works:</h3>
+            <ul>
+                <li>User submits credentials via HTML form</li>
+                <li>Server validates credentials and creates session</li>
+                <li>Session ID stored in cookie for subsequent requests</li>
+                <li>Stateful - session maintained on server</li>
+            </ul>
+        </div>
+        
+        <div class="navigation">
+            <a th:href="@{/form/about}" class="btn">Learn More</a>
+            <a th:href="@{/shared/resource1}" class="btn btn-secondary">Access Shared Resources</a>
+        </div>
+    </div>
+</body>
+</html>
