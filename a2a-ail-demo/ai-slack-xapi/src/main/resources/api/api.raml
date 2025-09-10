@@ -1,15 +1,15 @@
 #%RAML 1.0
 title: Slack AI Experience API
-mediaType:
-  - application/json
 protocols:
   - HTTPS
+
 /agent: {}
 /events:
   post:
     displayName: Inbound Slack Events
     body:
-      type: SlackEvent
+      application/json:
+        type: SlackEvent
     responses:
       "200": {}
       "302": {}
@@ -18,11 +18,13 @@ protocols:
   post:
     displayName: Send a Message
     body:
-      type: Message
+      application/json:
+        type: Message
     responses:
       "200":
         body:
-          type: object
+          application/json:
+            type: object
 /agent/replies:
   get:
     queryParameters:
@@ -63,27 +65,32 @@ protocols:
   post:
     displayName: Update Agent Status
     body:
-      type: AgentStatus
+      application/json:
+        type: AgentStatus
     responses:
       "204": {}
 /agent/suggested_prompts:
   post:
     displayName: Set Suggested Prompts
     body:
-      type: SuggestedPrompts
+      application/json:
+        type: SuggestedPrompts
     responses:
       "200":
         body:
-          type: SuggestedPromptResponse
+          application/json:
+            type: SuggestedPromptResponse
 /agent/title:
   post:
     displayName: Update Thread Title
     body:
-      type: ThreadTitle
+      application/json:
+        type: ThreadTitle
     responses:
       "200":
         body:
-          type: SuggestedPromptResponse
+          application/json:
+            type: SuggestedPromptResponse
 /agent/conversation_info:
   get:
     displayName: Get information about a conversation
@@ -104,12 +111,15 @@ protocols:
   post:
     displayName: Inbound Slack Interactivity
     body:
-      type: SlackInteraction
+      application/x-www-form-urlencoded:
+        type: object
+        properties:
+          payload: string
     responses:
       "200": {}
       "302": {}
       "301": {}
-      
+
 types:
   prompt:
     properties:

@@ -204,8 +204,8 @@ payload]" />
 payload]" />
         <flow-ref doc:name="Set Title" doc:id="180897d3-08b7-4d21-a844-dc1174266334" name="set_title" />
     </flow>
-	<flow name="post:\interaction:application\json:slack-ai-app-experience-api-config" doc:id="53424707-53b7-45f7-a3e4-5258a42e9cc4" >
-		<logger level="INFO" doc:name="Logger" doc:id="fbe05613-f134-4cfd-a016-65fd53391bb7" message="post:\interaction:application\json:slack-ai-app-experience-api-config" />
+	<flow name="post:\interaction:application\x-www-form-urlencoded:slack-ai-app-experience-api-config" doc:id="53424707-53b7-45f7-a3e4-5258a42e9cc4" >
+		<logger level="INFO" doc:name="Logger" doc:id="fbe05613-f134-4cfd-a016-65fd53391bb7" message="post:\interaction:application\x-www-form-urlencoded:slack-ai-app-experience-api-config" />
 		<logger level="INFO" doc:name="Log Message Payload" doc:id="c43f2512-2c79-444e-ad90-138ca99a59ff" message="#[output application/json&#10;---&#10;payload]" />
 		<flow-ref doc:name="Publish Slack Interaction" doc:id="c48c1c0b-f2df-4d61-b2bb-c01c14394183" name="publish_interaction" />
 		<error-handler >

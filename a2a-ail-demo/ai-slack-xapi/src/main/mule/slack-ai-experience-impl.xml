@@ -68,6 +68,15 @@ output application/json
     </flow>
 	
 	<sub-flow name="publish_interaction" doc:id="6461ad55-b22f-4455-a24a-c058387bc222">
+		<ee:transform doc:name="Transform payload" doc:id="cde76525-071f-448b-af84-db13cda0b571">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+var form = payload
+---
+read(form.payload, "application/json")]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
 		<choice doc:name="Vaildate Request" doc:id="01954b5b-dce9-4f81-aa34-9cd928828b6c">
 			<when expression="#[!(payload.token as String == p('slack.verification_token'))]">
 				<raise-error doc:name="Token is Invalid" doc:id="450783f6-4e87-4200-8504-877baa496505" type="SLACK_EVT:INVALID_TOKEN" description="Authorization Error: Invalid Token" />

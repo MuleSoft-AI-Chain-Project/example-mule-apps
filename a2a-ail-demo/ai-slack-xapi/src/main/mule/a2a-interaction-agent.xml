@@ -272,7 +272,7 @@ output application/json
         },
         "style": "primary",
         "action_id": "add_default_agents",
-        "value": "add_agents"
+        "value": "add_agents" ++ "|" ++ vars.userSessionId,
       },
       {
         "type": "button",
@@ -282,7 +282,7 @@ output application/json
         },
         "style": "danger",
         "action_id": "delete_all_agents",
-        "value": "delete_agents",
+        "value": "delete_agents" ++ "|" ++ vars.userSessionId,
         "confirm": {
           "title": {
             "type": "plain_text",
@@ -399,7 +399,7 @@ output application/json
 	</sub-flow>
 	<sub-flow name="on-add-default-agents" doc:id="c0af4be3-4dcd-420c-a75b-919bfeccc371" >
 		<logger level="INFO" doc:name="Log block actions interaction" doc:id="5643afac-fa92-4cfc-8f2f-5b14a2725d3f" message='#[output text&#10;---&#10;"Add default agents (block actions) interaction recieved. Channel: " ++ (payload.event.channel default "" as String) ++ "\n\n"]' />
-		<set-variable value="#[vars.slack_interaction.channel.id]" doc:name="Set userSessionId from channel" doc:id="3e139e89-599d-4df7-b019-f554ae61edb3" variableName="userSessionId" />
+		<set-variable value='#[(vars.slack_interaction.actions[0].value splitBy  "|")[1]]' doc:name="Set userSessionId from channel" doc:id="3e139e89-599d-4df7-b019-f554ae61edb3" variableName="userSessionId" />
 		<set-variable value="#[vars.slack_interaction.user.id]" doc:name="Save Slack user ID" doc:id="0d72631d-b352-4813-8c29-c696c63f3eea" variableName="slackUserId" />
 		<flow-ref doc:name="Add Default Agents" doc:id="cf719c14-759f-48d2-9ba6-f98d5af08fd9" name="add-default-agents"/>
 		<flow-ref doc:name="Build App Home" doc:id="ea9e57c2-7001-4e16-93a2-fef1861fe9e7" name="build-app-home" />
@@ -483,7 +483,7 @@ output application/json
 	</sub-flow>
 	<sub-flow name="on-delete-all-agents" doc:id="b08f00bd-b8a5-40dd-a93a-16bda8acaba3" >
 		<logger level="INFO" doc:name="Log block actions interaction" doc:id="5df74a16-de80-4a9f-9f91-495594888f1e" message='#[output text&#10;---&#10;"Delete all agents (block actions) interaction recieved. Channel: " ++ (payload.event.channel default "" as String) ++ "\n\n"]' />
-		<set-variable value="#[vars.slack_interaction.channel.id]" doc:name="Set userSessionId from channel" doc:id="ef314e0a-5963-429e-8308-57351a552ade" variableName="userSessionId" />
+		<set-variable value='#[(vars.slack_interaction.actions[0].value splitBy  "|")[1]]' doc:name="Set userSessionId from channel" doc:id="ef314e0a-5963-429e-8308-57351a552ade" variableName="userSessionId" />
 		<set-variable value="#[vars.slack_interaction.user.id]" doc:name="Save Slack user ID" doc:id="5ac608f9-c241-4477-95d6-1035b166bfa3" variableName="slackUserId" />
 		<flow-ref doc:name="Delete All Agents" doc:id="d3238203-9150-4dca-a54e-96bdbbb1bcfd" name="delete-all-agents"/>
 		<flow-ref doc:name="Build App Home" doc:id="2b33fee0-0bb8-42ca-9a21-0366d2332f33" name="build-app-home" />
