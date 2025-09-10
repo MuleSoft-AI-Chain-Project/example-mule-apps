@@ -100,6 +100,16 @@ protocols:
       include_num_members?:
         example: true
         type: boolean
+/interaction:
+  post:
+    displayName: Inbound Slack Interactivity
+    body:
+      type: SlackInteraction
+    responses:
+      "200": {}
+      "302": {}
+      "301": {}
+      
 types:
   prompt:
     properties:
@@ -453,3 +463,117 @@ types:
         type: boolean
       channel?:
         type: ChannelInfo
+  SlackInteraction:
+    type: object
+    properties:
+      type:
+        type: string
+        enum:
+          - block_actions
+        description: >
+          Helps identify which type of interactive component sent the payload; 
+          An interactive element in a block will have a type of block_actions, 
+          whereas an interactive element in a message attachment will have a type of interactive_message.
+        required: true
+      trigger_id:
+        type: string
+        description: A short-lived ID that can be used to open modals.
+        required: true
+      user:
+        type: object
+        description: The user who interacted to trigger this request.
+        required: true
+        properties:
+          id: string
+          username?: string
+          name?: string
+          team_id: string
+      team:
+        type: object
+        description: The workspace the app is installed on. Null if the app is org-installed.
+        required: true
+        properties:
+          id: string
+          domain: string
+      container:
+        type: object
+        description: The container where this block action took place.
+        required: true
+        properties:
+          type:
+            type: string
+            enum:
+              - view
+              - message
+          view_id?: string
+          message_ts?: string
+          channel_id?: string
+      api_app_id:
+        type: string
+        description: A string representing the app ID.
+        required: true
+      token:
+        type: string
+        description: >
+          Represents a deprecated verification token feature. 
+          You should validate the request payload, however, 
+          the best way to do so is to use the signing secret provided to your app.
+        required: true
+      hash:
+        type: string
+        description: >
+          A unique value optionally accepted in views.update and views.publish API calls.
+          Ensures only the most recent view is updated.
+        required: true
+      function_data:
+        type: object
+        description: Metadata about the function execution that generated the block where this block action took place.
+        required: true
+      interactivity:
+        type: object
+        description: An interactivity object generated as a result of the block action.
+        required: true
+      bot_access_token:
+        type: string
+        description: A workflow (just-in-time) token generated for this block action.
+        required: true
+      enterprise?:
+        type: object
+        description: The enterprise the installed app is part of.
+      channel?:
+        type: object
+        description: The channel where this block action took place.
+      message?:
+        type: object
+        description: The message where this block action took place, if the block was contained in a message.
+      view?:
+        type: object
+        description: The view where this block action took place, if the block was contained in a view.
+      actions?:
+        type: array
+        description: >
+          Contains data from the specific interactive component that was used.
+          App surfaces can contain blocks with multiple interactive components, 
+          and each of those components can have multiple values selected by users.
+        items:
+          type: object
+          properties:
+            block_id: string
+            action_id: string
+            value?: string
+            type: string
+            text?: 
+              type: object
+              properties:
+                type: string
+                text: string
+                emoji?: boolean
+            action_ts?: string
+      state?:
+        type: object
+        description: A property including all stateful elements, not just input blocks.
+      response_url?:
+        type: string
+        description: >
+          (Deprecated for apps created with the Deno Slack SDK) 
+          A short-lived webhook that can be used to send messages in response to interactions.

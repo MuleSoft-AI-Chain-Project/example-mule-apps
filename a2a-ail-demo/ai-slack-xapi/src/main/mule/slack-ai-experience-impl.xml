@@ -34,7 +34,7 @@ output application/json
                 </ee:transform>
             </when>
             <otherwise>
-                <vm:publish doc:name="Publish to Event Dispatch Queue" doc:id="de8d338d-632e-4b9d-835e-4030fdd9b226" config-ref="VM_Config" queueName="slack_dispatch" />
+                <vm:publish doc:name="Publish to Event Dispatch Queue" doc:id="de8d338d-632e-4b9d-835e-4030fdd9b226" config-ref="VM_Config" queueName="slack_event_dispatch" />
                 <ee:transform doc:name="Generate Response" doc:id="b38eb80e-495a-40b3-a71f-e5db06dbec24">
                     <ee:message>
                         <ee:set-payload><![CDATA[%dw 2.0
@@ -50,7 +50,7 @@ output application/json
     </sub-flow>
     
     <flow name="event-dispatch-processor" doc:id="12c64f64-f31d-4676-9aa1-b53f19141dcd">
-        <vm:listener doc:name="Listener" doc:id="07e25da4-8772-4900-bd41-4c730e687f35" config-ref="VM_Config" queueName="slack_dispatch" />
+        <vm:listener doc:name="Listener" doc:id="07e25da4-8772-4900-bd41-4c730e687f35" config-ref="VM_Config" queueName="slack_event_dispatch" />
         <logger level="INFO" doc:name="Logger" doc:id="82346519-cab8-44d8-8681-338d7c9bbe5c" message="#[&quot;\n\n=====GOT SLACK EVENT=====\n\n$(write(payload, 'application/json'))&quot;]" />
         <choice doc:name="Choice" doc:id="f215a8c5-22ce-471c-8f60-e5506ac33b05">
             <when expression='#["message" == payload.event."type" and  isEmpty(payload.event.subtype) and isEmpty(payload.event.bot_id)]'>
@@ -67,6 +67,38 @@ output application/json
         </choice>
     </flow>
 	
+	<sub-flow name="publish_interaction" doc:id="6461ad55-b22f-4455-a24a-c058387bc222">
+		<choice doc:name="Vaildate Request" doc:id="01954b5b-dce9-4f81-aa34-9cd928828b6c">
+			<when expression="#[!(payload.token as String == p('slack.verification_token'))]">
+				<raise-error doc:name="Token is Invalid" doc:id="450783f6-4e87-4200-8504-877baa496505" type="SLACK_EVT:INVALID_TOKEN" description="Authorization Error: Invalid Token" />
+			</when>
+		</choice>
+		<vm:publish queueName="slack_interaction_dispatch" doc:name="Publish to Event Dispatch Queue" doc:id="a05066f5-f673-4056-80da-fff96868112c" config-ref="VM_Config" />
+		<ee:transform doc:name="Generate Response" doc:id="c7b3781d-fbdf-42b0-bb21-3034041e17f6">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	status: "Queued for Processing"
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+	</sub-flow>
+	<flow name="interaction-dispatch-processor" doc:id="5e715564-30aa-4563-9355-a75b3dffc138">
+		<vm:listener queueName="slack_interaction_dispatch" doc:name="Listener" doc:id="e0b18ecc-b54c-4c06-a069-59e3301a2816" config-ref="VM_Config" />
+		<logger level="INFO" doc:name="Logger" doc:id="37253efa-8777-4ed5-a621-dacefa5d091a" message="#[&quot;\n\n=====GOT SLACK INTERACTION=====\n\n$(write(payload, 'application/json'))&quot;]" />
+		<choice doc:name="Choice" doc:id="b6e7e3e0-a606-4c01-99d9-7ac9fb77441a">
+			<when expression='#["add_default_agents" == payload.actions[0].action_id and "block_actions" == payload."type"]'>
+				<set-variable value="#[payload]" doc:name="Save Slack Payload" doc:id="9cd68e03-1c5e-492c-a471-60fb64ccde46" variableName="slack_interaction" />
+				<flow-ref doc:name="Add default agents" doc:id="25aeec6e-c801-40aa-ac84-d1cdf68733a2" name="on-add-default-agents"/>
+			</when>
+			<when expression='#["delete_all_agents" == payload.actions[0].action_id and "block_actions" == payload."type"]'>
+				<set-variable value="#[payload]" doc:name="Save Slack Payload" doc:id="3770b125-718f-4a2d-a765-fdc2bf882ae9" variableName="slack_interaction" />
+				<flow-ref doc:name="Delete all agents" doc:id="81945734-de34-4631-87f3-401cd318dd34" name="on-delete-all-agents"/>
+			</when>
+		</choice>
+	</flow>
 	<sub-flow name="get_conversation_info" doc:id="a899ba5f-a79e-4db4-ac00-bc91ab95a9ad" >
 		<slack:get-conversationsinfo doc:name="Conversations info" doc:id="bbc1382e-b356-4bda-966e-799d47fce8c6" config-ref="Slack_Connector_Config" includeNumMembers="#[attributes.queryParams.include_num_members]" channel="#[attributes.queryParams.channel]" includeLocale="#[attributes.queryParams.include_locale]" />
 	</sub-flow>

@@ -137,7 +137,7 @@ payload]" />
         </error-handler>
     </flow>
     
-    <flow name="slack-ai-app-experience-apiFlow2" doc:id="33b38e94-31c0-41fb-af7c-95c88bed3f72" >
+    <flow name="\template" doc:id="33b38e94-31c0-41fb-af7c-95c88bed3f72" >
         <http:listener doc:name="/template" doc:id="71c1e1fb-8ae5-4051-859b-32f1bf035b78" config-ref="slack-ai-app-experience-api-httpListenerConfig" path="/template"/>
         <set-payload value="#[output text/plain
 ---
@@ -204,5 +204,15 @@ payload]" />
 payload]" />
         <flow-ref doc:name="Set Title" doc:id="180897d3-08b7-4d21-a844-dc1174266334" name="set_title" />
     </flow>
+	<flow name="post:\interaction:application\json:slack-ai-app-experience-api-config" doc:id="53424707-53b7-45f7-a3e4-5258a42e9cc4" >
+		<logger level="INFO" doc:name="Logger" doc:id="fbe05613-f134-4cfd-a016-65fd53391bb7" message="post:\interaction:application\json:slack-ai-app-experience-api-config" />
+		<logger level="INFO" doc:name="Log Message Payload" doc:id="c43f2512-2c79-444e-ad90-138ca99a59ff" message="#[output application/json&#10;---&#10;payload]" />
+		<flow-ref doc:name="Publish Slack Interaction" doc:id="c48c1c0b-f2df-4d61-b2bb-c01c14394183" name="publish_interaction" />
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="aea207a0-c749-4f24-833e-91ea6987a246" type="SLACK_EVT:INVALID_TOKEN" >
+				<set-variable value="401" doc:name="Set Variable" doc:id="c786c02d-db25-4d4d-afad-48518b2082ce" variableName="httpStatus" />
+			</on-error-propagate>
+		</error-handler>
+	</flow>
     
 </mule>

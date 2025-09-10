@@ -60,7 +60,8 @@ http://www.mulesoft.org/schema/mule/websocket http://www.mulesoft.org/schema/mul
     <!-- Global VM Configuration -->
     <vm:config name="VM_Config" doc:name="VM Config" doc:id="4f1fb325-456c-4759-927b-6b14a2abbb64">
         <vm:queues>
-            <vm:queue queueName="slack_dispatch" />
+            <vm:queue queueName="slack_event_dispatch" />
+			<vm:queue queueName="slack_interaction_dispatch" />
         </vm:queues>
     </vm:config>
 
