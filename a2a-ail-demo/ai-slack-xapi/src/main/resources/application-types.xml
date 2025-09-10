@@ -1079,4 +1079,6 @@ type app_home_opened = {|
       </types:output-event>
     </types:processor-declaration>
   </types:enrichment>
+  <types:enrichment select="#transform-to-app-home"/>
+  <types:enrichment select="#e7b4c1ae-85b8-477e-993a-84b763e24de9"/>
 </types:mule>

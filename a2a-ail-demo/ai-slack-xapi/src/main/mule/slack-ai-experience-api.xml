@@ -126,7 +126,9 @@ output application/json
     
     <flow name="post:\events:application\json:slack-ai-app-experience-api-config">
 		<logger level="INFO" message="post:\events:application\json:slack-ai-app-experience-api-config" />
-		<logger level="INFO" doc:name="Log Message Payload" doc:id="d954bfa8-3ff4-41ed-a968-5a25a92c5aae" message="#[output application/json&#10;---&#10;payload]" />
+		<logger level="INFO" doc:name="Log Message Payload" doc:id="d954bfa8-3ff4-41ed-a968-5a25a92c5aae" message="#[output application/json
+---
+payload]" />
         <flow-ref doc:name="Publish Slack Event" doc:id="e153e852-5821-41c1-859f-f931f60e6f49" name="publish_event"/>
 		<error-handler>
             <on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="50b20009-cc56-47a6-bbc9-2fc12f067347" type="SLACK_EVT:INVALID_TOKEN">

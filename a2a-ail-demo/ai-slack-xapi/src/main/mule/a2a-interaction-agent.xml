@@ -187,25 +187,25 @@ output text/plain
 "Agents response received: \n" ++ write(payload, "application/json") ++ "\n\n"]' />
 			
 			<!-- Transform agents response to Slack app home view -->
-			<ee:transform doc:name="Transform to Slack app home view" doc:id="transform-to-app-home">
+			<ee:transform doc:name="Prepare available agents block" doc:id="transform-to-app-home">
 				<ee:message>
-					<ee:set-payload><![CDATA[%dw 2.0
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="availableAgentsBlock" ><![CDATA[%dw 2.0
 output application/json
 var tools = payload.tools default []
 var total = sizeOf(tools)
 
-// Create header block
-var headerBlock = [
+var sectionTitleBlocks = [
   {
-    "type": "header",
+    "type": "section",
     "text": {
-      "type": "plain_text",
-      "text": "Available Agents",
-      "emoji": true
+      "type": "mrkdwn",
+      "text": "*Available Agents*"
     }
   }
 ]
-
+  
 // Create agent blocks
 var agentBlocks = flatten(
   tools map ((agent, index) ->
@@ -245,22 +245,89 @@ var agentBlocks = flatten(
 
 ---
 
-// Concatenate header and agent blocks
-headerBlock ++ agentBlocks]]></ee:set-payload>
-				</ee:message>
+sectionTitleBlocks ++ agentBlocks]]></ee:set-variable>
+				</ee:variables>
 			</ee:transform>
 			
 			<!-- Prepare Slack views.publish payload -->
+			<ee:transform doc:name="Prepare agents buttons block" doc:id="e7b4c1ae-85b8-477e-993a-84b763e24de9" >
+				<ee:message >
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="agentsButtons" ><![CDATA[%dw 2.0
+output application/json
+---
+[
+  {
+    "type": "actions",
+    "elements": [
+      {
+        "type": "button",
+        "text": {
+          "type": "plain_text",
+          "text": "Add Default"
+        },
+        "style": "primary",
+        "action_id": "add_default_agents",
+        "value": "add_agents"
+      },
+      {
+        "type": "button",
+        "text": {
+          "type": "plain_text",
+          "text": "Delete All"
+        },
+        "style": "danger",
+        "action_id": "delete_all_agents",
+        "value": "delete_agents",
+        "confirm": {
+          "title": {
+            "type": "plain_text",
+            "text": "Are you sure?"
+          },
+          "text": {
+            "type": "mrkdwn",
+            "text": "This will *permanently delete all agents*."
+          },
+          "confirm": {
+            "type": "plain_text",
+            "text": "Yes, delete"
+          },
+          "deny": {
+            "type": "plain_text",
+            "text": "Cancel"
+          }
+        }
+      }
+    ]
+  }
+]]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
 			<ee:transform doc:name="Prepare Slack views.publish payload" doc:id="prepare-slack-payload">
 				<ee:message>
 					<ee:set-payload><![CDATA[%dw 2.0
 output application/json
+
+
+// Create header block
+var headerBlock = [
+  {
+    "type": "header",
+    "text": {
+      "type": "plain_text",
+      "text": "Agents",
+      "emoji": true
+    }
+  }
+]
+
 ---
 {
 	"user_id": vars.slackUserId,
 	"view": {
 		"type": "home",
-		"blocks": payload
+		"blocks": headerBlock ++ vars.agentsButtons ++ vars.availableAgentsBlock
 	}
 }]]></ee:set-payload>
 				</ee:message>
