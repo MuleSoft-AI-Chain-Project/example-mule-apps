@@ -79,6 +79,7 @@ function initializeUserSession() {
 let conversationLoaded = false;
 let agentsLoaded = false;
 let sessionsLoaded = false;
+let settingsLoaded = false;
 
 function loadConversation(forceReload = false) {
     if (conversationLoaded && !forceReload) return;
@@ -294,6 +295,76 @@ function loadSessions(forceReload = false) {
         });
 }
 
+function loadSettings(forceReload = false) {
+    console.log('[Index] loadSettings called, forceReload:', forceReload, 'settingsLoaded:', settingsLoaded);
+    if (settingsLoaded && !forceReload) return;
+    
+    const settingsContent = document.getElementById('settings-content');
+    console.log('[Index] settingsContent element:', settingsContent);
+    
+    // Clean up existing settings resources
+    if (window.SettingsManager) {
+        console.log('[Index] Cleaning up existing SettingsManager');
+        window.SettingsManager.cleanup();
+    }
+    
+    fetch('settings.html')
+        .then(response => response.text())
+        .then(html => {
+            console.log('[Index] Fetched settings.html, length:', html.length);
+            settingsContent.innerHTML = html;
+            
+            // Load the settings script if not already loaded
+            if (!window.attachSettingsTab) {
+                console.log('[Index] Loading settings.js script');
+                const script = document.createElement('script');
+                script.src = 'assets/js/settings/settings.js';
+                script.onload = function() {
+                    console.log('[Index] settings.js script loaded');
+                    // Wait a bit for the script to initialize, then call attachSettingsTab
+                    setTimeout(() => {
+                        if (window.attachSettingsTab) {
+                            console.log('[Index] Calling attachSettingsTab');
+                            window.attachSettingsTab();
+                        } else {
+                            console.error('[Index] attachSettingsTab not available after script load');
+                        }
+                    }, 100);
+                };
+                script.onerror = function() {
+                    console.error('[Index] Failed to load settings.js script');
+                };
+                document.head.appendChild(script);
+            } else {
+                // Script already loaded, just call attachSettingsTab
+                console.log('[Index] settings.js already loaded, calling attachSettingsTab directly');
+                if (window.attachSettingsTab) {
+                    window.attachSettingsTab();
+                }
+            }
+            
+            // Extract and execute any inline scripts from the HTML
+            const scripts = settingsContent.querySelectorAll('script');
+            console.log('[Index] Found', scripts.length, 'inline scripts in settings.html');
+            scripts.forEach(script => {
+                const newScript = document.createElement('script');
+                if (script.src) {
+                    newScript.src = script.src;
+                } else {
+                    newScript.textContent = script.textContent;
+                }
+                document.body.appendChild(newScript);
+                document.body.removeChild(newScript);
+            });
+            
+            settingsLoaded = true;
+            console.log('[Index] Settings loaded successfully');
+        })
+        .catch(error => {
+            console.error('Error loading settings:', error);
+        });
+}
+
 // ----------------------------------------------------------------------------
 // SIDEBAR NAVIGATION
 // ----------------------------------------------------------------------------
@@ -303,10 +374,12 @@ function setupSidebarNavigation() {
     const conversationContent = document.getElementById('conversation-content');
     const agentsContent = document.getElementById('agents-content');
     const sessionsContent = document.getElementById('sessions-content');
+    const settingsContent = document.getElementById('settings-content');
     const refreshAgentsBtn = document.getElementById('refreshAgentsBtn');
     const agentsSidebarGroup = document.getElementById('agentsSidebarGroup');
     const conversationSidebarGroup = document.getElementById('conversationSidebarGroup');
     const sessionsSidebarGroup = document.getElementById('sessionsSidebarGroup');
+    const settingsSidebarGroup = document.getElementById('settingsSidebarGroup');
     const newConversationBtn = document.getElementById('newConversationBtn');
 
     sidebarItems.forEach(item => {
@@ -327,9 +400,11 @@ function setupSidebarNavigation() {
             conversationContent.classList.add('hidden');
             agentsContent.classList.add('hidden');
             sessionsContent.classList.add('hidden');
+            settingsContent.classList.add('hidden');
             conversationSidebarGroup.classList.remove('active');
             agentsSidebarGroup.classList.remove('active');
             sessionsSidebarGroup.classList.remove('active');
+            settingsSidebarGroup.classList.remove('active');
             
             if (content === 'conversation') {
                 conversationContent.classList.remove('hidden');
@@ -344,6 +419,10 @@ function setupSidebarNavigation() {
                 sessionsContent.classList.remove('hidden');
                 sessionsSidebarGroup.classList.add('active');
                 loadSessions(true);
+            } else if (content === 'settings') {
+                settingsContent.classList.remove('hidden');
+                settingsSidebarGroup.classList.add('active');
+                loadSettings(true);
             }
             
             // Toggle button visibility
@@ -354,6 +433,9 @@ function setupSidebarNavigation() {
                 refreshAgentsBtn.style.display = 'none';
                 newConversationBtn.style.display = 'inline-block';
             } else if (this.getAttribute('data-content') === 'sessions') {
+                refreshAgentsBtn.style.display = 'none';
+                newConversationBtn.style.display = 'none';
+            } else if (this.getAttribute('data-content') === 'settings') {
                 refreshAgentsBtn.style.display = 'none';
                 newConversationBtn.style.display = 'none';
             }
@@ -411,19 +493,23 @@ function setupInitialState() {
     const conversationContent = document.getElementById('conversation-content');
     const agentsContent = document.getElementById('agents-content');
     const sessionsContent = document.getElementById('sessions-content');
+    const settingsContent = document.getElementById('settings-content');
     const refreshAgentsBtn = document.getElementById('refreshAgentsBtn');
     const agentsSidebarGroup = document.getElementById('agentsSidebarGroup');
     const conversationSidebarGroup = document.getElementById('conversationSidebarGroup');
     const sessionsSidebarGroup = document.getElementById('sessionsSidebarGroup');
+    const settingsSidebarGroup = document.getElementById('settingsSidebarGroup');
     const newConversationBtn = document.getElementById('newConversationBtn');
 
     // Hide all content areas first
     conversationContent.classList.add('hidden');
     agentsContent.classList.add('hidden');
     sessionsContent.classList.add('hidden');
+    settingsContent.classList.add('hidden');
     conversationSidebarGroup.classList.remove('active');
     agentsSidebarGroup.classList.remove('active');
     sessionsSidebarGroup.classList.remove('active');
+    settingsSidebarGroup.classList.remove('active');
     
     if (document.querySelector('.sidebar-item.active')?.getAttribute('data-content') === 'agents') {
         agentsContent.classList.remove('hidden');
@@ -435,6 +521,12 @@ function setupInitialState() {
         sessionsContent.classList.remove('hidden');
         sessionsSidebarGroup.classList.add('active');
         loadSessions();
+        refreshAgentsBtn.style.display = 'none';
+        newConversationBtn.style.display = 'none';
+    } else if (document.querySelector('.sidebar-item.active')?.getAttribute('data-content') === 'settings') {
+        settingsContent.classList.remove('hidden');
+        settingsSidebarGroup.classList.add('active');
+        loadSettings();
         refreshAgentsBtn.style.display = 'none';
         newConversationBtn.style.display = 'none';
     } else {
@@ -555,6 +647,14 @@ function setupReasoningEngineHandlers() {
     if (navbarBrand) {
         navbarBrand.addEventListener('click', function(e) {
             e.preventDefault();
+            
+            // Check if settings page is active - if so, don't open the modal
+            const settingsContent = document.getElementById('settings-content');
+            if (settingsContent && !settingsContent.classList.contains('hidden')) {
+                console.log('[Index] Settings page is active, preventing reasoning engine modal from opening');
+                return;
+            }
+            
             openReasoningEngineModal();
         });
     }

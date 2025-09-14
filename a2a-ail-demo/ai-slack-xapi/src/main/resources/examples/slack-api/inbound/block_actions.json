@@ -1,0 +1,140 @@
+{
+  "type": "block_actions",
+  "user": {
+    "id": "U09CPE8904A",
+    "username": "sd09d3d0ctj5_user",
+    "name": "sd09d3d0ctj5_user",
+    "team_id": "T09CK9UAYUB"
+  },
+  "api_app_id": "A09CMU4EAQM",
+  "token": "ABvcUGpOUyKP2Nuprx2W4zvK",
+  "container": {
+    "type": "view",
+    "view_id": "V09CY48SF6K"
+  },
+  "trigger_id": "9501442666420.9427334372963.64ba5c69d249e8707627edf5f452dbac",
+  "team": {
+    "id": "T09CK9UAYUB",
+    "domain": "1platform-demo",
+    "enterprise_id": "E09CPE88ZU2",
+    "enterprise_name": "Mule AI Chain"
+  },
+  "enterprise": {
+    "id": "E09CPE88ZU2",
+    "name": "Mule AI Chain"
+  },
+  "is_enterprise_install": false,
+  "view": {
+    "id": "V09CY48SF6K",
+    "team_id": "T09CK9UAYUB",
+    "type": "home",
+    "blocks": [
+      {
+        "type": "header",
+        "block_id": "oDs3l",
+        "text": {
+          "type": "plain_text",
+          "text": "Agents",
+          "emoji": true
+        }
+      },
+      {
+        "type": "actions",
+        "block_id": "aRPw5",
+        "elements": [
+          {
+            "type": "button",
+            "action_id": "add_default_agents",
+            "text": {
+              "type": "plain_text",
+              "text": "Add Default",
+              "emoji": true
+            },
+            "style": "primary",
+            "value": "add_agents"
+          },
+          {
+            "type": "button",
+            "action_id": "delete_all_agents",
+            "text": {
+              "type": "plain_text",
+              "text": "Delete All",
+              "emoji": true
+            },
+            "style": "danger",
+            "value": "delete_agents",
+            "confirm": {
+              "title": {
+                "type": "plain_text",
+                "text": "Are you sure?",
+                "emoji": true
+              },
+              "text": {
+                "type": "mrkdwn",
+                "text": "This will *permanently delete all agents*.",
+                "verbatim": false
+              },
+              "confirm": {
+                "type": "plain_text",
+                "text": "Yes, delete",
+                "emoji": true
+              },
+              "deny": {
+                "type": "plain_text",
+                "text": "Cancel",
+                "emoji": true
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "section",
+        "block_id": "qOdG4",
+        "text": {
+          "type": "mrkdwn",
+          "text": "*Available Agents*",
+          "verbatim": false
+        }
+      }
+    ],
+    "private_metadata": "",
+    "callback_id": "",
+    "state": {
+      "values": {
+        
+      }
+    },
+    "hash": "1757538462.nRcaaAA1",
+    "title": {
+      "type": "plain_text",
+      "text": "View Title",
+      "emoji": true
+    },
+    "clear_on_close": false,
+    "notify_on_close": false,
+    "close": null,
+    "submit": null,
+    "previous_view_id": null,
+    "root_view_id": "V09CY48SF6K",
+    "app_id": "A09CMU4EAQM",
+    "external_id": "",
+    "app_installed_team_id": "T09CK9UAYUB",
+    "bot_id": "B09CUAZCB9A"
+  },
+  "actions": [
+    {
+      "action_id": "add_default_agents",
+      "block_id": "aRPw5",
+      "text": {
+        "type": "plain_text",
+        "text": "Add Default",
+        "emoji": true
+      },
+      "value": "add_agents",
+      "style": "primary",
+      "type": "button",
+      "action_ts": "1757539114.743239"
+    }
+  ]
+}

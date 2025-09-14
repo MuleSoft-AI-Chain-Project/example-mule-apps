@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit"
+	xmlns:tls="http://www.mulesoft.org/schema/mule/tls" 
+      xmlns:file="http://www.mulesoft.org/schema/mule/file"
+      xmlns:http="http://www.mulesoft.org/schema/mule/http"
+      xmlns:slack="http://www.mulesoft.org/schema/mule/slack"
+      xmlns:vm="http://www.mulesoft.org/schema/mule/vm"
+      xmlns:mcp="http://www.mulesoft.org/schema/mule/mcp"
+      xmlns:websocket="http://www.mulesoft.org/schema/mule/websocket"
+      xmlns="http://www.mulesoft.org/schema/mule/core" 
+      xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" 
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+      xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd
+http://www.mulesoft.org/schema/mule/slack http://www.mulesoft.org/schema/mule/slack/current/mule-slack.xsd
+http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/current/mule-vm.xsd
+http://www.mulesoft.org/schema/mule/mcp http://www.mulesoft.org/schema/mule/mcp/current/mule-mcp.xsd
+http://www.mulesoft.org/schema/mule/websocket http://www.mulesoft.org/schema/mule/websocket/current/mule-websocket.xsd">
+
+	<!-- APIKit Configuration -->
+	<apikit:config name="slack-ai-app-experience-api-config" api="api/api.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+
+    <!-- Global HTTP Request Configuration -->
+    <http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="e5327a6b-5b87-42fc-a533-b7d1b2ed6bb5">
+        <http:request-connection protocol="HTTPS">
+            <tls:context>
+                <tls:trust-store insecure="true" />
+            </tls:context>
+        </http:request-connection>
+    </http:request-config>
+
+    <!-- Global HTTP Listener Configuration -->
+    <http:listener-config name="slack-ai-app-experience-api-httpListenerConfig">
+        <http:listener-connection host="0.0.0.0" port="8081" protocol="HTTPS">
+            <tls:context>
+                <tls:key-store type="jks" path="keystore.jks" alias="ssl" keyPassword="Nothingbut@goodtim3" password="Nothingbut@goodtim3" />
+            </tls:context>
+        </http:listener-connection>
+    </http:listener-config>
+
+    <!-- Global WebSocket Configuration -->
+    <websocket:config name="WebSockets_Config" doc:name="WebSockets Config" doc:id="6a6e41c2-3e0b-4081-9e81-797d11efacab">
+        <websocket:connection>
+            <websocket:server-settings listenerConfig="slack-ai-app-experience-api-httpListenerConfig" />
+            <websocket:client-settings host="${websocket.client.host}" basePath="${websocket.client.basePath}" protocol="${websocket.client.protocol}" port="${websocket.client.port}"/>
+        </websocket:connection>
+    </websocket:config>
+
+    <!-- Global Slack Connector Configuration -->
+    <slack:config name="Slack_Connector_Config" doc:name="Slack Connector Config" doc:id="9a3120d7-735b-43fd-9d07-82bdb2b450c9">
+        <slack:slack-auth-connection>
+            <slack:oauth-authorization-code consumerKey="${slack.consumer_key}" consumerSecret="${slack.consumer_secret}" authorizationUrl="https://slack.com/oauth/v2/authorize" accessTokenUrl="https://slack.com/api/oauth.v2.access" scopes="chat:write chat:write.customize links:write channels:read groups:read im:read im:write im:history im:write.topic mpim:read mpim:history mpim:write mpim:write.topic assistant:write" />
+            <slack:oauth-callback-config listenerConfig="slack-ai-app-experience-api-httpListenerConfig" callbackPath="/callback" authorizePath="/authorize" externalCallbackUrl="${slack.callback_url}" />
+        </slack:slack-auth-connection>
+    </slack:config>
+
+    <!-- Global VM Configuration -->
+    <vm:config name="VM_Config" doc:name="VM Config" doc:id="4f1fb325-456c-4759-927b-6b14a2abbb64">
+        <vm:queues>
+            <vm:queue queueName="slack_event_dispatch" />
+			<vm:queue queueName="slack_interaction_dispatch" />
+        </vm:queues>
+    </vm:config>
+
+    <!-- Global File Configuration -->
+    <file:config name="File_Config" doc:name="File Config" doc:id="50c07e6a-53c3-4953-a012-edf410f44332">
+        <file:connection workingDir="${app.home}" />
+    </file:config>
+
+    <!-- Global MCP Server Configuration -->
+    <mcp:server-config name="MCP_Server" doc:name="MCP Server" doc:id="e4e8f1d9-888c-4f4c-9c25-df4d6e8d9655" serverName="slack-experience-mcp-server" serverVersion="1.0.0">
+        <mcp:streamable-http-server-connection listenerConfig="slack-ai-app-experience-api-httpListenerConfig" responseContentType="JSON"/>
+    </mcp:server-config>
+
+    <!-- Global Configuration Properties -->
+    <configuration-properties doc:name="Configuration properties" doc:id="87348abc-de8f-4503-8a43-7c62a89256a5" file="config.properties" />
+
+</mule>
