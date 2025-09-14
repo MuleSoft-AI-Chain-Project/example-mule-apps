@@ -1,0 +1,86 @@
+{
+  "type": "home",
+  "blocks": [
+    {
+      "type": "section",
+      "text": {
+        "type": "mrkdwn",
+        "text": "*Agent Alice*\nSpecialist in insurance claims"
+      },
+      "accessory": {
+        "type": "image",
+        "image_url": "https://example.com/agent-alice.png",
+        "alt_text": "Agent Alice"
+      }
+    },
+    {
+      "type": "context",
+      "elements": [
+        {
+          "type": "mrkdwn",
+          "text": "`Claims` — Handle and process insurance claims efficiently"
+        }
+      ]
+    },
+    {
+      "type": "context",
+      "elements": [
+        {
+          "type": "mrkdwn",
+          "text": "`Fraud Detection` — Identify suspicious patterns and anomalies"
+        }
+      ]
+    },
+    {
+      "type": "context",
+      "elements": [
+        {
+          "type": "mrkdwn",
+          "text": "`Negotiation` — Assist in settlement discussions with clients"
+        }
+      ]
+    },
+    {
+      "type": "divider"
+    },
+    {
+      "type": "section",
+      "text": {
+        "type": "mrkdwn",
+        "text": "*Agent Bob*\nExpert in legal support"
+      },
+      "accessory": {
+        "type": "image",
+        "image_url": "https://example.com/agent-bob.png",
+        "alt_text": "Agent Bob"
+      }
+    },
+    {
+      "type": "context",
+      "elements": [
+        {
+          "type": "mrkdwn",
+          "text": "`Contract Review` — Analyze and summarize key terms quickly"
+        }
+      ]
+    },
+    {
+      "type": "context",
+      "elements": [
+        {
+          "type": "mrkdwn",
+          "text": "`Litigation` — Support case preparation and document handling"
+        }
+      ]
+    },
+    {
+      "type": "context",
+      "elements": [
+        {
+          "type": "mrkdwn",
+          "text": "`Compliance` — Ensure processes follow legal regulations"
+        }
+      ]
+    }
+  ]
+}

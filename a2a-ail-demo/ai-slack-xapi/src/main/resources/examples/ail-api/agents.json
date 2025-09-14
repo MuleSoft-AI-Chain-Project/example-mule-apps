@@ -1,0 +1,30 @@
+{
+    "tools": [
+        {
+            "type": "function",
+            "function": {
+                "name": "salesdistribution",
+                "description": "{\n  \"agentName\": \"Sales Distribution\",\n  \"agentDescription\": \"ERP Agent which is responsible for inventory check, sales order and delivery.\",\n  \"agentSkills\": [\n    {\n      \"description\": \"This skill gets inventory from ERP. Check inventory details for material in SAP by providing the materialNo as input for paramValue. Please use the materialNo and not materialNumber. This action applies whenever users' intent is 'Stock overview', 'product availability', 'Inventory', 'available stock'. Use the headers to perform the request.\",\n      \"tags\": [\n        \"inventory_check\"\n      ],\n      \"name\": \"Inventory Check\",\n      \"id\": \"1\"\n    },\n    {\n      \"description\": \"This skill submits an order for a product in ERP. Submit a Sales Order in ERP for a material. This action applies whenever users' intent is 'Create Sales Order', 'Order Submission', 'submit an order', 'create an order'. Use the headers to perform the request. If TARGET_QTY is provided, good, otherwise set it to 1.\",\n      \"tags\": [\n        \"sales_order\"\n      ],\n      \"name\": \"Sales Order\",\n      \"id\": \"2\"\n    },\n    {\n      \"description\": \"This tool submits a delivery for an existing order in ERP. Submit a Delivery in ERP for an order. This action applies whenever users' intent is 'Create Delivery', 'Outbound Delivery', 'Picking and packaging', 'create delivery for order number'. Use the headers to perform the request. If ORDER_NO is not provided, don't execute this tool. ORDER_NO must be provided or is created by the tool submit_order\",\n      \"tags\": [\n        \"process_delivery\"\n      ],\n      \"name\": \"Process Delivery\",\n      \"id\": \"3\"\n    }\n  ]\n}",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "prompt": {
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "prompt"
+                    ]
+                }
+            },
+            "agentUrl": "https://mac-managed-fxgw-fjrr5q.zm3ejw.usa-e2.cloudhub.io/erp-agent",
+            "agentAuthentication": {
+                "type": "client-credentials",
+                "tokenUrl": "http://1platform-security-providers.demos.mulesoft.com:8082/realms/master/protocol/openid-connect/token",
+                "clientId": "flex-gateway-client",
+                "clientSecret": "Bl5GY4T2a5araJoGLOWMoTNtYeS4Pc0R",
+                "clientId": "****"
+            }
+        }
+    ]
+}

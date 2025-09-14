@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JWT Login</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <div class="container">
+        <nav class="nav-menu">
+            <a th:href="@{/}">← Back to Home</a>
+        </nav>
+        
+        <div class="login-form">
+            <h1>JWT Authentication</h1>
+            
+            <div id="error-message" class="error-message" style="display: none;"></div>
+            <div id="success-message" class="success-message" style="display: none;"></div>
+            
+            <form id="jwt-login-form">
+                <div class="form-group">
+                    <label for="username">Username:</label>
+                    <input type="text" id="username" name="username" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Password:</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                
+                <button type="submit" class="btn btn-primary">Get JWT Token</button>
+            </form>
+            
+            <div id="token-section" style="display: none;">
+                <h3>JWT Token:</h3>
+                <textarea id="jwt-token" readonly rows="4" cols="50"></textarea>
+                <br>
+                <button id="access-protected" class="btn btn-secondary">Access Protected Resource</button>
+            </div>
+            
+            <div class="credentials-hint">
+                <p><strong>Test Credentials:</strong></p>
+                <p>Username: user</p>
+                <p>Password: password</p>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        document.getElementById('jwt-login-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            try {
+                const response = await fetch('/jwt/api/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    document.getElementById('jwt-token').value = data.token;
+                    document.getElementById('token-section').style.display = 'block';
+                    document.getElementById('success-message').textContent = 'JWT token generated successfully!';
+                    document.getElementById('success-message').style.display = 'block';
+                    document.getElementById('error-message').style.display = 'none';
+                    
+                    // Store token in sessionStorage for navigation
+                    sessionStorage.setItem('jwtToken', data.token);
+                } else {
+                    document.getElementById('error-message').textContent = data.error || 'Login failed';
+                    document.getElementById('error-message').style.display = 'block';
+                    document.getElementById('success-message').style.display = 'none';
+                }
+            } catch (error) {
+                document.getElementById('error-message').textContent = 'Network error occurred';
+                document.getElementById('error-message').style.display = 'block';
+                document.getElementById('success-message').style.display = 'none';
+            }
+        });
+        
+        document.getElementById('access-protected').addEventListener('click', async function() {
+            const token = sessionStorage.getItem('jwtToken');
+            if (token) {
+                try {
+                    const response = await fetch('/jwt/home', {
+                        headers: {
+                            'Authorization': 'Bearer ' + token
+                        }
+                    });
+
+                    if (response.ok) {
+                        const pageHtml = await response.text();
+                        // Replace the document's content with the new page
+                        document.open();
+                        document.write(pageHtml);
+                        document.close();
+                    } else {
+                        document.getElementById('error-message').textContent = 'Access Forbidden. Your token may be invalid or expired.';
+                        document.getElementById('error-message').style.display = 'block';
+                        document.getElementById('success-message').style.display = 'none';
+                    }
+                } catch (error) {
+                    document.getElementById('error-message').textContent = 'A network error occurred.';
+                    document.getElementById('error-message').style.display = 'block';
+                    document.getElementById('success-message').style.display = 'none';
+                }
+            }
+        });
+        
+        // Check if token exists in sessionStorage
+        const existingToken = sessionStorage.getItem('jwtToken');
+        if (existingToken) {
+            document.getElementById('jwt-token').value = existingToken;
+            document.getElementById('token-section').style.display = 'block';
+        }
+    </script>
+</body>
+</html>

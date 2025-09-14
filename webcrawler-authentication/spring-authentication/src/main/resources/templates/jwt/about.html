@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About JWT Authentication</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <div class="container">
+        <nav class="nav-menu">
+            <a th:href="@{/}">← Back to Home</a>
+            <a th:href="@{/jwt/home}">JWT Auth Home</a>
+            <a th:href="@{/shared/resource1}">Shared Resources</a>
+        </nav>
+        
+        <h1>JWT (JSON Web Token) Authentication</h1>
+        
+        <div class="info-section">
+            <h3>Overview</h3>
+            <p>JWT is a compact, URL-safe means of representing claims to be transferred between two parties. It's commonly used for authentication and information exchange in web applications.</p>
+            
+            <h3>Token Structure</h3>
+            <p>A JWT consists of three parts separated by dots:</p>
+            <ul>
+                <li><strong>Header:</strong> Contains token type and signing algorithm</li>
+                <li><strong>Payload:</strong> Contains claims (user data, expiration, etc.)</li>
+                <li><strong>Signature:</strong> Ensures token hasn't been tampered with</li>
+            </ul>
+            
+            <h3>Implementation Details</h3>
+            <ul>
+                <li><strong>Format:</strong> Authorization: Bearer <token></li>
+                <li><strong>Stateless:</strong> No server-side session storage</li>
+                <li><strong>Self-contained:</strong> All user info encoded in token</li>
+                <li><strong>Expiration:</strong> Tokens have built-in expiration time</li>
+            </ul>
+            
+            <h3>Advantages</h3>
+            <ul>
+                <li>Stateless and scalable</li>
+                <li>Cross-domain authentication</li>
+                <li>Mobile app friendly</li>
+                <li>Decentralized verification</li>
+            </ul>
+            
+            <h3>Use Cases</h3>
+            <ul>
+                <li>Single Page Applications (SPAs)</li>
+                <li>Mobile applications</li>
+                <li>Microservices authentication</li>
+                <li>API authentication</li>
+            </ul>
+            
+            <h3>Testing</h3>
+            <p>You can test this endpoint using curl:</p>
+            <code>curl -H "Authorization: Bearer <your-jwt-token>" http://localhost:8080/jwt/home</code>
+        </div>
+        
+        <div class="navigation">
+            <a th:href="@{/jwt/home}" class="btn">Back to JWT Auth</a>
+            <a th:href="@{/}" class="btn btn-secondary">Try Other Methods</a>
+        </div>
+    </div>
+</body>
+</html>

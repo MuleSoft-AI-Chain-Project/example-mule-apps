@@ -91,13 +91,6 @@
 			<classifier>mule-plugin</classifier>
 		</dependency>
 		<dependency>
-			<groupId>753fdae1-6518-4f24-b035-32e309ced6a4</groupId>
-			<artifactId>slack-ai-experience-api</artifactId>
-			<version>1.0.0</version>
-			<classifier>raml</classifier>
-			<type>zip</type>
-		</dependency>
-		<dependency>
 			<groupId>com.mulesoft.connectors</groupId>
 			<artifactId>mule-websockets-connector</artifactId>
 			<version>1.0.2</version>

@@ -51,3 +51,4 @@ target/
 .mule/
 .DS_Store
 velocity.log
+.tooling-project

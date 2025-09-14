@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JWT Authentication - Home</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <div class="container">
+        <nav class="nav-menu">
+            <a th:href="@{/}">← Back to Home</a>
+            <a th:href="@{/jwt/about}">About JWT Auth</a>
+            <a th:href="@{/shared/resource1}">Shared Resources</a>
+            <button onclick="logout()" class="btn btn-logout">Logout</button>
+        </nav>
+        
+        <h1>JWT Authentication Success</h1>
+        <div class="success-message">
+            <p>Welcome, <strong th:text="${username}">User</strong>!</p>
+            <p>You have successfully authenticated using JWT (JSON Web Token).</p>
+        </div>
+        
+        <div class="auth-info">
+            <h3>How JWT Authentication Works:</h3>
+            <ul>
+                <li>Client sends credentials to server</li>
+                <li>Server validates and returns signed JWT token</li>
+                <li>Client includes token in Authorization header (Bearer token)</li>
+                <li>Server validates token signature and extracts user info</li>
+                <li>Stateless - no server-side session storage required</li>
+            </ul>
+        </div>
+        
+        <div class="navigation">
+            <a th:href="@{/jwt/about}" class="btn">Learn More</a>
+            <a th:href="@{/shared/resource1}" class="btn btn-secondary">Access Shared Resources</a>
+        </div>
+    </div>
+    
+    <script>
+        function logout() {
+            sessionStorage.removeItem('jwtToken');
+            window.location.href = '/jwt/login';
+        }
+
+        // Add JWT token to all requests to this domain
+        const token = sessionStorage.getItem('jwtToken');
+        if (token) {
+            // Override fetch to automatically include JWT token
+            const originalFetch = window.fetch;
+            window.fetch = function(...args) {
+                if (args[1]) {
+                    args[1].headers = args[1].headers || {};
+                    args[1].headers['Authorization'] = 'Bearer ' + token;
+                } else {
+                    args[1] = {
+                        headers: {
+                            'Authorization': 'Bearer ' + token
+                        }
+                    };
+                }
+                return originalFetch.apply(this, args);
+            };
+        }
+    </script>
+</body>
+</html>

@@ -5,7 +5,11 @@ console.log('[Add Agent Modal] Script file loaded and executed');
 
 // Function to initialize the Add Agent modal
 function initializeAddAgentModal() {
-    console.log('[Add Agent Modal] ===== INITIALIZATION START =====');
+    // Simple check to prevent duplicate initialization
+    if (window.addAgentModalInitialized) {
+        return;
+    }
+    
     console.log('[Add Agent Modal] Initializing modal');
     
     // Check what elements are available
@@ -50,9 +54,7 @@ function initializeAddAgentModal() {
     
     // Add agent URL input event listener to handle authentication section visibility and agent type field state
     const agentUrlInput = document.getElementById('agentUrlInput');
-    console.log('[Add Agent Modal] Agent URL input element:', agentUrlInput);
     if (agentUrlInput) {
-        console.log('[Add Agent Modal] Adding input event listener to agent URL input');
         agentUrlInput.addEventListener('input', function() {
             console.log('[Add Agent Modal] URL input event triggered, value:', this.value);
             const authenticationSelect = document.getElementById('authenticationSelect');
@@ -437,6 +439,9 @@ function initializeAddAgentModal() {
     // Clear editing references
     window.currentEditingTile = null;
     window.currentEditingAgentUrl = null;
+    
+    // Mark modal as initialized to prevent duplicate event listeners
+    window.addAgentModalInitialized = true;
     
     console.log('[Add Agent Modal] ===== INITIALIZATION COMPLETE =====');
 }

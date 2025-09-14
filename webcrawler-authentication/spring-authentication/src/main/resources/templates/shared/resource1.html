@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shared Resource 1</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <div class="container">
+        <nav class="nav-menu">
+            <a th:href="@{/}">← Back to Home</a>
+            <a th:href="@{/shared/resource2}">Resource 2</a>
+        </nav>
+        
+        <h1>Shared Resource 1</h1>
+        <div class="success-message">
+            <p>Welcome, <strong th:text="${username}">User</strong>!</p>
+            <p>You have accessed a shared resource that is available to any authenticated user.</p>
+        </div>
+        
+        <div class="auth-info">
+            <h3>About Shared Resources</h3>
+            <p>This page is protected and can be accessed by any user who has authenticated through one of the supported methods (Basic, Form, JWT, OAuth2, etc.).</p>
+        </div>
+        
+        <div class="navigation">
+            <a th:href="@{/shared/resource2}" class="btn">Go to Resource 2</a>
+            <a th:href="@{/}" class="btn btn-secondary">Back to Home</a>
+        </div>
+    </div>
+</body>
+</html>

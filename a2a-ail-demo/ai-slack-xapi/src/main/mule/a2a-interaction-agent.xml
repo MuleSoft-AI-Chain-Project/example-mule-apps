@@ -1,0 +1,558 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:os="http://www.mulesoft.org/schema/mule/os"
+	xmlns:websocket="http://www.mulesoft.org/schema/mule/websocket" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/websocket http://www.mulesoft.org/schema/mule/websocket/current/mule-websocket.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	
+	<sub-flow name="open-outbound-socket-and-send-message-flow" doc:id="094194cc-0cbb-46bf-b8f2-6d8498c749a4" >
+		<try doc:name="Try" doc:id="033f9591-7a5c-43bf-b88c-368e198bba32" >
+			<set-variable value='#[output text
+---
+(vars.slack_event.event.channel default "" as String)]' doc:name="Set userSessionId" doc:id="7486acc3-1ef4-41d3-8c8b-30e873cf60db" variableName="userSessionId" />
+			<set-variable value='#[output text
+---
+(vars.slack_event.event.channel default "" as String) ++ "::" ++ (vars.slack_event.event.thread_ts default "" as String)]' doc:name="Set sessionId" doc:id="6dfc5de1-3859-4ee8-8c8b-1cc75e67e7d8" variableName="sessionId" />
+			<websocket:open-outbound-socket doc:name="Open outbound socket" doc:id="c57f8b7f-1fd0-4b8a-94f2-f29f582386fc" config-ref="WebSockets_Config" path="/prompt" socketId='#[vars.userSessionId ++ "::" ++ uuid()]'>
+					<websocket:query-params><![CDATA[#[output application/java
+---
+{
+	"userSessionId" : vars.userSessionId
+}]]]></websocket:query-params>
+				</websocket:open-outbound-socket>
+			<set-variable value="#[attributes.socketId]" doc:name="Set socketId" doc:id="dd607f25-6ff4-4ba7-a1f1-503611d4bee4" variableName="socketId" />
+			<logger level="INFO" doc:name="Log new socket connection" doc:id="93dafc6b-b389-4b92-9327-de48809c920b" message='#[%dw 2.0
+output application/json
+---
+"\n\nNew socket connection for user session with id: " ++ (vars.userSessionId as String) ++ " opened. Socket id: " ++ (vars.socketId as String) ++"\n\n"]' />
+			<scatter-gather doc:name="Scatter-Gather" doc:id="0fc96cd8-dfb1-4c6d-884c-dd2bbd7348d4" >
+				<route >
+					<ee:transform doc:name="Prepare message for host agent" doc:id="f5144f4c-d86d-4c5b-9e47-93d080dd8c6b">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  "sessionId": vars.sessionId,
+  "useTrustLayer": false,
+  "prompt": (vars.slack_event.event.text default "" as String)
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+					<logger level="INFO" doc:name="Log message for host agent" doc:id="59545eeb-a996-4527-9cae-07648a0ab1a5" message='#[output text
+---
+"\n\nMessage to send: \n" ++ write(payload, "application/json") ++ "\n\n"]' />
+					<websocket:send doc:name="Send message to host agent" doc:id="2ca098cd-abd4-4ccc-915d-29b5f0690819" config-ref="WebSockets_Config" socketId="#[vars.socketId]">
+				</websocket:send>
+				</route>
+				<route >
+					<ee:transform doc:name="Prepare slack payload" doc:id="bc4ccad2-93d0-48f9-8682-093b5f6f6ed9">
+				<ee:message>
+					<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  "channel_id": vars.slack_event.event.channel,
+  "thread_ts": vars.slack_event.event.thread_ts,
+  "status": "🧠 ANALYZING USER REQUEST"
+}]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+					<flow-ref doc:name="Send status update back to Slack Thread" doc:id="031841cc-9c4e-4a17-843e-26df7263dcbc" name="post:\agent\status:application\json:slack-ai-app-experience-api-config" />
+				</route>
+			</scatter-gather>
+			<error-handler >
+				<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="c34e5215-6fb1-4a1a-82e2-38f3b47f0925" >
+					<logger level="INFO" doc:name="Log error trying to send the message to the host agent" doc:id="6094630f-551a-439b-a437-10603883be2f" message='#[output text
+---
+"Error trying to send the message to the host agent. Error: " ++ (error.detailedDescription default "")]'/>
+					<ee:transform doc:name="Prepare slack error message" doc:id="4eef7e08-82b4-4065-91d4-6627199162f5" >
+						<ee:message >
+							<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  "channel": vars.slack_event.event.channel,
+  "thread_ts": vars.slack_event.event.thread_ts,
+  "mrkdwn": true,
+  "text": "❌ _Sorry, there was an error trying to send the message to the host agent_"
+}]]></ee:set-payload>
+						</ee:message>
+					</ee:transform>
+					<flow-ref doc:name="Send message back to Slack Thread" doc:id="baae15ab-ebe7-4859-8583-086bc1cff1ba" name="post:\agent\message:slack-ai-app-experience-api-config" />
+				</on-error-continue>
+			</error-handler>
+		</try>
+	</sub-flow>
+	<flow name="a2a-interaction-agent-websocketFlow" doc:id="0ca39362-d06a-4902-bf84-ab5e73d023fc" >
+		<websocket:outbound-listener doc:name="On New Outbound Message" doc:id="567ed37d-462f-b531-6abe949680a0" config-ref="WebSockets_Config" path="/prompt"/>
+		<set-variable value="#[attributes.socketId]" doc:name="Set socketId" doc:id="f6bd2713-4792-4271-8dac-75b249c237e5" variableName="socketId" />
+		<logger level="INFO" doc:name="Log received message" doc:id="876efea8-4b47-4f8c-8d0e-c15dabb850a2" message='#[output text
+---
+"\n\Received message: \n" ++ payload ++ "\n\n"]' />
+		<ee:transform doc:name="Transform Message" doc:id="ef47d07e-b8c3-490a-8838-0e22d06068ed">
+			<ee:message>
+				<ee:set-payload><![CDATA[output application/java
+---
+read(payload, "application/json")]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<set-variable value="#[payload.sessionId]" doc:name="Set sessionId" doc:id="3f59bd11-c028-4fac-8fd2-1a8d5e66d6cf" variableName="sessionId" />
+		<set-variable value='#[(vars.sessionId splitBy "::")[0]]' doc:name="Set channel" doc:id="105166f4-a849-4eb7-947c-87f6e8899c7d" variableName="channel" />
+		<set-variable value='#[(vars.sessionId splitBy "::")[1]]' doc:name="Set thread_ts" doc:id="2852bf39-b0b2-4964-b95b-4189ddbc009a" variableName="thread_ts" />
+		<choice doc:name="Check if the message is a status update or the final response." doc:id="dd50fc26-3591-4673-90bf-0c8d5b59d75a" >
+			<when expression='#["update" == payload."type"]'>
+				<logger level="INFO" doc:name="Log update content" doc:id="4b97d3d6-427e-4a8d-979d-ab71fc8289f8" message='#[output text
+---
+"\n\nUpdate: " ++ payload.content ++ "\n\n"]' />
+				<ee:transform doc:name="Prepare slack payload" doc:id="8c45f073-098d-49b7-a67b-9d8a8358e6ab">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  "channel_id": vars.channel,
+  "thread_ts": vars.thread_ts,
+  "status": (payload as Object).unicodeContent default (payload as Object).content
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<flow-ref doc:name="Send status update back to Slack Thread" doc:id="92c2047b-3187-4126-be03-aa65de15ff6d" name="post:\agent\status:application\json:slack-ai-app-experience-api-config"/>
+			</when>
+			<otherwise >
+				<logger level="INFO" doc:name="Log response" doc:id="ccac39fd-aef9-460a-82b0-39e5e807aed5" message='#[output text
+---
+"\n\nResponse: " ++ payload.response ++ "\n\n"]' />
+				<ee:transform doc:name="Prepare slack payload" doc:id="f5c292c8-501e-4f24-865f-ee7918b8e281">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+var response = (payload as Object).response as String
+---
+{
+  "channel": vars.channel,
+  "thread_ts": vars.thread_ts,
+  "mrkdwn": true,
+  "text": if(!isEmpty(response)) response else "⚠️ _No answer provided by the agent_" 
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<flow-ref doc:name="Send message back to Slack Thread" doc:id="9e45cc54-8578-42f2-8c2c-660cb2ccb798" name="post:\agent\message:slack-ai-app-experience-api-config"/>
+				<websocket:close-socket doc:name="Close socket on agent response" doc:id="2d08a732-6f25-4020-bc5e-3b4ba3092df4" config-ref="WebSockets_Config" socketId="#[vars.socketId]"/>
+			</otherwise>
+		</choice>
+	</flow>
+	<flow name="on-socket-closed-flow" doc:id="00c4a614-5ac3-4dcd-8963-b9d32b327c4e" >
+		<websocket:on-socket-closed doc:name="On Socket Closed" doc:id="f756a747-2b4b-44dc-b80a-281d5e9b0376" config-ref="WebSockets_Config" path="/prompt"/>
+		<set-variable value="#[attributes.socketId]" doc:name="Set socketId" doc:id="9155312f-15ed-4548-92c0-56ebb86ebaff" variableName="socketId" />
+		<set-variable value='#[(attributes.socketId splitBy "::")[0]]' doc:name="Set userSessionId" doc:id="88edd212-10e8-4018-896c-46eda0c7ba09" variableName="userSessionId" />
+		<logger level="INFO" doc:name="Log closed socket connection" doc:id="b9551e3e-65de-42d0-a5c4-54749734f9d1" message='#[%dw 2.0
+output text/plain
+---
+"\n\nSocket connection for user session with id: " ++ (vars.userSessionId as String) ++ " closed. Socket id: " ++ (vars.socketId as String) ++"\n\n"]' />
+	</flow>
+	<sub-flow name="on-app-home-opened" doc:id="1cdf85c4-f9c5-44c1-ba31-5744a6640727">
+		<logger level="INFO" doc:name="Log app home opened event" doc:id="app-home-logger" message='#[output text
+---
+"App home opened event received. Channel: " ++ (payload.event.channel default "" as String) ++ "\n\n"]' />
+		<set-variable value="#[payload.event.channel]" doc:name="Set userSessionId from channel" doc:id="set-user-session-id" variableName="userSessionId" />
+		<set-variable value="#[payload.event.user]" doc:name="Save Slack user ID" doc:id="save-slack-user-id" variableName="slackUserId" />
+		<flow-ref doc:name="Build App Home" doc:id="39083d5f-fdd1-4044-8939-f2ccca7d7934" name="build-app-home"/>
+	</sub-flow>
+	<sub-flow name="build-app-home" doc:id="c81c8d33-e170-48b4-ab1a-244db91f9d7b" >
+		<try doc:name="Try" doc:id="app-home-try">
+			
+			<!-- Extract channel ID as userSessionId -->
+			
+			<!-- Save Slack user ID for later use -->
+			
+			<!-- Build the agents API URL -->
+			<set-variable value='#[output text
+---
+"https://" ++ p("websocket.client.host") ++ "/agents?userSessionId=" ++ vars.userSessionId]' doc:name="Build agents API URL" doc:id="build-agents-url" variableName="agentsApiUrl" />
+			
+			<!-- Call agents API to get agent information -->
+			<http:request method="GET" doc:name="Get agents from AIL" doc:id="get-agents-request" config-ref="HTTP_Request_configuration" url="#[vars.agentsApiUrl]">
+				<http:query-params>
+					<![CDATA[#[output application/java
+---
+{
+	"userSessionId" : vars.userSessionId
+}]]]>
+				</http:query-params>
+			</http:request>
+			
+			<logger level="INFO" doc:name="Log agents response" doc:id="log-agents-response" message='#[output text
+---
+"Agents response received: \n" ++ write(payload, "application/json") ++ "\n\n"]' />
+			
+			<!-- Transform agents response to Slack app home view -->
+			<ee:transform doc:name="Prepare available agents block" doc:id="transform-to-app-home">
+				<ee:message>
+				</ee:message>
+				<ee:variables>
+					<ee:set-variable variableName="availableAgentsBlock"><![CDATA[%dw 2.0
+output application/json
+var tools = payload.tools default []
+var total = sizeOf(tools)
+
+var sectionTitleBlocks = [
+  {
+    "type": "section",
+    "text": {
+      "type": "mrkdwn",
+      "text": "*Available Agents*"
+    }
+  }
+]
+  
+// Create agent blocks
+var agentBlocks = flatten(
+  tools map ((agent, index) ->
+    (
+      [
+        {
+          "type": "section",
+          "text": {
+            "type": "mrkdwn",
+            "text": "*" ++ (read(agent.function.description, "application/json").agentName 
+                             default ("Agent " ++ (index + 1))) ++ "*\n"
+                    ++ (read(agent.function.description, "application/json").agentDescription 
+                             default "Specialized agent")
+          },
+          "accessory": {
+            "type": "image",
+            "image_url": "https://cdn-icons-png.flaticon.com/256/7626/7626825.png",
+            "alt_text": (read(agent.function.description, "application/json").agentName 
+                            default ("Agent " ++ (index + 1)))
+          }
+        }
+      ]
+      ++ ((read(agent.function.description, "application/json").agentSkills default []) map (skill) -> {
+        "type": "context",
+        "elements": [
+          {
+            "type": "mrkdwn",
+            "text": "`" ++ (skill.name default "Skill") ++ "` — " 
+                    ++ (skill.description default "No description available")
+          }
+        ]
+      })
+      ++ (if (index < total - 1) [ { "type": "divider" } ] else [])
+    )
+  )
+)
+
+---
+
+sectionTitleBlocks ++ agentBlocks]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+			
+			<!-- Prepare Slack views.publish payload -->
+			<ee:transform doc:name="Prepare agents buttons block" doc:id="e7b4c1ae-85b8-477e-993a-84b763e24de9">
+				<ee:message>
+				</ee:message>
+				<ee:variables>
+					<ee:set-variable variableName="agentsButtons"><![CDATA[%dw 2.0
+output application/json
+---
+[
+  {
+    "type": "actions",
+    "elements": [
+      {
+        "type": "button",
+        "text": {
+          "type": "plain_text",
+          "text": "Add Default"
+        },
+        "style": "primary",
+        "action_id": "add_default_agents",
+        "value": "add_agents" ++ "|" ++ vars.userSessionId,
+      },
+      {
+        "type": "button",
+        "text": {
+          "type": "plain_text",
+          "text": "Delete All"
+        },
+        "style": "danger",
+        "action_id": "delete_all_agents",
+        "value": "delete_agents" ++ "|" ++ vars.userSessionId,
+        "confirm": {
+          "title": {
+            "type": "plain_text",
+            "text": "Are you sure?"
+          },
+          "text": {
+            "type": "mrkdwn",
+            "text": "This will *permanently delete all agents*."
+          },
+          "confirm": {
+            "type": "plain_text",
+            "text": "Yes, delete"
+          },
+          "deny": {
+            "type": "plain_text",
+            "text": "Cancel"
+          }
+        }
+      }
+    ]
+  }
+]]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+			<ee:transform doc:name="Prepare Slack views.publish payload" doc:id="prepare-slack-payload">
+				<ee:message>
+					<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+
+
+// Create header block
+var headerBlock = [
+  {
+    "type": "header",
+    "text": {
+      "type": "plain_text",
+      "text": "Agents",
+      "emoji": true
+    }
+  }
+]
+
+---
+{
+	"user_id": vars.slackUserId,
+	"view": {
+		"type": "home",
+		"blocks": headerBlock ++ vars.agentsButtons ++ vars.availableAgentsBlock
+	}
+}]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+			
+			<logger level="INFO" doc:name="Log Slack payload" doc:id="log-slack-payload" message='#[output text
+---
+"Slack views.publish payload: \n" ++ write(payload, "application/json") ++ "\n\n"]' />
+			
+			<!-- Publish view to Slack -->
+			<http:request method="POST" doc:name="Publish app home view to Slack" doc:id="publish-slack-view" config-ref="HTTP_Request_configuration" url="https://slack.com/api/views.publish">
+				<http:headers><![CDATA[#[output application/java
+---
+{
+	"Authorization" : "Bearer " ++ p('slack.oauth_token'),
+	"Content-Type" : "application/json"
+}]]]>
+				</http:headers>
+			</http:request>
+			
+			<logger level="INFO" doc:name="Log Slack response" doc:id="log-slack-response" message='#[output text
+---
+"Slack views.publish response: \n" ++ write(payload, "application/json") ++ "\n\n"]' />
+			
+			<error-handler>
+				<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="app-home-error-handler">
+					<logger level="ERROR" doc:name="Log app home error" doc:id="log-app-home-error" message='#[output text&#10;---&#10;"Error in app home opened flow: " ++ (error.detailedDescription default "")]' />
+					
+					<!-- Try to send a simple error message to Slack -->
+					<ee:transform doc:name="Prepare error message for Slack" doc:id="prepare-error-message">
+						<ee:message>
+							<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"user_id": vars.slackUserId,
+	"view": {
+		"type": "home",
+		"blocks": [
+			{
+				"type": "section",
+				"text": {
+					"type": "mrkdwn",
+					"text": "❌ *Sorry, there was an error loading your agents*\n\nPlease try again later or contact support if the issue persists."
+				}
+			}
+		]
+	}
+}]]></ee:set-payload>
+						</ee:message>
+					</ee:transform>
+					
+					<!-- Send error message to Slack -->
+					<http:request method="POST" doc:name="Send error message to Slack" doc:id="send-error-message" config-ref="HTTP_Request_configuration" url="https://slack.com/api/views.publish">
+						<http:headers><![CDATA[#[output application/java
+---
+{
+	"Authorization" : "Bearer " ++ p('slack.oauth_token'),
+	"Content-Type" : "application/json"
+}]]]>
+						</http:headers>
+					</http:request>
+				</on-error-continue>
+			</error-handler>
+		</try>
+	</sub-flow>
+	<sub-flow name="on-add-default-agents" doc:id="c0af4be3-4dcd-420c-a75b-919bfeccc371" >
+		<logger level="INFO" doc:name="Log block actions interaction" doc:id="5643afac-fa92-4cfc-8f2f-5b14a2725d3f" message='#[output text&#10;---&#10;"Add default agents (block actions) interaction recieved. Channel: " ++ (payload.event.channel default "" as String) ++ "\n\n"]' />
+		<set-variable value='#[(vars.slack_interaction.actions[0].value splitBy  "|")[1]]' doc:name="Set userSessionId from channel" doc:id="3e139e89-599d-4df7-b019-f554ae61edb3" variableName="userSessionId" />
+		<set-variable value="#[vars.slack_interaction.user.id]" doc:name="Save Slack user ID" doc:id="0d72631d-b352-4813-8c29-c696c63f3eea" variableName="slackUserId" />
+		<flow-ref doc:name="Add Default Agents" doc:id="cf719c14-759f-48d2-9ba6-f98d5af08fd9" name="add-default-agents"/>
+		<flow-ref doc:name="Build App Home" doc:id="ea9e57c2-7001-4e16-93a2-fef1861fe9e7" name="build-app-home" />
+	</sub-flow>
+	<sub-flow name="add-default-agents" doc:id="5308a8db-4ba6-40cf-a9d9-f22d2eff8897" >
+		<try doc:name="Try" doc:id="d62d8b10-ba7e-4295-92ed-e109ac8af451" >
+			<set-variable value='#[output text&#10;---&#10;"https://" ++ p("websocket.client.host") ++ "/agents"]' doc:name="Build default agents API URL" doc:id="3f70a02e-151e-447c-980d-6cfc2ca5bfb5" variableName="agentsApiUrl" />
+			<http:request method="GET" doc:name="Get default agents from AIL" doc:id="e862e4af-9a9c-49a6-bbc7-6c551079af6a" config-ref="HTTP_Request_configuration" url="#[vars.agentsApiUrl]">
+			<http:query-params><![CDATA[#[output application/java
+---
+{
+	"defaultAgents" : true
+}]]]></http:query-params>
+		</http:request>
+			<logger level="INFO" doc:name="Log default agents response" doc:id="60a782bf-5b2c-48fa-ab9f-8e8283f04648" message='#[output text&#10;---&#10;"Default agents response received: \n" ++ write(payload, "application/json") ++ "\n\n"]' />
+			<ee:transform doc:name="Prepare add agents payload" doc:id="26970f42-8dc9-4d0a-b4e5-7607b5940117" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "agents": payload.tools map ((item, index) -> 
+        {
+            "url": item.agentUrl ,
+            "authentication": {
+                "type": "none"
+            }
+        }
+    )
+}]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+			<http:request method="POST" doc:name="Add agents" doc:id="f5397dbc-1904-4df1-a0b4-584030b040ed" config-ref="HTTP_Request_configuration" url="#[vars.agentsApiUrl]" >
+				<http:headers ><![CDATA[#[output application/java
+---
+{
+	"Content-Type" : "application/json"
+}]]]></http:headers>
+				<http:query-params ><![CDATA[#[output application/java
+---
+{
+	"userSessionId" : vars.userSessionId
+}]]]></http:query-params>
+			</http:request>
+			<error-handler >
+				<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="d7522222-2fe2-4d7b-836d-210965bc0886" >
+					<logger level="ERROR" doc:name="Log app home error" doc:id="50f5fc6c-d999-4b09-9424-ed0d765b7978" message='#[output text&#10;---&#10;"Error in add default agents flow: " ++ (error.detailedDescription default "")]' />
+					<ee:transform doc:name="Prepare error message for Slack" doc:id="3de3e329-d5a5-4e06-9536-503b9cbac262" >
+						<ee:message >
+							<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"user_id": vars.slackUserId,
+	"view": {
+		"type": "home",
+		"blocks": [
+			{
+				"type": "section",
+				"text": {
+					"type": "mrkdwn",
+					"text": "❌ *Sorry, there was an error adding your agents*\n\nPlease try again later or contact support if the issue persists."
+				}
+			}
+		]
+	}
+}]]></ee:set-payload>
+						</ee:message>
+					</ee:transform>
+					<http:request method="POST" doc:name="Send error message to Slack" doc:id="2225c975-d744-4954-8619-3b6786250049" config-ref="HTTP_Request_configuration" url="https://slack.com/api/views.publish" >
+						<http:headers ><![CDATA[#[output application/java
+---
+{
+	"Authorization" : "Bearer " ++ p('slack.oauth_token'),
+	"Content-Type" : "application/json"
+}]]]></http:headers>
+					</http:request>
+				</on-error-continue>
+			</error-handler>
+		</try>
+	</sub-flow>
+	<sub-flow name="on-delete-all-agents" doc:id="b08f00bd-b8a5-40dd-a93a-16bda8acaba3" >
+		<logger level="INFO" doc:name="Log block actions interaction" doc:id="5df74a16-de80-4a9f-9f91-495594888f1e" message='#[output text&#10;---&#10;"Delete all agents (block actions) interaction recieved. Channel: " ++ (payload.event.channel default "" as String) ++ "\n\n"]' />
+		<set-variable value='#[(vars.slack_interaction.actions[0].value splitBy  "|")[1]]' doc:name="Set userSessionId from channel" doc:id="ef314e0a-5963-429e-8308-57351a552ade" variableName="userSessionId" />
+		<set-variable value="#[vars.slack_interaction.user.id]" doc:name="Save Slack user ID" doc:id="5ac608f9-c241-4477-95d6-1035b166bfa3" variableName="slackUserId" />
+		<flow-ref doc:name="Delete All Agents" doc:id="d3238203-9150-4dca-a54e-96bdbbb1bcfd" name="delete-all-agents"/>
+		<flow-ref doc:name="Build App Home" doc:id="2b33fee0-0bb8-42ca-9a21-0366d2332f33" name="build-app-home" />
+	</sub-flow>
+	<sub-flow name="delete-all-agents" doc:id="30fd9f61-46f0-4c75-9efa-2defe6d08db1" >
+		<try doc:name="Try" doc:id="920d6afe-1c07-4668-8c0f-aae8514b8c7b" >
+			<set-variable value='#[output text&#10;---&#10;"https://" ++ p("websocket.client.host") ++ "/agents?userSessionId=" ++ vars.userSessionId]' doc:name="Build agents API URL" doc:id="ea094a6a-fc51-4a69-8c7d-a6f50cfbef98" variableName="agentsApiUrl" />
+			<http:request method="GET" doc:name="Get agents from AIL" doc:id="e55fd3f5-0a21-42ed-b37f-f0f219a52a95" config-ref="HTTP_Request_configuration" url="#[vars.agentsApiUrl]">
+			<http:query-params><![CDATA[#[output application/java
+---
+{
+	"userSessionId" : vars.userSessionId
+}]]]></http:query-params>
+		</http:request>
+			<logger level="INFO" doc:name="Log agents response" doc:id="5e41e6cd-5685-447d-8d6f-5e9ebcf82332" message='#[output text&#10;---&#10;"Agents response received: \n" ++ write(payload, "application/json") ++ "\n\n"]' />
+			<ee:transform doc:name="Prepare delete agent payload" doc:id="f3b73729-4dc0-4485-8d6a-fbec1ec63189">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "agents": payload.tools map ((item, index) -> 
+        item.function.name
+    )
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+			<http:request method="DELETE" doc:name="Delete all agents" doc:id="1c1a9291-bf43-42af-ab3f-1c3bf4229fce" config-ref="HTTP_Request_configuration" url="#[vars.agentsApiUrl]">
+			<http:query-params><![CDATA[#[output application/java
+---
+{
+	"userSessionId" : vars.userSessionId
+}]]]></http:query-params>
+		</http:request>
+			<error-handler >
+				<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="c85c3e9c-2949-4a5f-acd7-762bea233730" >
+					<logger level="ERROR" doc:name="Log app home error" doc:id="2c903810-4227-4c6b-b50e-9ee8f43ef662" message='#[output text&#10;---&#10;"Error in delete all agents flow: " ++ (error.detailedDescription default "")]' />
+					<ee:transform doc:name="Prepare error message for Slack" doc:id="f74e1111-ae91-44c3-854b-2e7f3cefd1e4" >
+						<ee:message >
+							<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"user_id": vars.slackUserId,
+	"view": {
+		"type": "home",
+		"blocks": [
+			{
+				"type": "section",
+				"text": {
+					"type": "mrkdwn",
+					"text": "❌ *Sorry, there was an error deleteing your agents*\n\nPlease try again later or contact support if the issue persists."
+				}
+			}
+		]
+	}
+}]]></ee:set-payload>
+						</ee:message>
+					</ee:transform>
+					<http:request method="POST" doc:name="Send error message to Slack" doc:id="18b1c17d-9b50-4eb1-9d32-7781101e3815" config-ref="HTTP_Request_configuration" url="https://slack.com/api/views.publish" >
+						<http:headers ><![CDATA[#[output application/java
+---
+{
+	"Authorization" : "Bearer " ++ p('slack.oauth_token'),
+	"Content-Type" : "application/json"
+}]]]></http:headers>
+					</http:request>
+				</on-error-continue>
+			</error-handler>
+		</try>
+	</sub-flow>
+</mule>
