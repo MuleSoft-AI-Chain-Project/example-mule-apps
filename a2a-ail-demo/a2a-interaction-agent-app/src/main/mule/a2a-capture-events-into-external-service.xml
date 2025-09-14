@@ -135,7 +135,9 @@ output application/json
 		</error-handler>
 	</flow>
 	<flow name="call-out-external-service" doc:id="31bf34b6-4fcc-4340-b337-46cb8e2906bd" >
-		<http:request method="POST" doc:name="External Service for Capturing Interactions" doc:id="0fd3554f-8748-47e2-89e7-fd9b653dce5b" url="${external.service}"/>
+		<async doc:name="Async" doc:id="0f3c019c-823a-4442-a11c-633f6cc57583" >
+			<http:request method="POST" doc:name="External Service for Capturing Interactions" doc:id="0fd3554f-8748-47e2-89e7-fd9b653dce5b" url="${external.service}" />
+		</async>
 		<error-handler >
 			<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="76594df5-0471-4ebc-a72c-a952415545b4" type="ANY"/>
 		</error-handler>
