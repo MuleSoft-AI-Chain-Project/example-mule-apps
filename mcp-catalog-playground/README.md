@@ -7,3 +7,7 @@ The **MCP Catalog & Playground** enables Mule MCP Developers to quickly test out
 ### Experimental Modes
 
 This playground provides different experimental modes for MCP Servers from low level function callings to fully fledge agent mode.
+
+[Demo Video](https://www.youtube.com/watch?v=AkHblt2g99Q)
+
+[Tutorial Video - coming soon]
