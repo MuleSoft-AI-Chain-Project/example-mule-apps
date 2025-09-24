@@ -1,0 +1,493 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:ms-einstein-ai="http://www.mulesoft.org/schema/mule/ms-einstein-ai"
+	xmlns:ms-inference="http://www.mulesoft.org/schema/mule/ms-inference"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ms-inference http://www.mulesoft.org/schema/mule/ms-inference/current/mule-ms-inference.xsd
+http://www.mulesoft.org/schema/mule/ms-einstein-ai http://www.mulesoft.org/schema/mule/ms-einstein-ai/current/mule-ms-einstein-ai.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<sub-flow name="OPENAI" doc:id="430bbefb-76a1-4cf5-ba16-82ad5279cb80" >
+		<ms-inference:tools-native-template doc:name="Reasoning" doc:id="56e8fdf3-f588-4473-a2b1-e9a3f3abaa16" config-ref="OPENAI-Cfg" >
+			<ms-inference:template ><![CDATA[You are a planner agent. You answer general question based on your knowledge. Things you know of without making up things.]]></ms-inference:template>
+			<ms-inference:instructions ><![CDATA[Answer the request with politeness. No tools have been executed. Based on the users prompt, suggest the tools to execute. If no tools are available, reply currently I don't have access to any tools to perform tasks based on your request.]]></ms-inference:instructions>
+			<ms-inference:data ><![CDATA[#["**User Prompt** " ++ vars.prompt]]]></ms-inference:data>
+			<ms-inference:tools ><![CDATA[#[payload.tools]]]></ms-inference:tools>
+		</ms-inference:tools-native-template>
+	</sub-flow>
+	<sub-flow name="MISTRAL" doc:id="c4a05809-9358-498c-b9fa-88a7b1071527" >
+		<ms-inference:tools-native-template doc:name="Reasoning" doc:id="b492f410-0867-4187-a6e9-62b034e74b03" config-ref="MISTRAL-Cfg" >
+			<ms-inference:template ><![CDATA[You are a planner agent. You answer general question based on your knowledge. Things you know of without making up things.]]></ms-inference:template>
+			<ms-inference:instructions ><![CDATA[Answer the request with politeness. No tools have been executed. Based on the users prompt, suggest the tools to execute. If no tools are available, reply currently I don't have access to any tools to perform tasks based on your request.]]></ms-inference:instructions>
+			<ms-inference:data ><![CDATA[#["**User Prompt** " ++ vars.prompt]]]></ms-inference:data>
+			<ms-inference:tools ><![CDATA[#[payload.tools]]]></ms-inference:tools>
+		</ms-inference:tools-native-template>
+	</sub-flow>
+	<sub-flow name="XAI" doc:id="c8bcb4b5-88a8-490a-b7b7-900c951306a0" >
+		<ms-inference:tools-native-template doc:name="Reasoning" doc:id="6d02d6ec-002a-4635-9b2e-580586b4ad81" config-ref="XAI-Cfg" >
+			<ms-inference:template ><![CDATA[You are a planner agent. You answer general question based on your knowledge. Things you know of without making up things.]]></ms-inference:template>
+			<ms-inference:instructions ><![CDATA[Answer the request with politeness. No tools have been executed. Based on the users prompt, suggest the tools to execute. If no tools are available, reply currently I don't have access to any tools to perform tasks based on your request.]]></ms-inference:instructions>
+			<ms-inference:data ><![CDATA[#["**User Prompt** " ++ vars.prompt]]]></ms-inference:data>
+			<ms-inference:tools ><![CDATA[#[payload.tools]]]></ms-inference:tools>
+		</ms-inference:tools-native-template>
+	</sub-flow>
+	<sub-flow name="EINSTEIN" doc:id="2da090d8-2af3-4388-8c5f-7a9c23d25dba" >
+		<ms-einstein-ai:agent-define-prompt-template doc:name="Reasoning" doc:id="c0066626-c2ab-468e-9aae-b590f5448c04" config-ref="EINSTEIN-Cfg" modelApiName='#[vars.model default "sfdc_ai__DefaultGPT41"]'>
+			<ms-einstein-ai:template ><![CDATA[You are a planner agent. 
+
+Your Goals:
+- You answer general question based on your knowledge.
+- Analyze the user query and the list of available tools provided in the data. 
+
+Your Tasks:
+- Assess the users query and complete task by task,
+- Identify which tools are required to fulfill the user's request,
+- Not every tool is possible to be called at once,
+
+Your Guardrails
+- Don't change the context of prompt,
+- Don't add '.' at the end of the prompts,
+- Don't make the same call with the same prompt again to an agent
+]]></ms-einstein-ai:template>
+			<ms-einstein-ai:instructions ><![CDATA[#["**User Prompt** " ++ vars.prompt]]]></ms-einstein-ai:instructions>
+			<ms-einstein-ai:dataset ><![CDATA[#["If tools are needed, then reply only with a json the tools needed from 'Tools provided' here: " ++ write(payload.tools, "application/json")
+++ ". respond only with a valid JSON object matching this schema: " ++ "{\"tools\":[{\"function\":{\"name\":\"<name-of-tool>\",\"arguments\":{\"<tool-argument-1>\":\"<argument-value-1>\", \"<tool-argument-2>\":\"<argument-value-2>\"}}}]}"
+++ ". Make sure to provide the name and arguments according to the json schema and don't change the format. Only select from 'Tools provided', don't make up tools. if the section 'Tools provided' is empty no tools are available. 
+"]]]></ms-einstein-ai:dataset>
+		</ms-einstein-ai:agent-define-prompt-template>
+		<ee:transform doc:name="Transform Message" doc:id="9a38ccb2-f5fc-4e82-88bc-0e1588cc5c51" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+if ((payload.response is String) and (payload.response as String contains 'tools'))
+    if ((payload.response contains ":[]}") or (payload.response contains "no tools") or (payload.response contains "No tools"))
+        {response: "Currently I don't have access to any tools"}
+    else
+        read(payload.response, 'application/json')
+else
+    payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+	<sub-flow name="AUG-OPENAI" doc:id="b8d9e090-0912-478c-908e-782b0ab113bc">
+		<ms-inference:agent-define-prompt-template doc:name="[Agent] Define Prompt Template" doc:id="c12c252f-219f-4eac-9733-4a93c3a33de3" config-ref="OPENAI-Cfg">
+			<ms-inference:template><![CDATA[You are a helpful assistant, who augments an answer based on provided informations.]]></ms-inference:template>
+			<ms-inference:instructions><![CDATA[Augment an answer based on the **User Prompt** and **Tool Calling Suggestion** by the agent. ]]></ms-inference:instructions>
+			<ms-inference:data><![CDATA[#[output json
+---
+"User Prompt: " ++ vars.prompt default "" ++
+"Tool Calling Suggestion: " ++ write(payload default "")]]]></ms-inference:data>
+		</ms-inference:agent-define-prompt-template>
+	</sub-flow>
+	<sub-flow name="AUG-MISTRAL" doc:id="8a6b81e5-965a-490e-8d19-becc1b946d21" >
+		<ms-inference:agent-define-prompt-template doc:name="[Agent] Define Prompt Template" doc:id="af83e96e-0ac3-40f9-bc24-4d884a41de9e" config-ref="MISTRAL-Cfg">
+			<ms-inference:template ><![CDATA[You are a helpful assistant, who augments an answer based on provided informations.]]></ms-inference:template>
+			<ms-inference:instructions ><![CDATA[Augment an answer based on the **User Prompt** and **Tool Calling Suggestion** by the agent. ]]></ms-inference:instructions>
+			<ms-inference:data ><![CDATA[#[output json
+---
+"User Prompt: " ++ vars.prompt default "" ++
+"Tool Calling Suggestion: " ++ write(payload default "")]]]></ms-inference:data>
+		</ms-inference:agent-define-prompt-template>
+	</sub-flow>
+	<sub-flow name="AUG-XAI" doc:id="580da868-9ac9-4c43-804f-79082dd72469" >
+		<ms-inference:agent-define-prompt-template doc:name="[Agent] Define Prompt Template" doc:id="68dc233a-4637-467d-aaab-8c6158101eee" config-ref="XAI-Cfg">
+			<ms-inference:template ><![CDATA[You are a helpful assistant, who augments an answer based on provided informations.]]></ms-inference:template>
+			<ms-inference:instructions ><![CDATA[Augment an answer based on the **User Prompt** and **Tool Calling Suggestion** by the agent. ]]></ms-inference:instructions>
+			<ms-inference:data ><![CDATA[#[output json
+---
+"User Prompt: " ++ vars.prompt default "" ++
+"Tool Calling Suggestion: " ++ write(payload default "")]]]></ms-inference:data>
+		</ms-inference:agent-define-prompt-template>
+	</sub-flow>
+	<sub-flow name="AUG-EINSTEIN" doc:id="b9527159-ac5c-4b67-855a-d7a604290eca">
+		<ms-einstein-ai:agent-define-prompt-template doc:name="Agent Define Prompt Template" doc:id="b86e70f7-fe4e-4830-9762-7e40774adcb6" config-ref="EINSTEIN-Cfg" modelApiName='#[vars.model default "sfdc_ai__DefaultGPT41"]'>
+			<ms-einstein-ai:template><![CDATA[You are a helpful assistant, who augments an answer based on provided informations.]]></ms-einstein-ai:template>
+			<ms-einstein-ai:instructions><![CDATA[Augment an answer based on the **User Prompt** and **Tool Calling Suggestion** by the agent.]]></ms-einstein-ai:instructions>
+			<ms-einstein-ai:dataset><![CDATA[#[output json
+---
+"User Prompt: " ++ vars.prompt default "" ++
+"Tool Calling Suggestion: " ++ write(payload default "")]]]></ms-einstein-ai:dataset>
+		</ms-einstein-ai:agent-define-prompt-template>
+	</sub-flow>
+	<sub-flow name="PLAN-OPENAI" doc:id="6cf284d8-64ce-4320-afd2-c720a6d34f64">
+		<ms-inference:agent-define-prompt-template doc:name="Create Plan" doc:id="3d356cfa-7c8a-420a-95ed-d1f0142a41dd" config-ref="OPENAI-Cfg">
+					<ms-inference:template><![CDATA[You are a helpful agent. You answer general question based on your knowledge. Things you know of without making up things.]]></ms-inference:template>
+					<ms-inference:instructions><![CDATA[Objective:
+Identify the tools required to fulfill the user query and define a plan with sequenced steps for tool execution, ensuring each tool is executed only once.
+
+(1) Task:
+- Analyze the user query to determine the necessary tools.
+- Define a plan with steps and sub-steps for tool execution.
+- Exclude tools listed in the "already executed tools" section of the provided data.
+- Respond using the specified JSON schema based on the number of tools required.
+
+- JSON Schema:
+    {
+    "plan": String,
+    "multiTools": Boolean,
+    "final": Boolean
+    }
+
+
+(2) Rules for Tool Identification and Planning:
+    (a) Tool Uniqueness:
+        - Execute each tool only once.
+        - Do not include tools already executed, as specified in the "already executed tools" section.
+
+    (b) Plan Structure:
+        - For each tool, provide a step with sub-steps as bullet points.
+        - Example: For a query like "Get specific CRM Account":
+        Step: Get account for Tech Corp, 
+            - Open CRM System, 
+            - Go to Accounts, 
+            - Filter by Tech Corp, 
+            - Get Account details
+
+    (c) Output Logic:
+        (c-1)Single Tool Required:
+            - Set "plan" to the defined steps for the tool.
+            - Set "multiTools" to false.
+            - Set "final" to true.
+        (c-2) Multiple Tools Required:
+            - Set "plan" to the combined steps for all tools.
+            - Set "multiTools" to true.
+            - Set "final" to false unless no open tasks remain after the plan.
+        (c-3) No Open Tasks:
+            - If the plan completes all tasks, set "final" to true.
+
+    (d) Tool Handling:
+    - The actual tool execution will be handled later; focus on defining the plan.
+
+(3) Output Guidelines:
+- Ensure the plan is clear and formatted with steps and sub-steps as bullet points.
+- Maintain the context of the user query without altering its intent.
+- Do not execute tools; only provide the plan for their execution.]]></ms-inference:instructions>
+					<ms-inference:data><![CDATA[#["Users query: " ++ (vars.prompt as String) ++ 
+", Current Observation through called tools: " ++ (vars.multiToolsResult as String) ++ 
+", already executed tools: " ++ (write(vars.toolsUsed default {}, "application/json") as String)]]]></ms-inference:data>
+				</ms-inference:agent-define-prompt-template>
+	</sub-flow>
+	<sub-flow name="PLAN-MISTRAL" doc:id="3fb07d03-094a-48d4-abfa-7a8083b21763" >
+		<ms-inference:agent-define-prompt-template doc:name="Create Plan" doc:id="ce80e17f-b78a-48d6-ad49-b8d94f19e43b" config-ref="MISTRAL-Cfg" >
+			<ms-inference:template ><![CDATA[You are a helpful agent. You answer general question based on your knowledge. Things you know of without making up things.]]></ms-inference:template>
+			<ms-inference:instructions ><![CDATA[Objective:
+Identify the tools required to fulfill the user query and define a plan with sequenced steps for tool execution, ensuring each tool is executed only once.
+
+(1) Task:
+- Analyze the user query to determine the necessary tools.
+- Define a plan with steps and sub-steps for tool execution.
+- Exclude tools listed in the "already executed tools" section of the provided data.
+- Respond using the specified JSON schema based on the number of tools required.
+
+- JSON Schema:
+    {
+    "plan": String,
+    "multiTools": Boolean,
+    "final": Boolean
+    }
+
+
+(2) Rules for Tool Identification and Planning:
+    (a) Tool Uniqueness:
+        - Execute each tool only once.
+        - Do not include tools already executed, as specified in the "already executed tools" section.
+
+    (b) Plan Structure:
+        - For each tool, provide a step with sub-steps as bullet points.
+        - Example: For a query like "Get specific CRM Account":
+        Step: Get account for Tech Corp, 
+            - Open CRM System, 
+            - Go to Accounts, 
+            - Filter by Tech Corp, 
+            - Get Account details
+
+    (c) Output Logic:
+        (c-1)Single Tool Required:
+            - Set "plan" to the defined steps for the tool.
+            - Set "multiTools" to false.
+            - Set "final" to true.
+        (c-2) Multiple Tools Required:
+            - Set "plan" to the combined steps for all tools.
+            - Set "multiTools" to true.
+            - Set "final" to false unless no open tasks remain after the plan.
+        (c-3) No Open Tasks:
+            - If the plan completes all tasks, set "final" to true.
+
+    (d) Tool Handling:
+    - The actual tool execution will be handled later; focus on defining the plan.
+
+(3) Output Guidelines:
+- Ensure the plan is clear and formatted with steps and sub-steps as bullet points.
+- Maintain the context of the user query without altering its intent.
+- Do not execute tools; only provide the plan for their execution.]]></ms-inference:instructions>
+			<ms-inference:data ><![CDATA[#["Users query: " ++ (vars.prompt as String) ++ 
+", Current Observation through called tools: " ++ (vars.multiToolsResult as String) ++ 
+", already executed tools: " ++ (write(vars.toolsUsed default {}, "application/json") as String)]]]></ms-inference:data>
+		</ms-inference:agent-define-prompt-template>
+	</sub-flow>
+	<sub-flow name="PLAN-XAI" doc:id="5a8701e4-2a4f-4e75-889a-a7567195f155" >
+		<ms-inference:agent-define-prompt-template doc:name="Create Plan" doc:id="ab28adde-af03-48ae-ba1b-76ce771aab47" config-ref="XAI-Cfg" >
+			<ms-inference:template ><![CDATA[You are a helpful agent. You answer general question based on your knowledge. Things you know of without making up things.]]></ms-inference:template>
+			<ms-inference:instructions ><![CDATA[Objective:
+Identify the tools required to fulfill the user query and define a plan with sequenced steps for tool execution, ensuring each tool is executed only once.
+
+(1) Task:
+- Analyze the user query to determine the necessary tools.
+- Define a plan with steps and sub-steps for tool execution.
+- Exclude tools listed in the "already executed tools" section of the provided data.
+- Respond using the specified JSON schema based on the number of tools required.
+
+- JSON Schema:
+    {
+    "plan": String,
+    "multiTools": Boolean,
+    "final": Boolean
+    }
+
+
+(2) Rules for Tool Identification and Planning:
+    (a) Tool Uniqueness:
+        - Execute each tool only once.
+        - Do not include tools already executed, as specified in the "already executed tools" section.
+
+    (b) Plan Structure:
+        - For each tool, provide a step with sub-steps as bullet points.
+        - Example: For a query like "Get specific CRM Account":
+        Step: Get account for Tech Corp, 
+            - Open CRM System, 
+            - Go to Accounts, 
+            - Filter by Tech Corp, 
+            - Get Account details
+
+    (c) Output Logic:
+        (c-1)Single Tool Required:
+            - Set "plan" to the defined steps for the tool.
+            - Set "multiTools" to false.
+            - Set "final" to true.
+        (c-2) Multiple Tools Required:
+            - Set "plan" to the combined steps for all tools.
+            - Set "multiTools" to true.
+            - Set "final" to false unless no open tasks remain after the plan.
+        (c-3) No Open Tasks:
+            - If the plan completes all tasks, set "final" to true.
+
+    (d) Tool Handling:
+    - The actual tool execution will be handled later; focus on defining the plan.
+
+(3) Output Guidelines:
+- Ensure the plan is clear and formatted with steps and sub-steps as bullet points.
+- Maintain the context of the user query without altering its intent.
+- Do not execute tools; only provide the plan for their execution.]]></ms-inference:instructions>
+			<ms-inference:data ><![CDATA[#["Users query: " ++ (vars.prompt as String) ++ 
+", Current Observation through called tools: " ++ (vars.multiToolsResult as String) ++ 
+", already executed tools: " ++ (write(vars.toolsUsed default {}, "application/json") as String)]]]></ms-inference:data>
+		</ms-inference:agent-define-prompt-template>
+	</sub-flow>
+	<sub-flow name="PLAN-EINSTEIN" doc:id="ebe444ed-edc7-481b-96e2-a2dc36c19848" >
+		<ms-einstein-ai:agent-define-prompt-template doc:name="Agent define prompt template" doc:id="9c9bb87e-6aa0-4f5c-8486-4241fb4c3779" config-ref="EINSTEIN-Cfg" modelApiName='#[vars.model default "sfdc_ai__DefaultGPT41"]'>
+			<ms-einstein-ai:template ><![CDATA[You are a helpful agent. You answer general question based on your knowledge. Things you know of without making up things.]]></ms-einstein-ai:template>
+			<ms-einstein-ai:instructions ><![CDATA[Objective:
+Identify the tools required to fulfill the user query and define a plan with sequenced steps for tool execution, ensuring each tool is executed only once.
+
+(1) Task:
+- Analyze the user query to determine the necessary tools.
+- Define a plan with steps and sub-steps for tool execution.
+- Exclude tools listed in the "already executed tools" section of the provided data.
+- Respond using the specified JSON schema based on the number of tools required.
+
+- JSON Schema:
+    {
+    "plan": String,
+    "multiTools": Boolean,
+    "final": Boolean
+    }
+
+
+(2) Rules for Tool Identification and Planning:
+    (a) Tool Uniqueness:
+        - Execute each tool only once.
+        - Do not include tools already executed, as specified in the "already executed tools" section.
+
+    (b) Plan Structure:
+        - For each tool, provide a step with sub-steps as bullet points.
+        - Example: For a query like "Get specific CRM Account":
+        Step: Get account for Tech Corp, 
+            - Open CRM System, 
+            - Go to Accounts, 
+            - Filter by Tech Corp, 
+            - Get Account details
+
+    (c) Output Logic:
+        (c-1)Single Tool Required:
+            - Set "plan" to the defined steps for the tool.
+            - Set "multiTools" to false.
+            - Set "final" to true.
+        (c-2) Multiple Tools Required:
+            - Set "plan" to the combined steps for all tools.
+            - Set "multiTools" to true.
+            - Set "final" to false unless no open tasks remain after the plan.
+        (c-3) No Open Tasks:
+            - If the plan completes all tasks, set "final" to true.
+
+    (d) Tool Handling:
+    - The actual tool execution will be handled later; focus on defining the plan.
+
+(3) Output Guidelines:
+- Ensure the plan is clear and formatted with steps and sub-steps as bullet points.
+- Maintain the context of the user query without altering its intent.
+- Do not execute tools; only provide the plan for their execution.]]></ms-einstein-ai:instructions>
+			<ms-einstein-ai:dataset ><![CDATA[#["Users query: " ++ (vars.prompt as String) ++ 
+", Current Observation through called tools: " ++ (vars.multiToolsResult as String) ++ 
+", already executed tools: " ++ (write(vars.toolsUsed default {}, "application/json") as String)]]]></ms-einstein-ai:dataset>
+		</ms-einstein-ai:agent-define-prompt-template>
+	</sub-flow>
+	<sub-flow name="TOOLS-OPENAI" doc:id="9db3db16-b8ca-468d-891a-45445d3ac104">
+		<ms-inference:tools-native-template doc:name="Use MCP Tools" doc:id="5beecf21-ba03-49f4-a865-6f23de96a1b5" config-ref="OPENAI-Cfg">
+					<ms-inference:template><![CDATA[You are a helpful agent. You execute tools and answer question. Things you know of without making up things.]]></ms-inference:template>
+					<ms-inference:instructions><![CDATA[Your Goals:
+- Provide a polite, accurate, and concise response to the user's request, utilizing available tools and memory as appropriate.
+- Ensure responses align with the user's intent while maintaining efficiency and relevance.
+
+Your Tasks:
+- Review the user's query, current observation (if available), and previously executed tools to determine the appropriate response or tool usage.
+- Execute tools (e.g., profile analysis, content analysis, web search) only once, avoiding tools listed in the "already executed tools" section in the data.
+- If the 'Current Observation through called tools' is empty, assume no tools have been executed yet.
+
+Your Guardrails:
+- Do not suggest or execute tools already used, as specified in the 'already executed tools' section in the data.
+- Avoid redundant tool usage by cross-referencing the user's query, current observation, and last tools used before suggesting any tools.
+- Don't make up things
+]]></ms-inference:instructions>
+					<ms-inference:data><![CDATA[#["Users query: " ++ (vars.prompt as String) ++ 
+", Current Observation through called tools: " ++ (vars.multiToolsResult as String) ++ 
+", already executed tools: " ++ (write(vars.toolsUsed default {}, "application/json") as String)]]]></ms-inference:data>
+					<ms-inference:tools><![CDATA[#[vars.tools.tools]]]></ms-inference:tools>
+				</ms-inference:tools-native-template>
+	</sub-flow>
+	<sub-flow name="TOOLS-MISTRAL" doc:id="0db46c72-7ca8-4b94-9735-45735cb291e7" >
+		<ms-inference:tools-native-template doc:name="Use MCP Tools" doc:id="3c5778c8-bdef-4eaa-a8c3-762c48f0fd37" config-ref="MISTRAL-Cfg" >
+			<ms-inference:template ><![CDATA[You are a helpful agent. You execute tools and answer question. Things you know of without making up things.]]></ms-inference:template>
+			<ms-inference:instructions ><![CDATA[Your Goals:
+- Provide a polite, accurate, and concise response to the user's request, utilizing available tools and memory as appropriate.
+- Ensure responses align with the user's intent while maintaining efficiency and relevance.
+
+Your Tasks:
+- Review the user's query, current observation (if available), and previously executed tools to determine the appropriate response or tool usage.
+- Execute tools (e.g., profile analysis, content analysis, web search) only once, avoiding tools listed in the "already executed tools" section in the data.
+- If the 'Current Observation through called tools' is empty, assume no tools have been executed yet.
+
+Your Guardrails:
+- Do not suggest or execute tools already used, as specified in the 'already executed tools' section in the data.
+- Avoid redundant tool usage by cross-referencing the user's query, current observation, and last tools used before suggesting any tools.
+- Don't make up things
+]]></ms-inference:instructions>
+			<ms-inference:data ><![CDATA[#["Users query: " ++ (vars.prompt as String) ++ 
+", Current Observation through called tools: " ++ (vars.multiToolsResult as String) ++ 
+", already executed tools: " ++ (write(vars.toolsUsed default {}, "application/json") as String)]]]></ms-inference:data>
+			<ms-inference:tools ><![CDATA[#[vars.tools.tools]]]></ms-inference:tools>
+		</ms-inference:tools-native-template>
+	</sub-flow>
+	<sub-flow name="TOOLS-XAI" doc:id="d1387dba-a667-4f80-a441-a973f6909ec2" >
+		<ms-inference:tools-native-template doc:name="Use MCP Tools" doc:id="1bfb0f15-8835-4583-b2fa-09ab54034805" config-ref="XAI-Cfg" >
+			<ms-inference:template ><![CDATA[You are a helpful agent. You execute tools and answer question. Things you know of without making up things.]]></ms-inference:template>
+			<ms-inference:instructions ><![CDATA[Your Goals:
+- Provide a polite, accurate, and concise response to the user's request, utilizing available tools and memory as appropriate.
+- Ensure responses align with the user's intent while maintaining efficiency and relevance.
+
+Your Tasks:
+- Review the user's query, current observation (if available), and previously executed tools to determine the appropriate response or tool usage.
+- Execute tools (e.g., profile analysis, content analysis, web search) only once, avoiding tools listed in the "already executed tools" section in the data.
+- If the 'Current Observation through called tools' is empty, assume no tools have been executed yet.
+
+Your Guardrails:
+- Do not suggest or execute tools already used, as specified in the 'already executed tools' section in the data.
+- Avoid redundant tool usage by cross-referencing the user's query, current observation, and last tools used before suggesting any tools.
+- Don't make up things
+]]></ms-inference:instructions>
+			<ms-inference:data ><![CDATA[#["Users query: " ++ (vars.prompt as String) ++ 
+", Current Observation through called tools: " ++ (vars.multiToolsResult as String) ++ 
+", already executed tools: " ++ (write(vars.toolsUsed default {}, "application/json") as String)]]]></ms-inference:data>
+			<ms-inference:tools ><![CDATA[#[vars.tools.tools]]]></ms-inference:tools>
+		</ms-inference:tools-native-template>
+	</sub-flow>
+	<sub-flow name="TOOLS-EINSTEIN" doc:id="d1786d8a-df18-4bd4-921d-f7c639769fa4">
+		<ms-einstein-ai:agent-define-prompt-template doc:name="Reasoning" doc:id="ac468f4b-e78d-425b-a6ea-e073a88fb72c" config-ref="EINSTEIN-Cfg" modelApiName='#[vars.model default "sfdc_ai__DefaultGPT41"]'>
+			<ms-einstein-ai:template><![CDATA[You are a helpful agent. You execute tools and answer question. Things you know of without making up things.
+
+Your Goals:
+- Provide a polite, accurate, and concise response to the user's request, utilizing available tools and memory as appropriate.
+- Ensure responses align with the user's intent while maintaining efficiency and relevance.
+
+Your Tasks:
+- Review the user's query, current observation (if available), and previously executed tools to determine the appropriate response or tool usage.
+- Execute tools (e.g., profile analysis, content analysis, web search) only once, avoiding tools listed in the "already executed tools" section in the data.
+- If the 'Current Observation through called tools' is empty, assume no tools have been executed yet.
+
+Your Guardrails:
+- Do not suggest or execute tools already used, as specified in the 'already executed tools' section in the data.
+- Avoid redundant tool usage by cross-referencing the user's query, current observation, and last tools used before suggesting any tools.
+- Don't make up things
+]]></ms-einstein-ai:template>
+			<ms-einstein-ai:instructions><![CDATA[#["Users query: " ++ (vars.prompt as String) ++ 
+", Current Observation through called tools: " ++ (vars.multiToolsResult as String) ++ 
+", already executed tools: " ++ (write(vars.toolsUsed default {}, "application/json") as String)]]]></ms-einstein-ai:instructions>
+			<ms-einstein-ai:dataset><![CDATA[#["If tools are needed, then reply only with a json the tools needed from 'Tools provided' here: " ++ write(vars.tools.tools, "application/json")
+++ ". respond only with a valid JSON object matching this schema: " ++ "{\"tools\":[{\"function\":{\"name\":\"<name-of-tool>\",\"arguments\":{\"<tool-argument-1>\":\"<argument-value-1>\", \"<tool-argument-2>\":\"<argument-value-2>\"}}}]}"
+++ ". Make sure to provide the name and arguments according to the json schema and don't change the format. Only select from 'Tools provided', don't make up tools. if the section 'Tools provided' is empty no tools are available. "]]]></ms-einstein-ai:dataset>
+		</ms-einstein-ai:agent-define-prompt-template>
+		<ee:transform doc:name="Transform Message" doc:id="836685f9-8063-440d-8bca-74119be7c7e6">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+if ((payload.response is String) and (payload.response as String contains 'tools'))
+    if ((payload.response contains ":[]}") or (payload.response contains "no tools") or (payload.response contains "No tools"))
+        {response: "Currently I don't have access to any tools"}
+    else
+        read(payload.response, 'application/json')
+else
+    payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+	<sub-flow name="AGENTIC-OPENAI" doc:id="4f49b024-5db3-40d5-8fb9-2508d83837c7" >
+		<ms-inference:agent-define-prompt-template doc:name="[Agent] Define Prompt Template" doc:id="0b2d4fde-d7cd-4be3-ba7f-6dbed59f2ec3" config-ref="OPENAI-Cfg" >
+			<ms-inference:template ><![CDATA[You are a helpful assistant, who augments an answer based on provided informations.]]></ms-inference:template>
+			<ms-inference:instructions ><![CDATA[Augment an answer based on the **User Prompt** and **Tool Calling Suggestion** by the agent. Don't mention any urls.]]></ms-inference:instructions>
+			<ms-inference:data ><![CDATA[#[output json
+---
+"User Prompt: " ++ vars.prompt default "" ++
+"Tool Results: " ++ write(vars.multiToolsResult default "")]]]></ms-inference:data>
+		</ms-inference:agent-define-prompt-template>
+	</sub-flow>
+	<sub-flow name="AGENTIC-MISTRAL" doc:id="462fc211-7f0b-4fb7-b7e6-0f8e71ffc9d2" >
+		<ms-inference:agent-define-prompt-template doc:name="[Agent] Define Prompt Template" doc:id="7c54a8a4-4800-437b-ac8d-4207b8bc840d" config-ref="MISTRAL-Cfg" >
+			<ms-inference:template ><![CDATA[You are a helpful assistant, who augments an answer based on provided informations.]]></ms-inference:template>
+			<ms-inference:instructions ><![CDATA[Augment an answer based on the **User Prompt** and **Tool Calling Suggestion** by the agent. Don't mention any urls.]]></ms-inference:instructions>
+			<ms-inference:data ><![CDATA[#[output json
+---
+"User Prompt: " ++ vars.prompt default "" ++
+"Tool Results: " ++ write(vars.multiToolsResult default "")]]]></ms-inference:data>
+		</ms-inference:agent-define-prompt-template>
+	</sub-flow>
+	<sub-flow name="AGENTIC-XAI" doc:id="bc6b8867-a157-474b-a583-7db627e83673" >
+		<ms-inference:agent-define-prompt-template doc:name="[Agent] Define Prompt Template" doc:id="da328655-ab3e-4cca-b180-a3252d34dfaa" config-ref="XAI-Cfg" >
+			<ms-inference:template ><![CDATA[You are a helpful assistant, who augments an answer based on provided informations.]]></ms-inference:template>
+			<ms-inference:instructions ><![CDATA[Augment an answer based on the **User Prompt** and **Tool Calling Suggestion** by the agent. Don't mention any urls.]]></ms-inference:instructions>
+			<ms-inference:data ><![CDATA[#[output json
+---
+"User Prompt: " ++ vars.prompt default "" ++
+"Tool Results: " ++ write(vars.multiToolsResult default "")]]]></ms-inference:data>
+		</ms-inference:agent-define-prompt-template>
+	</sub-flow>
+	<sub-flow name="AGENTIC-EINSTEIN" doc:id="60bc65ee-f336-4986-9a76-b68db1c202b2" >
+		<ms-einstein-ai:agent-define-prompt-template doc:name="Agent define prompt template" doc:id="ee581615-d7b9-45c4-b15a-3b111e6d7856" config-ref="EINSTEIN-Cfg" modelApiName='#[vars.model default "sfdc_ai__DefaultGPT41"]'>
+			<ms-einstein-ai:template ><![CDATA[You are a helpful assistant, who augments an answer based on provided informations.]]></ms-einstein-ai:template>
+			<ms-einstein-ai:instructions ><![CDATA[Augment an answer based on the **User Prompt** and **Tool Calling Suggestion** by the agent. Don't mention any urls.]]></ms-einstein-ai:instructions>
+			<ms-einstein-ai:dataset ><![CDATA[#[output json
+---
+"User Prompt: " ++ vars.prompt default "" ++
+"Tool Results: " ++ write(vars.multiToolsResult default "")]]]></ms-einstein-ai:dataset>
+		</ms-einstein-ai:agent-define-prompt-template>
+	</sub-flow>
+</mule>
