@@ -384,6 +384,7 @@ Your Guardrails:
 
 Your Tasks:
 - Review the user's query, current observation (if available), and previously executed tools to determine the appropriate response or tool usage.
+- Use tools which are in the **Available tools** section of the provided data and map the user query to see if all aspects have been addressed
 - Execute tools (e.g., profile analysis, content analysis, web search) only once, avoiding tools listed in the "already executed tools" section in the data.
 - If the 'Current Observation through called tools' is empty, assume no tools have been executed yet.
 
@@ -408,6 +409,7 @@ Your Guardrails:
 
 Your Tasks:
 - Review the user's query, current observation (if available), and previously executed tools to determine the appropriate response or tool usage.
+- Use tools which are in the **Available tools** section of the provided data and map the user query to see if all aspects have been addressed
 - Execute tools (e.g., profile analysis, content analysis, web search) only once, avoiding tools listed in the "already executed tools" section in the data.
 - If the 'Current Observation through called tools' is empty, assume no tools have been executed yet.
 
@@ -443,6 +445,7 @@ Your Guardrails:
 ]]></ms-einstein-ai:template>
 			<ms-einstein-ai:instructions><![CDATA[#["Users query: " ++ (vars.prompt as String) ++ 
 ", Current Observation through called tools: " ++ (vars.multiToolsResult as String) ++ 
+", Available tools: " ++ write(vars.tools, "application/json") ++ 
 ", already executed tools: " ++ (write(vars.toolsUsed default {}, "application/json") as String)]]]></ms-einstein-ai:instructions>
 			<ms-einstein-ai:dataset><![CDATA[#["If tools are needed, then reply only with a json the tools needed from 'Tools provided' here: " ++ write(vars.tools.tools, "application/json")
 ++ ". respond only with a valid JSON object matching this schema: " ++ "{\"tools\":[{\"function\":{\"name\":\"<name-of-tool>\",\"arguments\":{\"<tool-argument-1>\":\"<argument-value-1>\", \"<tool-argument-2>\":\"<argument-value-2>\"}}}]}"
