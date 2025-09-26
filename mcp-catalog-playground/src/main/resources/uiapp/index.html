@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent Tooling</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
+    <link rel="stylesheet" href="styles/styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">Agent Tooling</div>
+                <div class="mulesoft-logo">
+                    <img src="https://images.icon-icons.com/2699/PNG/512/mulesoft_logo_icon_170933.png" alt="MuleSoft Logo" />
+                </div>
+                <button class="toggle-btn" id="toggle-btn">
+                    <i class="fas fa-bars" id="toggle-icon"></i>
+                </button>
+            </div>
+            <div class="nav-menu">
+                <div class="nav-item active" onclick="switchTab('conversation')">
+                    <i class="fas fa-comments"></i>
+                    <span class="nav-text">Conversation</span>
+                </div>
+                <div class="nav-item" onclick="switchTab('servers')">
+                    <i class="fas fa-server"></i>
+                    <span class="nav-text">MCP Servers</span>
+                </div>
+                <div class="nav-item" onclick="switchTab('settings')">
+                    <i class="fas fa-cog"></i>
+                    <span class="nav-text">Settings</span>
+                </div>
+                <div class="nav-item" onclick="switchTab('audit')">
+                    <i class="fas fa-history"></i>
+                    <span class="nav-text">Audit Log</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <!-- Conversation Tab -->
+            <div class="tab-content active" id="conversation-tab">
+                <div class="conversation-config">
+                    <div class="config-header" onclick="toggleConfigSection()">
+                        <i class="fas fa-cog"></i> Configuration
+                        <i class="fas fa-chevron-down config-toggle-icon"></i>
+                    </div>
+                    <div class="config-content collapsible-content">
+                        <div class="config-row all-configs">
+                            <div class="form-group">
+                                <label class="form-label">Experiment Mode</label>
+                                <div class="collapsible-radio-group">
+                                    <div class="selected-option" onclick="toggleExperimentModeOptions()">
+                                        <span id="selected-mode-text">Agent Mode</span>
+                                        <i class="fas fa-chevron-down" id="experiment-mode-toggle"></i>
+                                    </div>
+                                    <div class="radio-group collapsed" id="experiment-mode-options">
+                                        <div class="radio-item">
+                                            <input type="radio" id="agentic-loop" name="endpoint" value="agentic" checked onchange="updateSelectedMode()">
+                                            <label for="agentic-loop">Agent Mode</label>
+                                        </div>
+                                        <div class="radio-item">
+                                            <input type="radio" id="reason-only" name="endpoint" value="reason" onchange="updateSelectedMode()">
+                                            <label for="reason-only">Function Calling</label>
+                                        </div>
+                                        <div class="radio-item">
+                                            <input type="radio" id="augmented-tooling" name="endpoint" value="augmentedtooling" onchange="updateSelectedMode()">
+                                            <label for="augmented-tooling">Augmented Tooling</label>
+                                        </div>
+                                        <div class="radio-item">
+                                            <input type="radio" id="reason-action" name="endpoint" value="reason-action" onchange="updateSelectedMode()">
+                                            <label for="reason-action">MCP Tooling</label>
+                                        </div>
+                                        <div class="radio-item">
+                                            <input type="radio" id="augmented-action" name="endpoint" value="augmentedmcp" onchange="updateSelectedMode()">
+                                            <label for="augmented-action">Augmented MCP</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Provider</label>
+                                <select class="form-control" id="provider" onchange="updateModels()">
+                                    <option value="OPENAI">OpenAI</option>
+                                    <option value="MISTRAL">Mistral</option>
+                                    <option value="XAI">XAI</option>
+                                    <option value="EINSTEIN">Einstein</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Model</label>
+                                <select class="form-control" id="model">
+                                    <option value="gpt-4o">GPT-4o</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="conversation-container">
+                    <div class="messages" id="messages"></div>
+                    <div class="input-area">
+                        <input type="text" class="message-input" id="messageInput" placeholder="Type your message here..." onkeypress="handleKeyPress(event)">
+                        <button class="send-btn" onclick="sendMessage()" id="sendBtn">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MCP Servers Tab -->
+            <div class="tab-content" id="servers-tab">
+                <div id="cors-notice" style="display: none; background: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 12px; margin-bottom: 20px; color: #92400e;">
+                    <strong>⚠️ CORS Configuration Required</strong><br>
+                    Your backend server is running but missing CORS headers. The browser is sending OPTIONS requests that return "405 Method Not Allowed".<br>
+                    <strong>Fix:</strong> Add CORS middleware to handle OPTIONS requests and include proper headers.
+                </div>
+                <div class="servers-grid" id="serversGrid">
+                    <div class="server-card add-server-card" onclick="openAddServerModal()">
+                        <div style="text-align: center;">
+                            <div class="add-icon">
+                                <i class="fas fa-plus"></i>
+                            </div>
+                            <h3>Add MCP Server</h3>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="btn btn-danger" onclick="deleteAllServers()">
+                    <i class="fas fa-trash-alt"></i>
+                    Delete All Servers
+                </button>
+            </div>
+
+            <!-- Settings Tab -->
+            <div class="tab-content" id="settings-tab">
+                <div class="settings-section">
+                    <h2 class="section-title">Export Configuration</h2>
+                    <p style="margin-bottom: 15px; color: #6b7280;">Download all registered MCP servers as a JSON configuration file.</p>
+                    <button class="btn" onclick="exportConfig()">
+                        <i class="fas fa-download"></i>
+                        Export Config
+                    </button>
+                </div>
+
+                <div class="settings-section">
+                    <h2 class="section-title">Import Configuration</h2>
+                    <p style="margin-bottom: 15px; color: #6b7280;">Upload a JSON configuration file to register multiple MCP servers.</p>
+                    <button class="btn" onclick="document.getElementById('configFile').click()">
+                        <i class="fas fa-upload"></i>
+                        Import Config
+                    </button>
+                    <input type="file" id="configFile" class="file-input" accept=".json" onchange="importConfig(event)">
+                </div>
+
+                <div class="settings-section">
+                    <h2 class="section-title">Data Management</h2>
+                    <p style="margin-bottom: 15px; color: #6b7280;">Manage your stored MCP server data.</p>
+                    <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                        <button class="btn" onclick="clearAllData()">
+                            <i class="fas fa-trash-alt"></i>
+                            Clear All Data
+                        </button>
+                        <button class="btn" onclick="showDataInfo()">
+                            <i class="fas fa-info-circle"></i>
+                            Show Data Info
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Audit Log Tab -->
+            <div class="tab-content" id="audit-tab">
+                <div class="audit-log">
+                    <div class="audit-filters" style="margin-bottom: 20px; padding: 20px; background: #f9fafb; border-radius: 10px; border: 1px solid #e5e7eb;">
+                        <h3 style="margin-bottom: 15px; color: #374151;">Filter Audit Log</h3>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                            <div class="form-group">
+                                <label class="form-label">Provider</label>
+                                <select class="form-control" id="auditProviderFilter" onchange="filterAuditByProvider(this.value)">
+                                    <option value="all">All Providers</option>
+                                    <option value="OPENAI">OpenAI</option>
+                                    <option value="MISTRAL">Mistral</option>
+                                    <option value="XAI">XAI</option>
+                                    <option value="EINSTEIN">Einstein</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Model</label>
+                                <select class="form-control" id="auditModelFilter" onchange="filterAuditByModel(this.value)">
+                                    <option value="all">All Models</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Endpoint Type</label>
+                                <select class="form-control" id="auditEndpointFilter" onchange="filterAuditByEndpoint(this.value)">
+                                    <option value="all">All Endpoints</option>
+                                    <option value="reason">Reasoning Only</option>
+                                    <option value="reason-action">Reasoning + Action</option>
+                                    <option value="augmentedtooling">Augmented Tooling</option>
+                                    <option value="augmentedmcp">Augmented Action</option>
+                                    <option value="agentic">Agentic Loop</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div style="margin-top: 15px;">
+                            <button class="btn" onclick="clearAuditFilters()" style="background: #6b7280;">
+                                <i class="fas fa-times"></i>
+                                Clear Filters
+                            </button>
+                            <button class="btn" onclick="exportAuditLog()" style="background: #10b981;">
+                                <i class="fas fa-download"></i>
+                                Export Logs
+                            </button>
+                            <button class="btn btn-danger" onclick="clearAuditLog()">
+                                <i class="fas fa-trash-alt"></i>
+                                Clear All Logs
+                            </button>
+                        </div>
+                    </div>
+                    <div id="auditEntries">
+                        <p style="color: #6b7280; text-align: center; padding: 40px;">No audit entries yet. Start a conversation to see logs here.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Server Modal -->
+    <div class="modal" id="addServerModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Add MCP Server</h2>
+                <button class="close-btn" onclick="closeModal('addServerModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form onsubmit="addServer(event)">
+                <div class="form-group">
+                    <label class="form-label">Server Name</label>
+                    <input type="text" class="form-control" id="serverKey" required placeholder="e.g., CRM Server">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Server URL</label>
+                    <input type="url" class="form-control" id="serverUrl" required placeholder="https://your-mcp-server.com/">
+                </div>
+                <div style="display: flex; gap: 15px; justify-content: flex-end; margin-top: 25px;">
+                    <button type="button" class="btn" style="background: #6b7280;" onclick="closeModal('addServerModal')">Cancel</button>
+                    <button type="submit" class="btn">Add Server</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- View Tools Modal -->
+    <div class="modal" id="toolsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="toolsModalTitle">Server Tools</h2>
+                <button class="close-btn" onclick="closeModal('toolsModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div id="toolsList"></div>
+        </div>
+    </div>
+
+    <script src="script/script.js"></script>
+</body>
+</html>

@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:os="http://www.mulesoft.org/schema/mule/os" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:mcp="http://www.mulesoft.org/schema/mule/mcp"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/mcp http://www.mulesoft.org/schema/mule/mcp/current/mule-mcp.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd">
+	<sub-flow name="mcp-server-list-tools" doc:id="4a8c42b6-c298-438b-9301-51e1efc88fd5" >
+		<flow-ref doc:name="get-registered-servers" doc:id="1f9722ad-4c5b-4656-9929-57b2cc6a3c01" name="get-registered-servers" />
+		<foreach doc:name="For Each" doc:id="ad8c67c0-f0f3-4a60-9c69-c9600e1cf58f" collection="#[payload]" >
+			<set-variable value="#[keysOf(payload)[0]]" doc:name="serverKey" doc:id="9f1a04bb-dc46-43c2-ae48-f8abe00bef44" variableName="serverKey" />
+			<set-variable value="#[read(payload[0])]" doc:name="serverUrl" doc:id="e5274177-0260-489e-ac78-e87df544c241" variableName="serverUrl" />
+			<mcp:list-tools doc:name="MCP Client - List Tools" doc:id="e24cbda8-ef59-4794-aa99-1fb1e00f4214" config-ref="MCP_Client" />
+			<ee:transform doc:name="Transform Message" doc:id="dcfb4622-cbe1-4de7-930f-f0bd7ed8ee8a" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+var transformedArray = payload map (item) -> {
+    inputSchema: read(item.inputSchema, "application/json"),
+    description: item.description,
+    name: item.name
+}
+---
+transformedArray]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+			<os:store doc:name="Store" doc:id="868b33f2-072a-431f-9285-98d4f6250ae2" key="#[vars.serverKey]" objectStore="MCPServerTools" />
+		</foreach>
+		<os:retrieve-all doc:name="Retrieve all" doc:id="8e70b0c8-2b62-40a3-b880-cc13bbac07d3" objectStore="MCPServerTools" />
+		<ee:transform doc:name="Transform Message" doc:id="3121e470-d1af-4135-97de-c02e737b3753" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+var transformedPayload = keysOf(payload) reduce ((key, acc = {}) -> acc ++ {
+    (key): read(payload[key], "application/json") map (item) -> {
+        inputSchema: item.inputSchema, // Use directly, as it's already a JSON object
+        description: item.description,
+        name: item.name
+    }
+})
+---
+transformedPayload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+	<sub-flow name="mcp-save-single-server-tools" doc:id="289c0c2f-adbd-4dfc-9d46-6673fc9f517f" >
+		<set-variable value="#[payload.key]" doc:name="serverKey" doc:id="7e76655c-4a00-4789-8235-59a208f18ba8" variableName="serverKey" />
+		<set-variable value='#[payload.value replace /\"|\\+/ with ""]' doc:name="serverUrl" doc:id="a1015686-2565-4d9f-af07-5836b0dd9944" variableName="serverUrl" />
+		<mcp:list-tools doc:name="MCP Client - List Tools" doc:id="b2e8961e-fdac-42d7-bbdb-2576cf7d1746" config-ref="MCP_Client" />
+		<ee:transform doc:name="Transform Message" doc:id="904e6d83-c994-4502-9018-817434fc58ce" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+var transformedArray = payload map (item) -> {
+    inputSchema: read(item.inputSchema, "application/json"),
+    description: item.description,
+    name: item.name
+}
+---
+transformedArray]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<os:store doc:name="Store" doc:id="a8fc86c1-4a69-4675-beb5-1156e4c6c394" key="#[vars.serverKey]" objectStore="MCPServerTools" />
+	</sub-flow>
+	<sub-flow name="mcp-call-tools" doc:id="de9edb00-12dc-48b2-9a81-34321ec9092a" >
+		<mcp:call-tool toolName="#[output application/json&#10;---&#10;payload.name]" doc:name="MCP Client - Call Tool" doc:id="b156c249-b54f-414f-a308-77dc7b61d53f" config-ref="MCP_Client" >
+			<mcp:arguments ><![CDATA[#[output application/json
+---
+vars.tools[(vars.counter default 1) as Number - 1].function.arguments match {
+    case str is String -> read(str, "application/json")
+    case obj is Object -> obj
+    else -> null
+}]]]></mcp:arguments>
+		</mcp:call-tool>
+		<ee:transform doc:name="ToolResponse" doc:id="f416504e-974a-4e3c-be01-6869a0afa2af" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<ee:transform doc:name="Format" doc:id="3b3afe0d-cfa4-4622-a491-6f440a1a9071" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output text/plain
+---
+write(payload, "application/json")]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+</mule>

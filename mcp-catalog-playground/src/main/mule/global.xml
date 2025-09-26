@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ms-einstein-ai="http://www.mulesoft.org/schema/mule/ms-einstein-ai" xmlns:ms-inference="http://www.mulesoft.org/schema/mule/ms-inference"
+	xmlns:mcp="http://www.mulesoft.org/schema/mule/mcp"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:os="http://www.mulesoft.org/schema/mule/os" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/mcp http://www.mulesoft.org/schema/mule/mcp/current/mule-mcp.xsd
+http://www.mulesoft.org/schema/mule/ms-inference http://www.mulesoft.org/schema/mule/ms-inference/current/mule-ms-inference.xsd
+http://www.mulesoft.org/schema/mule/ms-einstein-ai http://www.mulesoft.org/schema/mule/ms-einstein-ai/current/mule-ms-einstein-ai.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="ad981675-24af-4f7f-af46-8f4632c3dec1" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+		<http:listener-interceptors >
+			<http:cors-interceptor >
+				<http:origins >
+					<http:public-resource />
+				</http:origins>
+			</http:cors-interceptor>
+		</http:listener-interceptors>
+	</http:listener-config>
+	<mcp:client-config name="MCP_Client" doc:name="MCP Client" doc:id="9c69dc39-5eca-41c3-a822-101495545a54" clientName="mule-mcp-client" clientVersion="1.0.0" >
+		<mcp:streamable-http-client-connection serverUrl="#[vars.serverUrl]" authentication="#[vars.authConfig]" requestTimeout="60">
+		</mcp:streamable-http-client-connection>
+	</mcp:client-config>
+	<os:object-store name="MCPServers" doc:name="Object store" doc:id="ebdf8a61-92ea-49f7-b143-950af7129593" persistent="false"/>
+	<os:object-store name="MCPServerTools" doc:name="Object store" doc:id="340bde19-cf94-4c39-903d-4a81930a6320" persistent="false"/>
+	<ms-inference:text-generation-config name="OPENAI-Cfg" doc:name="MuleSoft Inference Text generation config" doc:id="412018a9-e8ac-407f-900a-ea283d9e6eb9" >
+		<ms-inference:openai-connection openAIModelName="#[vars.model]" apiKey="${openai.apikey}" maxTokens="${general.maxToken}"/>
+	</ms-inference:text-generation-config>
+	<ms-inference:text-generation-config name="MISTRAL-Cfg" doc:name="MuleSoft Inference Text generation config" doc:id="1040d0ea-a9b6-45e3-94d1-7c4b7a645f50" >
+		<ms-inference:mistralai-connection mistralAIModelName="#[vars.model]" apiKey="${mistral.apikey}" maxTokens="${general.maxToken}"/>
+	</ms-inference:text-generation-config>
+	<ms-inference:text-generation-config name="XAI-Cfg" doc:name="MuleSoft Inference Text generation config" doc:id="d8ea66d1-a641-45ed-9438-7df0ac446cb2" >
+		<ms-inference:xai-connection xAiModelName="#[vars.model]" apiKey="${xai.apikey}" maxTokens="${general.maxToken}"/>
+	</ms-inference:text-generation-config>
+	<ms-einstein-ai:config name="EINSTEIN-Cfg" doc:name="Einstein AI Configuration" doc:id="c2ad1886-aee2-47cf-af02-8b89854e0f38" >
+		<ms-einstein-ai:oauth-client-credentials-connection connectionTimeout="60">
+			<ms-einstein-ai:oauth-client-credentials clientId="${salesforce.clientId}" clientSecret="${salesforce.clientSecret}" tokenUrl="${salesforce.tokenUrl}" />
+		</ms-einstein-ai:oauth-client-credentials-connection>
+	</ms-einstein-ai:config>
+	<configuration-properties doc:name="Configuration properties" doc:id="cb5aaebe-bf07-4d8d-aa06-29b401f92e86" file="config.properties" />
+</mule>

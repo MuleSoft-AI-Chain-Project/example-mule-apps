@@ -1,0 +1,286 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:os="http://www.mulesoft.org/schema/mule/os"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<flow name="remove-all-servers-and-tools" doc:id="cd9250fb-00a3-4a16-8328-0d739c2e8ea7" >
+		<http:listener doc:name="Listener" doc:id="7b8acf59-c210-4f94-a89b-d4db4dce3e00" config-ref="HTTP_Listener_config" path="/servers" allowedMethods="DELETE,OPTIONS" />
+		<set-variable value="#[payload.userId]" doc:name="userId" doc:id="1ae7f6d2-5680-41bf-bb6e-9139ed4917a9" variableName="userId" />
+		<os:retrieve-all-keys doc:name="Retrieve all keys" doc:id="f3bf1122-6aef-4fa7-a495-31af74815e4a" objectStore="MCPServers"/>
+		<ee:transform doc:name="filterout only user specific servers" doc:id="0de56a76-4fee-479e-86c5-7a8172651033" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload filter ($ endsWith vars.userId)]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<foreach doc:name="Remove every item for the user in the payload" doc:id="2c3816ee-7a3c-431a-819f-8bff2f21ff28" collection="#[payload]">
+			<os:remove doc:name="Remove Servers for User" doc:id="07040170-556e-4603-8f03-7a791efa2ec6" key="#[payload]" objectStore="MCPServers"/>
+			<os:remove doc:name="Remove Server Tools for User" doc:id="50a78f13-2fed-4516-930a-2cb0a5082884" key="#[payload]" objectStore="MCPServerTools"/>
+		</foreach>
+		<ee:transform doc:name="Message" doc:id="871a1808-3ea9-470d-b85f-f4dd2b5b601b" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{"message": "All MCP Server and Tools removed"}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="remove-single-server-and-tools" doc:id="0954fc6f-1258-4cfe-8c5d-909a9f79c177" >
+		<http:listener doc:name="Listener" doc:id="32c9ae6e-6aa9-4a5d-a27d-1783ff745c99" config-ref="HTTP_Listener_config" path="/server" allowedMethods="DELETE,OPTIONS" />
+		<set-variable value="#[payload.key]" doc:name="serverKey" doc:id="729894c0-193d-4676-ae1c-7a23b2c7d72e" variableName="serverKey" />
+		<set-variable value="#[payload.userId]" doc:name="userId" doc:id="1dbab147-306b-45df-9d08-cf297d5302ab" variableName="userId" />
+		<os:contains doc:name="Checks if key exists" doc:id="f026f1db-e17e-43f2-8c7a-0bdf118e58f6" key='#[vars.serverKey]' objectStore="MCPServers" />
+		<choice doc:name="Choice" doc:id="7ee758d7-2b2b-442c-b912-5802bb9a1898" >
+			<when expression="#[payload==false]" >
+				<set-payload value="#[{&quot;message&quot;: &quot;Key '&quot; ++ vars.serverKey ++ &quot;' doesn't exist&quot;}]" doc:name="Key doesn't exist" doc:id="23897248-d3e3-4a8f-894c-5aa6bfdccf73" mimeType="application/json" />
+			</when>
+			<otherwise >
+				<os:remove doc:name="Remove Server Tools" doc:id="0684a7de-b597-4ec2-bbea-8995be6d366a" key="#[vars.serverKey]" objectStore="MCPServerTools" />
+				<os:remove doc:name="Remove Server" doc:id="1e2f4b48-b2fb-494b-98cc-b63c27be7259" key="#[vars.serverKey]" objectStore="MCPServers" />
+				<set-payload value="#[{&quot;message&quot;: &quot;Server and tools for key '&quot; ++ vars.serverKey ++ &quot;' removed&quot;}]" doc:name="Confirm deletion" doc:id="1315365f-b971-48d7-93e5-3bdfb826e671" mimeType="application/json" />
+			</otherwise>
+		</choice>
+	</flow>
+	<flow name="llm-native-tools-from-mcp-all-no-server-keys" doc:id="55a5a17b-3261-4a69-a23d-4606ef925bcd" >
+		<http:listener doc:name="Listener" doc:id="ae9109e4-08c0-4fe5-8b2c-a20a737a88fe" config-ref="HTTP_Listener_config" path="/mcp2alltools" />
+		<os:retrieve-all doc:name="Retrieve all" doc:id="c78b0892-ec28-494f-90c4-a51cebdd5fdd" objectStore="MCPServerTools" />
+		<ee:transform doc:name="convert2json" doc:id="6523423f-9a11-41f5-acbd-27936ad80a89" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+			<ee:variables />
+		</ee:transform>
+		<ee:transform doc:name="Transform Message" doc:id="04f73944-279a-4f8c-9d09-a72c507a7405" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+
+fun filterByUserId(payload: Object, userId: String) =
+    payload filterObject ((v, k) -> k as String endsWith userId)
+        default {}
+
+---
+filterByUserId(payload, vars.userId)]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<ee:transform doc:name="Save all available tools into the right format" doc:id="4f4032f6-7c9f-4500-b663-16b2bb7d6f71" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  tools: (
+    payload pluck ((value, key) -> 
+      if (value is String)
+        read(value, "application/json")
+      else
+        value
+    ) flatMap ((items) -> 
+      items map (item) -> {
+        "type": "function",
+        function: {
+          name: item.name,
+          description: item.description,
+          parameters: {
+            "type": "object",
+            properties: item.inputSchema.properties default {},
+            required: item.inputSchema.required default []
+          }
+        }
+      }
+    )
+  )
+}]]></ee:set-payload>
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="serverAndTools" ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  tools: (
+    payload pluck ((value, key) -> {
+      data: if (value is String)
+              read(value, "application/json")
+            else
+              value,
+      serverKey: key // Capture the server key for each value
+    }) flatMap ((entry) -> 
+      entry.data map (item) -> {
+        "type": "function",
+        function: {
+          name: item.name,
+          description: item.description,
+          parameters: {
+            "type": "object",
+            properties: item.inputSchema.properties default {},
+            required: item.inputSchema.required default []
+          }
+        },
+        serverName: (entry.serverKey splitBy "_user_")[0]
+      }
+    )
+  )
+}]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+	</flow>
+	<flow name="llm-native-tools-from-mcp-single" doc:id="25cc0eb5-462b-422c-86ab-53ce733c5fce" >
+		<http:listener doc:name="Listener" doc:id="89158cf4-158d-44bd-a6d9-9e21123855f7" config-ref="HTTP_Listener_config" path="/mcp2tool" />
+		<flow-ref doc:name="Get-single-server-tools" doc:id="761dfe39-5c4f-4efb-b634-119a4bcf7ed7" name="mcp-get-single-server-tools" />
+		<ee:transform doc:name="Save all available tools into the right format" doc:id="dae928ec-c10b-4b77-89a6-ad1f65215431" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  tools: (if (payload.tools is String and payload.tools == "[]") 
+    [] 
+  else if (payload.tools?) 
+    payload.tools 
+  else 
+    payload.tools) map (item) -> {
+    "type": "function",
+    function: {
+      name: item.name,
+      description: item.description,
+      parameters: {
+        "type": "object",
+        properties: item.inputSchema.properties default {},
+        required: item.inputSchema.required default []
+      }
+    }
+  }
+}]]></ee:set-payload>
+			</ee:message>
+			<ee:variables />
+		</ee:transform>
+	</flow>
+	<flow name="llm-native-tools-from-mcp" doc:id="0c3792b4-8785-4a61-981c-bf9605603ccf" >
+		<http:listener doc:name="Listener" doc:id="03a71e30-4ae3-4c2f-ab7c-b8e6bf60035e" config-ref="HTTP_Listener_config" path="/mcp2tools" />
+		<os:retrieve-all doc:name="Retrieve all" doc:id="ef7d9164-19f5-4949-b963-1ebba255d8a0" objectStore="MCPServerTools" />
+		<ee:transform doc:name="convert2json" doc:id="f5a1b289-8a70-4d9f-8a98-5dc74efb3cc8" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+			<ee:variables />
+		</ee:transform>
+		<ee:transform doc:name="Save all available tools into the right format" doc:id="8f43ce99-c09e-43c6-819f-c61de80a8517" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload mapObject ((value, key) -> {
+  (key): {
+    tools: (
+      // Parse the JSON string if it's a string, otherwise use the value directly
+      if (value is String) 
+        read(value, "application/json") 
+      else 
+        value
+    ) map (item) -> {
+      "type": "function",
+      function: {
+        name: item.name,
+        description: item.description,
+        parameters: {
+          "type": "object",
+          properties: item.inputSchema.properties default {},
+          required: item.inputSchema.required default []
+        }
+      }
+    }
+  }
+})]]></ee:set-payload>
+			</ee:message>
+			<ee:variables />
+		</ee:transform>
+	</flow>
+	<flow name="get-all-server-tools" doc:id="96afa918-567f-486d-997c-42388b01fc62" >
+		<http:listener doc:name="Listener" doc:id="4904c7f4-b062-46bc-9f48-f7aee92effd0" config-ref="HTTP_Listener_config" path="/getAllServerTools" />
+		<os:retrieve-all doc:name="Retrieve all" doc:id="df3ae5d2-0a08-4929-9f74-105a820b4345" objectStore="MCPServerTools" />
+		<ee:transform doc:name="Transform Message" doc:id="7fb94c5c-b522-4edc-8f06-19c33f58c116" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+var transformedPayload = keysOf(payload) reduce ((key, acc = {}) -> acc ++ {
+    (key): read(payload[key], "application/json") map (item) -> {
+        inputSchema: item.inputSchema, // Use directly, as it's already a JSON object
+        description: item.description,
+        name: item.name
+    }
+})
+---
+transformedPayload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="retrieve-server" doc:id="78244897-2a5f-4285-aa46-4d90556aba59" >
+		<http:listener doc:name="Listener" doc:id="55f03a57-2ba7-455d-b479-68669e2a0915" config-ref="HTTP_Listener_config" path="/retrieve" />
+		<flow-ref doc:name="get-registered-servers" doc:id="81b91946-bbfe-469a-b402-a21e52240f38" name="get-registered-servers" />
+	</flow>
+	<flow name="mcp-server-registrationFlow" doc:id="934451a1-e274-4398-9318-0284855a6eee" >
+		<http:listener doc:name="Listener" doc:id="478deafc-f068-4163-b96f-598d93ac5469" config-ref="HTTP_Listener_config" path="/getServerTools" />
+		<flow-ref doc:name="Server Tools" doc:id="f7956110-7554-40a5-a80b-af889d33c25b" name="mcp-get-single-server-tools" />
+	</flow>
+	<flow name="register-mcp-server" doc:id="f96b1a54-498d-4bff-8e06-2afd3fe2ed40" >
+		<http:listener doc:name="Listener" doc:id="34ddfb55-b62c-4dd7-b773-51ca1abd0ede" config-ref="HTTP_Listener_config" path="/register" />
+		<set-variable value="#[payload.key]" doc:name="serverKey" doc:id="77ddc333-ac3d-4110-af08-71a5db950057" variableName="serverKey" />
+		<set-variable value="#[payload.userId]" doc:name="userId" doc:id="5352c005-665a-4227-a80f-e5fd33804fb2" variableName="userId" />
+		<os:store doc:name="Store" doc:id="8d3385b3-3175-43b4-aa75-177b0992a58a" key='#[vars.serverKey ++ "_" ++ vars.userId]' objectStore="MCPServers" >
+			<os:value ><![CDATA[#[payload.value]]]></os:value>
+		</os:store>
+		<ee:transform doc:name="Transform Message" doc:id="d5e490de-0f17-47be-895e-4cf30964c005" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  "key": vars.serverKey ++ "_" ++ vars.userId,
+  "value": payload.value
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<flow-ref doc:name="Save Server Tools" doc:id="71663bfe-27ae-49ca-a26d-c3388785adc6" name="mcp-save-single-server-tools" />
+	</flow>
+	<sub-flow name="mcp-get-single-server-tools" doc:id="cbd34431-d68a-4f0b-a01a-5357b6a1458e" >
+		<set-variable value="#[payload.key]" doc:name="key" doc:id="430489aa-5bd4-4e8e-9ef2-7324c06543bc" variableName="key" />
+		<set-variable value="#[payload.userId]" doc:name="userId" doc:id="6b317589-32e2-42d3-abe0-9b2667fafbbf" variableName="userId" />
+		<os:retrieve doc:name="Retrieve" doc:id="22afc96a-5480-4e92-8ea4-15dd04a68196" key='#[vars.key ++ "_" ++ vars.userId]' objectStore="MCPServerTools" >
+			<os:default-value ><![CDATA[[]]]></os:default-value>
+		</os:retrieve>
+		<ee:transform doc:name="Transform Message" doc:id="93b55c77-eeac-45cc-ab0d-87502f1e066e" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"name" : vars.key,
+	"tools" : payload 
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+	<sub-flow name="get-registered-servers" doc:id="2f205cf3-6624-48b9-a281-2f5ec38bf5bb" >
+		<os:retrieve-all doc:name="Retrieve all" doc:id="58a5af89-1267-4424-abfe-f2004b311090" objectStore="MCPServers" />
+		<ee:transform doc:name="Transform Message" doc:id="a2878949-ef9e-42f9-944a-bb12654075db" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+</mule>

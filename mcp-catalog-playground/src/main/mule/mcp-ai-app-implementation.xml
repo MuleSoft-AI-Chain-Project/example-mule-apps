@@ -1,0 +1,270 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:mcp="http://www.mulesoft.org/schema/mule/mcp" xmlns:mac-inference="http://www.mulesoft.org/schema/mule/mac-inference"
+	xmlns:ms-inference="http://www.mulesoft.org/schema/mule/ms-inference"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/ms-inference http://www.mulesoft.org/schema/mule/ms-inference/current/mule-ms-inference.xsd
+http://www.mulesoft.org/schema/mule/mac-inference http://www.mulesoft.org/schema/mule/mac-inference/current/mule-mac-inference.xsd
+http://www.mulesoft.org/schema/mule/mcp http://www.mulesoft.org/schema/mule/mcp/current/mule-mcp.xsd">
+	<flow name="agentic-reasoning-calling" doc:id="663cd738-9e72-4f10-a325-2b86da93c9eb" >
+		<http:listener doc:name="Listener" doc:id="ae4cdc60-dd14-4d13-9e8e-9ac3b2c95ae0" config-ref="HTTP_Listener_config" path="/reason-action" />
+		<flow-ref doc:name="reason-llm" doc:id="63feb87a-a09c-4da6-b2c0-574a01be3ab4" name="agentic-reasoning" />
+		<flow-ref doc:name="get all tools by server" doc:id="e28fabd3-2ccd-426b-b887-ceb86c6f7838" name="get-all-server-tools" target="allToolsByServer" />
+		<flow-ref doc:name="get mcp servers" doc:id="e0d28197-12b4-4a05-8a79-3e99404d31be" name="get-registered-servers" target="allServer" />
+		<set-variable value="#[payload.tools default payload.response]" doc:name="Tools" doc:id="a4c40e1e-587c-42ec-af90-5bf11d3e2c97" variableName="tools" />
+		<ee:transform doc:name="Identify Tools with server url" doc:id="22f619e2-5e63-42cf-a84f-0c25dcc72491" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload.tools map (tool) -> {
+    id: tool.id,
+    name: tool.function.name,
+    key: (
+        do {
+            var matchingServer = (keysOf(vars.allToolsByServer) filter (key) -> (
+                vars.allToolsByServer[key] != null and
+                vars.allToolsByServer[key] is Array and
+                sizeOf(vars.allToolsByServer[key] filter ($.name == tool.function.name)) > 0
+            ))[0]
+            ---
+            if (matchingServer != null)
+                (matchingServer splitBy "_user_")[0]
+            else
+                "Unknown Key"
+        }
+    ),
+    url: (
+        do {
+            var matchingServer = (keysOf(vars.allToolsByServer) filter (key) -> (
+                vars.allToolsByServer[key] != null and
+                vars.allToolsByServer[key] is Array and
+                sizeOf(vars.allToolsByServer[key] filter ($.name == tool.function.name)) > 0
+            ))[0]
+            ---
+            if (matchingServer != null)
+                (vars.allServer[matchingServer] replace "\"" with "") default "Unknown URL"
+            else
+                "Unknown URL"
+        }
+    )
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<choice doc:name="Choice" doc:id="0ca28be2-15c6-4d91-b1f8-6ef16ad0f05c" >
+			<when expression="#[payload != null]" >
+				<foreach doc:name="For Each" doc:id="6a8f7d54-c5a1-4d33-98e1-e27eae8eeecf" collection="#[payload]" >
+					<set-variable value='#[payload.url replace /\"|\\+/ with ""]' doc:name="serverURL" doc:id="047dfd8c-c5aa-427a-b1e6-ad6bac5e42c1" variableName="serverURL" />
+					<set-variable value='#[payload.key]' doc:name="serverKey" doc:id="1abb8364-fbaa-4b11-8f10-a4a1adc39697" variableName="serverKey" />
+					<set-variable value="#[payload.name]" doc:name="toolName" doc:id="d857eb60-6b54-491a-8efb-233e6cd34fc2" variableName="toolName" />
+					<flow-ref doc:name="Execute Single Iteration" doc:id="1aaf46d7-927d-4a12-954b-83be52cbe338" name="mcp-call-tools" />
+					<set-variable value='#[output application/json&#10;---&#10;(vars.result default []) ++ [{"execution": vars.counter, "tool": vars.toolName, "serverName": vars.serverKey, "serverUrl": vars.serverURL, "result": payload}]]' doc:name="set result" doc:id="16262ad7-213c-4d60-8a0a-f40c61a527cb" variableName="result" />
+				</foreach>
+			</when>
+			<otherwise >
+				<set-payload value="#[vars.tools]" doc:name="No execution" doc:id="493901c2-bd8d-4405-b519-7fe00da0f667" />
+			</otherwise>
+		</choice>
+		<ee:transform doc:name="Execution Results" doc:id="7bf3dcba-42e7-4fd0-9ee3-b5de32ca4ac5" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"result": vars.result default vars.tools 
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="agentic-reasoning" doc:id="3b42aff5-1c65-4022-b403-cf82dd192b84" >
+		<http:listener doc:name="Listener" doc:id="2765fe08-59c9-4502-9e30-6aa3e3be7c3c" config-ref="HTTP_Listener_config" path="/reason" />
+		<set-variable value="#[payload.prompt]" doc:name="user prompt" doc:id="b16ca91a-5f5d-4702-8981-7b6918320a42" variableName="prompt" />
+		<set-variable value='#[payload.provider default "OPENAI"]' doc:name="provider" doc:id="99dcfc84-6314-40a2-968e-1de9f6c6e292" variableName="provider" />
+		<set-variable value='#[payload.model default "gpt-4o-mini"]' doc:name="model" doc:id="10109423-691f-4fcb-b325-2de5f54d6684" variableName="model" />
+		<set-variable value="#[payload.userId]" doc:name="userId" doc:id="e9434d6d-3742-4624-830f-dbff61d2e072" variableName="userId" />
+		<flow-ref doc:name="Get native tools from MCP" doc:id="adc9e261-7e00-40e8-b3c2-c81e6bf223df" name="llm-native-tools-from-mcp-all-no-server-keys" />
+		<flow-ref doc:name="Call Model Reasoning" doc:id="63a052e8-c914-4b82-b495-3e2836dfc30f" name='#[vars.provider default "OPENAI"]' />
+		<ee:transform doc:name="Add Server Info" doc:id="da591736-2e05-49de-863a-9e5a0ffcebb1" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+if (payload.tools is Array)
+  {
+    tools: payload.tools map (tool) -> {
+      id: tool.id default uuid(),
+      "type": tool."type" default "function",
+      function: tool.function,
+      serverName: (
+        vars.serverAndTools.tools
+        filter ($.function.name == tool.function.name)
+        map $.serverName
+        default ["Unknown Server"]
+      )[0]
+    }
+  }
+else
+  payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="augmented-tooling" doc:id="d227ec05-81cc-43f5-8ebf-de52f681d809" >
+		<http:listener doc:name="Listener" doc:id="4c5fc673-b56f-4ed6-b488-7b97ffc55ee2" config-ref="HTTP_Listener_config" path="/augmentedtooling"/>
+		<set-variable value="#[payload.prompt]" doc:name="user prompt" doc:id="693a3728-ea37-485d-80e9-836b26a8d69a" variableName="prompt" />
+		<set-variable value='#[payload.provider default "OPENAI"]' doc:name="provider" doc:id="a559b0e3-0ad6-4bdb-80de-9d9181c249d1" variableName="provider" />
+		<set-variable value='#[payload.model default "gpt-4o-mini"]' doc:name="model" doc:id="5161e3bc-1503-41b0-95ce-db2e0f9c406f" variableName="model" />
+		<flow-ref doc:name="Agentic Reasoning" doc:id="a52295ce-21e5-4a27-bcba-1a1b117fb534" name="agentic-reasoning"/>
+		<set-variable value="#[payload.tools]" doc:name="tools" doc:id="0b869cb0-289c-4c9e-aa7e-2470e6fdedff" variableName="tools"/>
+		<flow-ref doc:name="Augment Answer" doc:id="63dd5f18-6975-4a32-8b7a-352588699bd4" name='#["AUG-" ++ vars.provider default "OPENAI"]' />
+		<ee:transform doc:name="extending answer" doc:id="91c1d4ea-d37e-4cb0-b958-87e4336e876a" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"response": payload.response,
+	"tools": vars.tools
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="augmented-mcp" doc:id="59a618bc-9642-4674-999c-f96ba9649ade" >
+		<http:listener doc:name="Listener" doc:id="c3e8872c-880c-4f85-9453-6c136bb63d8b" config-ref="HTTP_Listener_config" path="/augmentedmcp" />
+		<set-variable value="#[payload.prompt]" doc:name="user prompt" doc:id="022be7a6-865f-4449-85cb-7781d239eb99" variableName="prompt" />
+		<set-variable value='#[payload.provider default "OPENAI"]' doc:name="provider" doc:id="9b789113-6d81-4827-a8a7-5e83c707bb58" variableName="provider" />
+		<set-variable value='#[payload.model default "gpt-4o-mini"]' doc:name="model" doc:id="402a8709-072b-4dee-8330-ebe87a9bdadb" variableName="model" />
+		<flow-ref doc:name="Agentic Reasoning" doc:id="7bdacbe2-e5d3-4c47-b90f-cf8472fb9ceb" name="agentic-reasoning-calling" />
+		<flow-ref doc:name="Augment Answer" doc:id="519e0e50-c1bd-4ad6-8253-eea2200d287d" name='#["AUG-" ++ vars.provider default "OPENAI"]' />
+		<ee:transform doc:name="response + result" doc:id="71247de8-f8f6-492d-88bc-6d585e1f621a" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	response: payload.response,
+	results: vars.result
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<sub-flow name="create-plan" doc:id="d12b8f73-9c85-4f9e-b21c-2173f1404e23" >
+		<scatter-gather doc:name="Scatter-Gather" doc:id="d859c7e8-7257-4b7f-9bfa-ce0a952a2db8" >
+			<route >
+				<flow-ref doc:name="Planner" doc:id="0a1a7424-4d78-4b37-87c5-bb48248379ca" name='#["PLAN-" ++ vars.provider default "OPENAI"]' />
+				<set-variable value='#[%dw 2.0&#10;output application/json&#10;var jsonString = payload.response as String&#10;var cleanedString = jsonString replace /^```json\n/ with "" replace /```$/ with ""&#10;---&#10;read(cleanedString)]' doc:name="Set multiTools" doc:id="de7b0649-22a6-4540-ad03-bbe8523c7ca0" variableName="multiTools" />
+				<logger level="INFO" doc:name="🔎 Plan 🔎" doc:id="8a64de4c-412f-4641-a81f-de69c7174bda" message='#[%dw 2.0&#10;output text&#10;---&#10;"\n\n" ++&#10;"🔎🔎🔎🔎🔎️️ --------------------------  Execution Plan ----------------------- 🔎🔎🔎🔎🔎️\n" ++&#10;"Plan : \n" ++ &#10;write(vars.multiTools, "application/json") ++ &#10;"\n 🔎🔎🔎🔎🔎️️ ---------------------------------------------------------------------- 🔎🔎🔎🔎🔎️" ++&#10;"\n\n"]' />
+			</route>
+			<route >
+				<flow-ref doc:name="Tooling" doc:id="04cc9072-5fea-4ae3-be88-5de6fb34236f" name='#["TOOLS-" ++ vars.provider default "OPENAI"]' target="planningPayload"/>
+				<set-variable value="#[payload]" doc:name="payloadintermediate" doc:id="fa54797a-f3d5-4941-a087-a03b737e33c9" variableName="payloadintermediate"/>
+				<logger level="INFO" doc:name="🛠️ Tools reasoning 🛠️" doc:id="e8662dfa-962f-4d1e-ae83-0f908b44eb5b" message='#[%dw 2.0&#10;output text&#10;---&#10;"\n\n" ++&#10;"🛠️🛠️🛠️🛠️🛠️️ --------------------------  Tools Reasoning -------------------------- 🛠️🛠️🛠️🛠️🛠️\n" ++&#10;"Tools : \n" ++ &#10;write(vars.planningPayload, "application/json") ++ &#10;"\n 🛠️🛠️🛠️🛠️🛠️️ ---------------------------------------------------------------------- 🛠️🛠️🛠️🛠️🛠️" ++&#10;"\n\n"]' />
+			</route>
+		</scatter-gather>
+		<set-variable value="#[%dw 2.0&#10;output application/json&#10;---&#10;(vars.chainsOfThoughts default []) ++ [{&#10;    &quot;cotId&quot;: now() as String {format: &quot;yyyy-MM-dd'T'HH:mm:ss.SSSZ&quot;},&#10;    &quot;plan&quot;: vars.multiTools.plan default &quot;&quot;,&#10;    &quot;multiTools&quot;: vars.multiTools.multiTools default true,&#10;    &quot;final&quot;: vars.multiTools.final default false,&#10;    &quot;toolsToCall&quot;: vars.planningPayload default &quot;&quot;&#10;}]]" doc:name="Set COT" doc:id="8607bcc7-9b97-4c72-a8ad-d3a76d07a312" variableName="chainsOfThoughts" />
+		<logger level="INFO" doc:name="⛓️‍💥 Chain of Thoughts ⛓️‍💥" doc:id="27413f24-34ed-4efa-add9-29d8b99e3642" message='#[%dw 2.0&#10;output text&#10;---&#10;"\n\n" ++&#10;"⛓️‍💥⛓️‍💥⛓️‍💥⛓️‍💥⛓️‍💥 --------------------------  Chain of Thoughts -------------------------- ⛓️‍💥⛓️‍💥⛓️‍💥⛓️‍💥⛓️‍💥️\n" ++&#10;"Tool " ++ (vars.chainsOfThoughts as String default "") ++ "\n" ++&#10;"\n⛓️‍💥⛓️‍💥⛓️‍💥⛓️‍💥⛓️‍💥️️ ----------------------------------------------------------------- ⛓️‍💥⛓️‍💥⛓️‍💥⛓️‍💥⛓️‍💥️" ++&#10;"\n\n"]' category="⛓️‍💥 Chain of Thoughts ⛓️‍💥" />
+		<flow-ref doc:name="Assess and execute" doc:id="f057fc3c-303a-478d-ac0d-046559a2010f" name="assess-and-execute" />
+	</sub-flow>
+	<sub-flow name="assess-and-execute" doc:id="1a5524ad-c23f-47d4-b4b8-af49d773b0ca" >
+		<choice doc:name="Choice" doc:id="529592e1-e829-4707-bad0-752d71c3b194" >
+			<when expression="#[(sizeOf(vars.planningPayload.tools default []) &gt; 0)]" >
+				<set-variable value="#[%dw 2.0 &#10;output application/json &#10;--- &#10;(vars.toolsUsed default {}) ++ (vars.planningPayload.tools default {})]" doc:name="toolsUsed" doc:id="7b232fbd-2571-463c-b712-549c431b773c" variableName="toolsUsed" />
+				<flow-ref doc:name="get all tools by server" doc:id="c08b0d7c-474f-4ef0-8eb2-5b389ba6e144" name="get-all-server-tools" target="allToolsByServer" />
+				<flow-ref doc:name="get mcp servers" doc:id="48dbaf71-bd2e-4b18-8b13-8211b79f44c5" name="get-registered-servers" target="allServer" />
+				<ee:transform doc:name="Identify Tools with server url" doc:id="a4071c42-6a81-441d-97b2-80bce150d35b">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+vars.planningPayload.tools map (tool) -> {
+    id: tool.id,
+    name: tool.function.name,
+    key: (
+        do {
+            var matchingServer = (keysOf(vars.allToolsByServer) filter (key) -> (
+                vars.allToolsByServer[key] != null and
+                vars.allToolsByServer[key] is Array and
+                sizeOf(vars.allToolsByServer[key] filter ($.name == tool.function.name)) > 0
+            ))[0]
+            ---
+            if (matchingServer != null)
+                (matchingServer splitBy "_user_")[0]
+            else
+                "Unknown Key"
+        }
+    ),
+    url: (
+        do {
+            var matchingServer = (keysOf(vars.allToolsByServer) filter (key) -> (
+                vars.allToolsByServer[key] != null and
+                vars.allToolsByServer[key] is Array and
+                sizeOf(vars.allToolsByServer[key] filter ($.name == tool.function.name)) > 0
+            ))[0]
+            ---
+            if (matchingServer != null)
+                (vars.allServer[matchingServer] replace "\"" with "") default "Unknown URL"
+            else
+                "Unknown URL"
+        }
+    )
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<foreach doc:name="For Each" doc:id="0c6ca42f-64cf-4d4c-b82d-2ba7699790a9" collection="#[payload]" >
+					<set-variable value="#[payload.url]" doc:name="serverUrl" doc:id="c481bd8d-55f6-4fca-8637-fa6e7e63c9ca" variableName="serverUrl"/>
+					<set-variable value="#[payload.key]" doc:name="serverName" doc:id="dc01b809-8c18-4169-8b43-11d8511af225" variableName="serverName" />
+					<set-variable value="#[payload.name]" doc:name="toolName" doc:id="9e8ba901-17ea-498a-9a19-97d3d76ce8c8" variableName="toolName" />
+					<mcp:call-tool toolName='#[output text/plain&#10;---&#10;vars.planningPayload.tools[vars.counter-1].function.name default "get_inventory"]' doc:name="MCP Client - Call Tool" doc:id="1d9601ea-53d5-4d8c-a4d6-8e4dad7c963f" config-ref="MCP_Client" >
+						<mcp:arguments ><![CDATA[#[output application/json
+---
+vars.planningPayload.tools[(vars.counter default 1) as Number - 1].function.arguments match {
+    case str is String -> read(str, "application/json")
+    case obj is Object -> obj
+    else -> null
+}]]]></mcp:arguments>
+					</mcp:call-tool>
+					<logger level="DEBUG" doc:name="Logger payload after 🛠️ tool call" doc:id="f0cb6c4c-0c55-4e29-9f20-4ba55938dd77" message="#[payload]" />
+					<set-variable value='#[%dw 2.0 &#10;output text/plain &#10;--- &#10;(vars.multiToolsResult default "Tool results: ") ++ "\n" ++ (vars.counter as String) &#10;++ " - " ++ write(payload, "application/json") &#10;++ " - serverUrl: " ++ vars.serverUrl &#10;++ " - serverName: " ++ vars.serverName]' doc:name="multiToolsResult" doc:id="ae703b8b-ea3d-48f5-ba3d-f87724a4cc03" variableName="multiToolsResult" />
+					<set-variable value='#[output application/json&#10;---&#10;(vars.result default []) ++ [{"execution": vars.counter, "tool": vars.toolName, "serverName": vars.serverName, "serverUrl": vars.serverURL, "result": payload}]]' doc:name="set result" doc:id="5c2ddb57-124a-4c0d-a3c2-195858b20b8f" variableName="result" />
+				</foreach>
+				<choice doc:name="Choice" doc:id="5e7dd319-21aa-47af-923a-cd65de124aee" >
+					<when expression="#[(vars.multiTools.multiTools == true)]" >
+						<flow-ref doc:name="Replanning" doc:id="5c9b0fa0-f8da-4bcf-bbf1-a4699ef5c193" name="create-plan" />
+					</when>
+				</choice>
+				<flow-ref doc:name="Augment Answer" doc:id="3902c3c8-501e-4e06-ab2c-1d75ed631f6f" name='#["AGENTIC-" ++ vars.provider default "OPENAI"]'/>
+			</when>
+			<otherwise >
+				<set-payload value='#[%dw 2.0&#10;output application/json&#10;---&#10;if (vars.planningPayload == {"tools": []})&#10;    vars.payloadintermediate&#10;else&#10;    vars.planningPayload]' doc:name="Set Payload" doc:id="02e5cd67-6eaf-482d-b4a3-4c907a2d338b" />
+			</otherwise>
+		</choice>
+	</sub-flow>
+	<sub-flow name="set-and-initialise-vars" doc:id="5f80d5fb-69fb-45e1-9a02-72db89a81cf8" >
+		<set-variable value='#["Tool results: "]' doc:name="set multiTools results" doc:id="661973c9-f4e5-48b0-b8a5-f3c77fe5c50b" variableName="multiToolsResult" />
+		<set-variable value="#[[]]" doc:name="set toolsUsed" doc:id="3cd94027-84ba-4a26-928d-5ddbd54f238c" variableName="toolsUsed" />
+		<set-variable value="#[[]]" doc:name="set COT" doc:id="8b7b44a2-0bd5-4f07-929c-729bd28155ce" variableName="chainsOfThoughts" />
+		<set-variable value='#[{"tools":  []}]' doc:name="Set Tool Planning" doc:id="934f2f34-aacb-4fba-bbb7-3cb3b2650fa2" variableName="planningPayload" />
+		<set-variable value="#[payload.prompt]" doc:name="user prompt" doc:id="361f326a-d4e3-4fa3-b4b1-9bc0c04d4fec" variableName="prompt" />
+		<set-variable value='#[payload.provider default "OPENAI"]' doc:name="provider" doc:id="2cf53adc-2d73-4ae8-85d8-83ed6ac0d910" variableName="provider" />
+		<set-variable value='#[payload.model default "gpt-4o-mini"]' doc:name="model" doc:id="2dc79936-bf79-44b8-b8f8-1c62129dec4f" variableName="model" />
+		<set-variable value='#[payload.userId]' doc:name="userId" doc:id="5c4c49eb-8c13-44ea-884c-d4d46473536e" variableName="userId" />
+	</sub-flow>
+	<flow name="agentic-loop" doc:id="e0608130-0075-49a4-8619-e4a694b61f5e" >
+		<http:listener doc:name="Listener" doc:id="e7f934ab-a616-432a-ae55-52c7a1637c44" config-ref="HTTP_Listener_config" path="/agentic" />
+		<flow-ref doc:name="setting defaults" doc:id="5d2f137b-4016-4860-b580-1d32c35b9b3c" name="set-and-initialise-vars" />
+		<flow-ref doc:name="Get available tools" doc:id="6871409b-02a4-4b8f-b41e-da86ee386ab2" name="llm-native-tools-from-mcp-all-no-server-keys" target="tools"/>
+		<flow-ref doc:name="Planner" doc:id="9fceb7d4-366f-4f66-a1ee-ae7eef8476e6" name="create-plan" />
+		<ee:transform doc:name="Transform Message" doc:id="275be560-c0ac-4e8d-ac57-36f19db8af4b" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	response: payload.response,
+	results: vars.result
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>

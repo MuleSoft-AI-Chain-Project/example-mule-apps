@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<flow name="ui-flow" doc:id="6c971e4d-c1b2-4598-8fee-7a092f0b9982" >
+		<http:listener doc:name="HTML Listener" doc:id="a04dd088-5e14-4084-a396-db2ed64c58f3" config-ref="HTTP_Listener_config" path="/ui/*" />
+		<http:load-static-resource doc:name="Load main page" doc:id="202e0ed0-f5f4-4394-b406-729df18e17aa" resourceBasePath='#[mule.home ++ "/apps/" ++ app.name ++ "/uiapp"]' />
+	</flow>
+</mule>
