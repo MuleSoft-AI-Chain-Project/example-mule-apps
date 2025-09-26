@@ -428,10 +428,14 @@ formatted += '<i class="fas fa-chevron-down conversation-toggle-icon"></i>';
 formatted += '</div>';
 formatted += '<div class="conversation-content collapsible-content">';
 
+let planNumber = 0;
 data.result.forEach((result, index) => {
+if (result.execution === 1) {
+planNumber++;
+}
 formatted += `<div class="conversation-result-item">`;
 formatted += `<div class="conversation-result-header" onclick="toggleConversationResult(${index})">`;
-formatted += `<span class="conversation-result-number">Iteration ${result.execution}</span>`;
+formatted += `<span class="conversation-result-number">Plan ${planNumber}, Tool ${result.execution}</span>`;
 formatted += `<span class="conversation-result-tool">Tool: ${result.tool}</span>`;
 if (result.serverName) {
 formatted += `<span class="conversation-result-server">Server: ${result.serverName}</span>`;
@@ -542,10 +546,14 @@ formatted += '<i class="fas fa-chevron-down conversation-toggle-icon"></i>';
 formatted += '</div>';
 formatted += '<div class="conversation-content collapsible-content">';
 
+let planNumber = 0;
 data.result.forEach((result, index) => {
+if (result.execution === 1) {
+planNumber++;
+}
 formatted += `<div class="conversation-result-item">`;
 formatted += `<div class="conversation-result-header" onclick="toggleConversationResult(${index})">`;
-formatted += `<span class="conversation-result-number">Iteration ${result.execution}</span>`;
+formatted += `<span class="conversation-result-number">Plan ${planNumber}, Tool ${result.execution}</span>`;
 formatted += `<span class="conversation-result-tool">Tool: ${result.tool}</span>`;
 if (result.serverName) {
 formatted += `<span class="conversation-result-server">Server: ${result.serverName}</span>`;
@@ -610,10 +618,14 @@ formatted += '<i class="fas fa-chevron-down conversation-toggle-icon"></i>';
 formatted += '</div>';
 formatted += '<div class="conversation-content collapsible-content">';
 
+let planNumber = 0;
 data.results.forEach((result, index) => {
+if (result.execution === 1) {
+planNumber++;
+}
 formatted += `<div class="conversation-result-item">`;
 formatted += `<div class="conversation-result-header" onclick="toggleConversationResult(${index})">`;
-formatted += `<span class="conversation-result-number">Iteration ${result.execution}</span>`;
+formatted += `<span class="conversation-result-number">Plan ${planNumber}, Tool ${result.execution}</span>`;
 formatted += `<span class="conversation-result-tool">Tool: ${result.tool}</span>`;
 if (result.serverName) {
 formatted += `<span class="conversation-result-server">Server: ${result.serverName}</span>`;
@@ -859,10 +871,14 @@ function formatCombinedResponse(data) {
 		html += '</div>';
 		html += '<div class="results-list collapsible-content">';
 		
+		let planNumber = 0;
 		results.forEach((result, index) => {
+			if (result.execution === 1) {
+				planNumber++;
+			}
 			html += `<div class="result-item">`;
 			html += `<div class="result-header" onclick="toggleResult(${index})">`;
-			html += `<span class="result-number">Iteration ${result.execution}</span>`;
+			html += `<span class="result-number">Plan ${planNumber}, Tool ${result.execution}</span>`;
 			html += `<span class="result-tool">Tool: ${result.tool}</span>`;
 			if (result.serverName) {
 				html += `<span class="result-server">Server: ${result.serverName}</span>`;
@@ -962,10 +978,14 @@ function formatResultResponse(results) {
 	html += '</div>';
 	html += '<div class="results-list collapsible-content">';
 	
+	let planNumber = 0;
 	results.forEach((result, index) => {
+		if (result.execution === 1) {
+			planNumber++;
+		}
 		html += `<div class="result-item">`;
 		html += `<div class="result-header" onclick="toggleResult(${index})">`;
-		html += `<span class="result-number">Iteration ${result.execution}</span>`;
+		html += `<span class="result-number">Plan ${planNumber}, Tool ${result.execution}</span>`;
 		html += `<span class="result-tool">Tool: ${result.tool}</span>`;
 		if (result.serverName) {
 			html += `<span class="result-server">Server: ${result.serverName}</span>`;
