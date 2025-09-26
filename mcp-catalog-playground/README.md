@@ -42,7 +42,7 @@ Use this mode to multiple MCP Servers and tools for a certain user query to unde
 
 ## [Tutorial Video](https://youtu.be/gw12qxnU_9w)
 
-### Getting started!
+## Getting started!
 
 ### Configuration Steps
 

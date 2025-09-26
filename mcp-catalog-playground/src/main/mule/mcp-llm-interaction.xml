@@ -118,6 +118,7 @@ Identify the tools required to fulfill the user query and define a plan with seq
 (1) Task:
 - Analyze the user query to determine the necessary tools.
 - Define a plan with steps and sub-steps for tool execution.
+- Use tools which are in the **Available tools** section of the provided data.
 - Exclude tools listed in the "already executed tools" section of the provided data.
 - Respond using the specified JSON schema based on the number of tools required.
 
@@ -132,6 +133,7 @@ Identify the tools required to fulfill the user query and define a plan with seq
 (2) Rules for Tool Identification and Planning:
     (a) Tool Uniqueness:
         - Execute each tool only once.
+        - Consider tools in **Available tools** sections.
         - Do not include tools already executed, as specified in the "already executed tools" section.
 
     (b) Plan Structure:
@@ -160,10 +162,11 @@ Identify the tools required to fulfill the user query and define a plan with seq
 
 (3) Output Guidelines:
 - Ensure the plan is clear and formatted with steps and sub-steps as bullet points.
-- Maintain the context of the user query without altering its intent.
+- Don't change the intent of the users query.
 - Do not execute tools; only provide the plan for their execution.]]></ms-inference:instructions>
 					<ms-inference:data><![CDATA[#["Users query: " ++ (vars.prompt as String) ++ 
 ", Current Observation through called tools: " ++ (vars.multiToolsResult as String) ++ 
+", Available tools: " ++ write(vars.tools, "application/json") ++ 
 ", already executed tools: " ++ (write(vars.toolsUsed default {}, "application/json") as String)]]]></ms-inference:data>
 				</ms-inference:agent-define-prompt-template>
 	</sub-flow>
@@ -176,6 +179,7 @@ Identify the tools required to fulfill the user query and define a plan with seq
 (1) Task:
 - Analyze the user query to determine the necessary tools.
 - Define a plan with steps and sub-steps for tool execution.
+- Use tools which are in the **Available tools** section of the provided data.
 - Exclude tools listed in the "already executed tools" section of the provided data.
 - Respond using the specified JSON schema based on the number of tools required.
 
@@ -222,6 +226,7 @@ Identify the tools required to fulfill the user query and define a plan with seq
 - Do not execute tools; only provide the plan for their execution.]]></ms-inference:instructions>
 			<ms-inference:data ><![CDATA[#["Users query: " ++ (vars.prompt as String) ++ 
 ", Current Observation through called tools: " ++ (vars.multiToolsResult as String) ++ 
+", Available tools: " ++ write(vars.tools, "application/json") ++ 
 ", already executed tools: " ++ (write(vars.toolsUsed default {}, "application/json") as String)]]]></ms-inference:data>
 		</ms-inference:agent-define-prompt-template>
 	</sub-flow>
@@ -234,6 +239,7 @@ Identify the tools required to fulfill the user query and define a plan with seq
 (1) Task:
 - Analyze the user query to determine the necessary tools.
 - Define a plan with steps and sub-steps for tool execution.
+- Use tools which are in the **Available tools** section of the provided data.
 - Exclude tools listed in the "already executed tools" section of the provided data.
 - Respond using the specified JSON schema based on the number of tools required.
 
@@ -280,6 +286,7 @@ Identify the tools required to fulfill the user query and define a plan with seq
 - Do not execute tools; only provide the plan for their execution.]]></ms-inference:instructions>
 			<ms-inference:data ><![CDATA[#["Users query: " ++ (vars.prompt as String) ++ 
 ", Current Observation through called tools: " ++ (vars.multiToolsResult as String) ++ 
+", Available tools: " ++ write(vars.tools, "application/json") ++ 
 ", already executed tools: " ++ (write(vars.toolsUsed default {}, "application/json") as String)]]]></ms-inference:data>
 		</ms-inference:agent-define-prompt-template>
 	</sub-flow>
@@ -292,6 +299,7 @@ Identify the tools required to fulfill the user query and define a plan with seq
 (1) Task:
 - Analyze the user query to determine the necessary tools.
 - Define a plan with steps and sub-steps for tool execution.
+- Use tools which are in the **Available tools** section of the provided data.
 - Exclude tools listed in the "already executed tools" section of the provided data.
 - Respond using the specified JSON schema based on the number of tools required.
 
@@ -338,6 +346,7 @@ Identify the tools required to fulfill the user query and define a plan with seq
 - Do not execute tools; only provide the plan for their execution.]]></ms-einstein-ai:instructions>
 			<ms-einstein-ai:dataset ><![CDATA[#["Users query: " ++ (vars.prompt as String) ++ 
 ", Current Observation through called tools: " ++ (vars.multiToolsResult as String) ++ 
+", Available tools: " ++ write(vars.tools, "application/json") ++ 
 ", already executed tools: " ++ (write(vars.toolsUsed default {}, "application/json") as String)]]]></ms-einstein-ai:dataset>
 		</ms-einstein-ai:agent-define-prompt-template>
 	</sub-flow>
@@ -350,6 +359,7 @@ Identify the tools required to fulfill the user query and define a plan with seq
 
 Your Tasks:
 - Review the user's query, current observation (if available), and previously executed tools to determine the appropriate response or tool usage.
+- Use tools which are in the **Available tools** section of the provided data and map the user query to see if all aspects have been addressed
 - Execute tools (e.g., profile analysis, content analysis, web search) only once, avoiding tools listed in the "already executed tools" section in the data.
 - If the 'Current Observation through called tools' is empty, assume no tools have been executed yet.
 
@@ -360,6 +370,7 @@ Your Guardrails:
 ]]></ms-inference:instructions>
 					<ms-inference:data><![CDATA[#["Users query: " ++ (vars.prompt as String) ++ 
 ", Current Observation through called tools: " ++ (vars.multiToolsResult as String) ++ 
+", Available tools: " ++ write(vars.tools, "application/json") ++ 
 ", already executed tools: " ++ (write(vars.toolsUsed default {}, "application/json") as String)]]]></ms-inference:data>
 					<ms-inference:tools><![CDATA[#[vars.tools.tools]]]></ms-inference:tools>
 				</ms-inference:tools-native-template>
@@ -373,6 +384,7 @@ Your Guardrails:
 
 Your Tasks:
 - Review the user's query, current observation (if available), and previously executed tools to determine the appropriate response or tool usage.
+- Use tools which are in the **Available tools** section of the provided data and map the user query to see if all aspects have been addressed
 - Execute tools (e.g., profile analysis, content analysis, web search) only once, avoiding tools listed in the "already executed tools" section in the data.
 - If the 'Current Observation through called tools' is empty, assume no tools have been executed yet.
 
@@ -383,6 +395,7 @@ Your Guardrails:
 ]]></ms-inference:instructions>
 			<ms-inference:data ><![CDATA[#["Users query: " ++ (vars.prompt as String) ++ 
 ", Current Observation through called tools: " ++ (vars.multiToolsResult as String) ++ 
+", Available tools: " ++ write(vars.tools, "application/json") ++ 
 ", already executed tools: " ++ (write(vars.toolsUsed default {}, "application/json") as String)]]]></ms-inference:data>
 			<ms-inference:tools ><![CDATA[#[vars.tools.tools]]]></ms-inference:tools>
 		</ms-inference:tools-native-template>
@@ -396,6 +409,7 @@ Your Guardrails:
 
 Your Tasks:
 - Review the user's query, current observation (if available), and previously executed tools to determine the appropriate response or tool usage.
+- Use tools which are in the **Available tools** section of the provided data and map the user query to see if all aspects have been addressed
 - Execute tools (e.g., profile analysis, content analysis, web search) only once, avoiding tools listed in the "already executed tools" section in the data.
 - If the 'Current Observation through called tools' is empty, assume no tools have been executed yet.
 
@@ -406,6 +420,7 @@ Your Guardrails:
 ]]></ms-inference:instructions>
 			<ms-inference:data ><![CDATA[#["Users query: " ++ (vars.prompt as String) ++ 
 ", Current Observation through called tools: " ++ (vars.multiToolsResult as String) ++ 
+", Available tools: " ++ write(vars.tools, "application/json") ++ 
 ", already executed tools: " ++ (write(vars.toolsUsed default {}, "application/json") as String)]]]></ms-inference:data>
 			<ms-inference:tools ><![CDATA[#[vars.tools.tools]]]></ms-inference:tools>
 		</ms-inference:tools-native-template>
@@ -430,6 +445,7 @@ Your Guardrails:
 ]]></ms-einstein-ai:template>
 			<ms-einstein-ai:instructions><![CDATA[#["Users query: " ++ (vars.prompt as String) ++ 
 ", Current Observation through called tools: " ++ (vars.multiToolsResult as String) ++ 
+", Available tools: " ++ write(vars.tools, "application/json") ++ 
 ", already executed tools: " ++ (write(vars.toolsUsed default {}, "application/json") as String)]]]></ms-einstein-ai:instructions>
 			<ms-einstein-ai:dataset><![CDATA[#["If tools are needed, then reply only with a json the tools needed from 'Tools provided' here: " ++ write(vars.tools.tools, "application/json")
 ++ ". respond only with a valid JSON object matching this schema: " ++ "{\"tools\":[{\"function\":{\"name\":\"<name-of-tool>\",\"arguments\":{\"<tool-argument-1>\":\"<argument-value-1>\", \"<tool-argument-2>\":\"<argument-value-2>\"}}}]}"
