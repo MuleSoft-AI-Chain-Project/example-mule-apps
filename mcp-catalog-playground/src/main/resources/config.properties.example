@@ -1,0 +1,12 @@
+http.port=8081
+general.maxToken=5000
+openai.apikey=<YOUR-OPENAI-APIKEY>
+mistral.apikey=<YOUR-MISTRAL-APIKEY>
+xai.apikey=<YOUR-XAI-APIKEY>
+
+salesforce.tokenUrl=<YOUR_SALESFORCE_ORG_TOKEN_URL>
+salesforce.clientId=<YOUR_SALESFORCE_CLIENT_ID>
+salesforce.clientSecret=<YOUR_SALESFORCE_CLIENT_SECRET>
+
+einstein.queryAssessmentModel=sfdc_ai__DefaultGPT41
+einstein.agentReasoningModel=sfdc_ai__DefaultGPT41
