@@ -38,9 +38,9 @@ Use this mode to see how an agent would reply when using a MCP Tool with an augm
 Use this mode to multiple MCP Servers and tools for a certain user query to understand the semantic and  its potential misconfigurations.
 
 
-[Demo Video](https://www.youtube.com/watch?v=AkHblt2g99Q)
+## [Demo Video](https://www.youtube.com/watch?v=AkHblt2g99Q)
 
-[Tutorial Video - coming soon]
+## [Tutorial Video](https://youtu.be/gw12qxnU_9w)
 
 ### Getting started!
 
