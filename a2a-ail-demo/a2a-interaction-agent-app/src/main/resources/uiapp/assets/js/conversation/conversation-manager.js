@@ -45,7 +45,7 @@ window.ConversationManager = (function() {
         // Close any existing connection before creating a new one
         if (websocket && websocket.readyState === WebSocket.OPEN) {
             console.log('Closing existing WebSocket before creating new connection');
-            websocket.close();
+            websocket.close(1000, 'Normal closure');
         }
         websocket = null;
         
@@ -93,7 +93,7 @@ window.ConversationManager = (function() {
             console.error('WebSocket error:', error);
             // Close the connection on error to ensure clean state
             if (websocket && websocket.readyState === WebSocket.OPEN) {
-                websocket.close();
+                websocket.close(1000, 'Normal closure');
                 websocket = null;
             }
             if (messageHandler) {
@@ -154,7 +154,7 @@ window.ConversationManager = (function() {
                     // Close WebSocket immediately after receiving final response
                     if (websocket && websocket.readyState === WebSocket.OPEN) {
                         console.log('Closing WebSocket connection after final response');
-                        websocket.close();
+                        websocket.close(1000, 'Normal closure');
                         websocket = null;
                     }
                 }
@@ -698,7 +698,7 @@ window.ConversationManager = (function() {
         if (newConversationBtn) {
             addTrackedEventListener(newConversationBtn, 'click', function() {
                 if (websocket) {
-                    websocket.close();
+                    websocket.close(1000, 'Normal closure');
                     websocket = null;
                 }
                 a2aSessionId = generateUUID();
@@ -777,7 +777,7 @@ window.ConversationManager = (function() {
     function cleanup() {
         // Close websocket if open
         if (websocket && websocket.readyState === WebSocket.OPEN) {
-            websocket.close();
+            websocket.close(1000, 'Normal closure');
             websocket = null;
         }
 
