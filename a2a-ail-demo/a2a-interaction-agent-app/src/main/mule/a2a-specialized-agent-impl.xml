@@ -43,7 +43,7 @@ attributes.queryParams.agentName]" doc:name="agentToCall" doc:id="75f8dd1e-d6bb-
 output json
 ---
 payload]" doc:name="agentAuthentication" doc:id="0b1e1c47-61a6-408b-b408-1b56a2750a50" variableName="agentAuthentication" />
-		<os:contains doc:name="Contains agent auth by agent name and set vars.agentAuthentication" doc:id="8c51545f-cfc0-41e8-94a2-81c79e03a1de" key='#[(vars.userSessionId default "") ++ "-agent-auth-" ++ (vars.agentToCall as String)]' objectStore="AgentObjectStore"/>
+		<os:contains doc:name="Contains agent auth by agent name" doc:id="8c51545f-cfc0-41e8-94a2-81c79e03a1de" key='#[(vars.userSessionId default "") ++ "-agent-auth-" ++ (vars.agentToCall as String)]' objectStore="AgentObjectStore"/>
 		<choice doc:name="Choice" doc:id="48c89c56-3839-43a2-85c8-b98a9b45f205" >
 			<when expression="#[payload]">
 				<os:retrieve doc:name="Retrieve agent auth by agent name and set vars.agentAuthentication" doc:id="1f2bfdbc-93a5-4ffd-86d7-246759781cd6" key='#[(vars.userSessionId default "") ++ "-agent-auth-" ++ (vars.agentToCall as String)]' objectStore="AgentObjectStore" target="agentAuthentication" />
@@ -67,13 +67,13 @@ output text/plain
 ).agentName as String]' doc:name="Set agentDisplayName" doc:id="471b63e5-ad9e-4b76-96b8-ceabfa92ac68" variableName="agentToCallDisplayName" />
 	</sub-flow>
 	<sub-flow name="retrieve-task-context-info" doc:id="b1472e8a-b2e6-4fcb-8be8-0d8c699b6bb7" >
-		<os:contains doc:name="Retrieve specialized-agent task history by agent name and set vars.agentAuthentication" doc:id="93f0fa6a-b708-4be5-9f7b-415ab152bbfe" key='#[(vars.userSessionId default "") ++ "-specialized-agent-task-history-" ++ (vars.agentToCall as String)]' objectStore="AgentObjectStore"/>
+		<os:contains doc:name="Retrieve specialized-agent task info by agent name" doc:id="93f0fa6a-b708-4be5-9f7b-415ab152bbfe" key='#[(vars.userSessionId default "") ++ "-specialized-agent-task-history-" ++ (vars.agentToCall as String)]' objectStore="AgentObjectStore"/>
 		<choice doc:name="Check if task history exists for specialized-agent" doc:id="8631379d-9b58-4905-88d1-a19b6a0dc056" >
 			<when expression="payload">
-				<os:retrieve doc:name="Retrieve specialized-agent task history by agent name and set vars.agentAuthentication" doc:id="1c23162e-47ef-4980-b813-4074da8611c2" key='#[(vars.userSessionId default "") ++ "-specialized-agent-task-history-" ++ (vars.agentToCall as String)]' objectStore="AgentObjectStore"/>
+				<os:retrieve doc:name="Retrieve specialized-agent task info by agent name" doc:id="1c23162e-47ef-4980-b813-4074da8611c2" key='#[(vars.userSessionId default "") ++ "-specialized-agent-task-history-" ++ (vars.agentToCall as String)]' objectStore="AgentObjectStore"/>
 				<set-variable value="#[vars.specializedAgentTaskId default payload.taskId]" doc:name="specializedAgentTaskId" doc:id="7107c178-27c9-494b-b1dd-d3b8adafb320" variableName="specializedAgentTaskId"/>
 				<set-variable value="#[vars.specializedAgentContextId default payload.contextId]" doc:name="specializedAgentContextId" doc:id="f31f9e75-d3cb-464a-8d64-ce3b5e9a2899" variableName="specializedAgentContextId" />
-				<os:remove doc:name="Remove specialized-agent task history by agent name and set vars.agentAuthentication" doc:id="7e11b1f0-7440-4369-a135-0ad4c277741b" key='#[(vars.userSessionId default "") ++ "-specialized-agent-task-history-" ++ (vars.agentToCall as String)]' objectStore="AgentObjectStore"/>
+				<os:remove doc:name="Remove specialized-agent task info by agent name" doc:id="7e11b1f0-7440-4369-a135-0ad4c277741b" key='#[(vars.userSessionId default "") ++ "-specialized-agent-task-history-" ++ (vars.agentToCall as String)]' objectStore="AgentObjectStore"/>
 			</when>
 		</choice>
 	</sub-flow>
@@ -184,7 +184,7 @@ write(vars.specializedAgentResponse, "application/json") ++ "\n" ++
 "\n\n"]' />
 	</sub-flow>
 	<sub-flow name="store-task-context-info" doc:id="8bf765cd-faa2-4ebe-9b22-a6177c891203" >
-		<choice doc:name="Choice" doc:id="c38f2e12-017c-46fd-8648-1399b7917aa7" >
+		<choice doc:name="In user input required?" doc:id="c38f2e12-017c-46fd-8648-1399b7917aa7" >
 			<when expression='#["input-required" == vars.specializedAgentResponse.status.state]'>
 				<os:store doc:name="Retrieve specialized-agent task history by agent name and set vars.agentAuthentication" doc:id="799c15c3-d2a6-46fa-890d-2a59dcbb80fd" objectStore="AgentObjectStore" key='#[(vars.userSessionId default "") ++ "-specialized-agent-task-history-" ++ (vars.agentToCall as String)]'>
 					<os:value ><![CDATA[#[{

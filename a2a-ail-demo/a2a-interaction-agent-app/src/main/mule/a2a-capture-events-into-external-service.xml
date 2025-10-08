@@ -15,10 +15,10 @@ output application/json
   "agent": vars.agentToCallDisplayName,
   "type": "Agent Task Request",
   "id": vars.agentTaskRequest.id,
-  "sessionId": vars.agentTaskRequest.sessionId,
+  "contextId": vars.agentTaskRequest.contextId,
   "status": "new",
   "timestamp": (now() >> 'UTC') as String {format: "yyyy-MM-dd'T'HH:mm:ss'Z'"},
-  "message": vars.agentTaskRequest.message.parts[0].text,
+  "message": vars.agentTaskResponse.status.message.parts[0].text default vars.agentTaskResponse.artifacts[0].parts[0].text,
   "knowledge" : "specialised"
 }]]></ee:set-payload>
 			</ee:message>
@@ -38,10 +38,10 @@ output application/json
   "agent": vars.agentToCallDisplayName,
   "type": "Agent Task Response",
   "id": vars.agentTaskResponse.id,
-  "sessionId": vars.agentTaskResponse.sessionId,
+  "contextId": vars.agentTaskResponse.contextId,
   "status": vars.agentTaskResponse.status.state,
   "timestamp": (now() >> 'UTC') as String {format: "yyyy-MM-dd'T'HH:mm:ss'Z'"},
-  "message": vars.agentTaskResponse.artifacts[0].parts[0].text,
+  "message": vars.agentTaskResponse.status.message.parts[0].text default vars.agentTaskResponse.artifacts[0].parts[0].text,
   "knowledge" : "specialised"
 }]]></ee:set-payload>
 			</ee:message>
@@ -63,7 +63,7 @@ output application/json
   "agent": p('agent.name'),
   "type": "Agent Task Request",
   "id": vars.task_id,
-  "sessionId": vars.sessionId,
+  "contextId": vars.ailContextId,
   "status": "new",
   "timestamp": vars.startTime,
   "message": vars.userPrompt,
@@ -81,7 +81,7 @@ output application/json
   "agent": p('agent.name'),
   "type": "Agent Task Response",
   "id": vars.task_id,
-  "sessionId": vars.sessionId,
+  "contextId": vars.ailContextId,
   "status": "completed",
   "timestamp": (now() >> 'UTC') as String {format: "yyyy-MM-dd'T'HH:mm:ss'Z'"},
   "message": vars.response.response,
@@ -101,7 +101,7 @@ output application/json
   "agent": p('agent.name'),
   "type": "Agent Task Request",
   "id": vars.task_id,
-  "sessionId": vars.sessionId,
+  "contextId": vars.ailContextId,
   "status": "new",
   "timestamp":  vars.startTime,
   "message": vars.userPrompt,
@@ -119,7 +119,7 @@ output application/json
   "agent": p('agent.name'),
   "type": "Agent Task Response",
   "id": vars.task_id,
-  "sessionId": vars.sessionId,
+  "contextId": vars.ailContextId,
   "status": "completed",
   "timestamp": (now() >> 'UTC') as String {format: "yyyy-MM-dd'T'HH:mm:ss'Z'"},
   "message": vars.response.response,
@@ -135,9 +135,13 @@ output application/json
 		</error-handler>
 	</flow>
 	<flow name="call-out-external-service" doc:id="31bf34b6-4fcc-4340-b337-46cb8e2906bd" >
-		<async doc:name="Async" doc:id="0f3c019c-823a-4442-a11c-633f6cc57583" >
+		<choice doc:name="Choice" doc:id="74596aff-c4e3-4dc0-8587-61cb9465eaca">
+			<when expression="#[!isBlank(p('external.service'))]">
+				<async doc:name="Async" doc:id="0f3c019c-823a-4442-a11c-633f6cc57583">
 			<http:request method="POST" doc:name="External Service for Capturing Interactions" doc:id="0fd3554f-8748-47e2-89e7-fd9b653dce5b" url="${external.service}" />
 		</async>
+			</when>
+		</choice>
 		<error-handler >
 			<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="76594df5-0471-4ebc-a72c-a952415545b4" type="ANY"/>
 		</error-handler>
