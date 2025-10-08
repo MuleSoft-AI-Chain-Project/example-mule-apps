@@ -9,21 +9,51 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 http://www.mulesoft.org/schema/mule/a2a http://www.mulesoft.org/schema/mule/a2a/current/mule-a2a.xsd">
 	<flow name="send-task-directly-to-specialized-agent" doc:id="75a50315-e63a-400f-bfa5-ce6735349b32" >
 		<http:listener doc:name="Listener" doc:id="af4ecada-0d8c-438e-80ab-da2d8f9ef365" config-ref="HTTP_Listener_config" path="/prompt-agent" />
-		<set-variable value='#[attributes.queryParams.userSessionId default ""]' doc:name="Set userSessionId" doc:id="f7878dbf-4914-479a-a757-a9c21741dbc0" variableName="userSessionId" />
-		<set-variable value="#[%dw 2.0
+		<flow-ref doc:name="init-vars" doc:id="96ccba71-7814-4ce8-bd8c-8fca5e60a3a4" name="init-vars"/>
+		<flow-ref doc:name="get-agent-info" doc:id="d1721200-a94f-4344-8084-c4ab3e85ea36" name="get-agent-info"/>
+		<flow-ref doc:name="retrieve-task-context-info" doc:id="78b07b48-a01f-4fa2-96d2-b8ec2f125ea9" name="retrieve-task-context-info"/>
+		<flow-ref doc:name="prepare-a2a-message" doc:id="46eedd97-3d8f-4037-b531-04e11c5600c2" name="prepare-a2a-message"/>
+		<flow-ref doc:name="send_a2a_message" doc:id="14f13a76-da38-4c71-9889-c77231a9a0a8" name="send_a2a_message"/>
+		<flow-ref doc:name="store-task-context-info" doc:id="740ae15f-9a85-4264-adf7-c3090938d618" name="store-task-context-info"/>
+		<set-payload value="#[%dw 2.0
 output application/json
-import * from dw::core::Strings
 ---
-if (isEmpty(attributes.queryParams.sessionId)) (if (isEmpty(payload.sessionId)) uuid() else payload.sessionId) else attributes.queryParams.sessionId]" doc:name="sessionId" doc:id="0506f1bc-d506-47a7-83b5-864ecd9b03a9" variableName="sessionId" />
+{
+	agentName: vars.agentToCallDisplayName, 
+	agentAPIName: vars.agentToCall,
+	planNumber: (vars.replanCount default 0) + 1,
+	agentTaskRequest: vars.agentTaskRequest,
+	agentTaskResponse: vars.specializedAgentResponse
+}]" doc:name="set agent task execution details" doc:id="3d0bf6a4-6459-4dfa-8976-3829aed0867d" />
+	</flow>
+	<sub-flow name="init-vars" doc:id="32fefe6f-5819-4d4b-81ce-6dd38877cebc" >
+		<set-variable value='#[attributes.queryParams.userSessionId default ""]' doc:name="Set userSessionId" doc:id="f7878dbf-4914-479a-a757-a9c21741dbc0" variableName="userSessionId" />
+		<set-variable value='#[%dw 2.0
+output text/plain
+---
+(payload default {} as Object).prompt ++ " (ContextId for this request is " ++ vars.userSessionId ++ ")"]' doc:name="prompt" doc:id="84d366c8-ef1e-4032-86b5-e126ed1fcaa2" variableName="agentPrompt" />
 		<set-variable value="#[%dw 2.0
 output text/plain
 ---
-(payload default {} as Object).prompt]" doc:name="prompt" doc:id="84d366c8-ef1e-4032-86b5-e126ed1fcaa2" variableName="agentPrompt" />
-		<set-variable value="#[%dw 2.0
-output text/plain
----
-attributes.queryParams.agentName]" doc:name="agentName" doc:id="75f8dd1e-d6bb-440f-bc59-5f6e86f8a163" variableName="agentToCall" />
+attributes.queryParams.agentName]" doc:name="agentToCall" doc:id="75f8dd1e-d6bb-440f-bc59-5f6e86f8a163" variableName="agentToCall" />
+	</sub-flow>
+	<sub-flow name="get-agent-info" doc:id="93d0b0f8-def1-4d50-a1cf-c1e933172869" >
 		<flow-ref doc:name="get-a2a-agents-cards" doc:id="6c121274-8669-4035-b918-3e5c3a3d3591" name="get-a2a-agents-cards" />
+		<set-variable value="#[%dw 2.0
+output json
+---
+payload]" doc:name="agentAuthentication" doc:id="0b1e1c47-61a6-408b-b408-1b56a2750a50" variableName="agentAuthentication" />
+		<os:contains doc:name="Contains agent auth by agent name and set vars.agentAuthentication" doc:id="8c51545f-cfc0-41e8-94a2-81c79e03a1de" key='#[(vars.userSessionId default "") ++ "-agent-auth-" ++ (vars.agentToCall as String)]' objectStore="AgentObjectStore"/>
+		<choice doc:name="Choice" doc:id="48c89c56-3839-43a2-85c8-b98a9b45f205" >
+			<when expression="#[payload]">
+				<os:retrieve doc:name="Retrieve agent auth by agent name and set vars.agentAuthentication" doc:id="1f2bfdbc-93a5-4ffd-86d7-246759781cd6" key='#[(vars.userSessionId default "") ++ "-agent-auth-" ++ (vars.agentToCall as String)]' objectStore="AgentObjectStore" target="agentAuthentication" />
+			</when>
+		</choice>
+		<os:retrieve doc:name="Retrieve url by agent name and set vars.agentUrl" doc:id="b3838250-0158-402c-b876-88e3b63aa588" key='#[(vars.userSessionId default "") ++ "-agent-url-" ++ (vars.agentToCall as String)]' objectStore="AgentObjectStore" />
+		<set-variable value="#[%dw 2.0
+output text
+---
+payload]" doc:name="agentUrl" doc:id="b4d3269b-3c04-4af2-b803-0f2d3c19d64a" variableName="agentUrl" />
 		<set-variable value='#[%dw 2.0
 output text/plain
 ---
@@ -35,95 +65,134 @@ output text/plain
         "application/json"
     ) as Object
 ).agentName as String]' doc:name="Set agentDisplayName" doc:id="471b63e5-ad9e-4b76-96b8-ceabfa92ac68" variableName="agentToCallDisplayName" />
-		<os:retrieve doc:name="Retrieve url by agent name and set vars.agentUrl" doc:id="b3838250-0158-402c-b876-88e3b63aa588" key='#[(vars.userSessionId default "") ++ "-agent-url-" ++ (vars.agentToCall as String)]' objectStore="AgentObjectStore" />
-		<set-variable value="#[%dw 2.0
-output text
----
-payload]" doc:name="agentUrl" doc:id="b4d3269b-3c04-4af2-b803-0f2d3c19d64a" variableName="agentUrl" />
-		<os:retrieve doc:name="Retrieve auth by agent name and set vars.agentAuthentication" doc:id="1f2bfdbc-93a5-4ffd-86d7-246759781cd6" key='#[(vars.userSessionId default "") ++ "-agent-auth-" ++ (vars.agentToCall as String)]' objectStore="AgentObjectStore" />
-		<set-variable value="#[%dw 2.0
-output json
----
-payload]" doc:name="agentAuthentication" doc:id="0b1e1c47-61a6-408b-b408-1b56a2750a50" variableName="agentAuthentication" />
-		<ee:transform doc:name="Transform Message" doc:id="e3b17f33-d3e9-494b-8248-7c91225a7e00" >
-			<ee:message >
-				<ee:set-payload ><![CDATA[%dw 2.0
+	</sub-flow>
+	<sub-flow name="retrieve-task-context-info" doc:id="b1472e8a-b2e6-4fcb-8be8-0d8c699b6bb7" >
+		<os:contains doc:name="Retrieve specialized-agent task history by agent name and set vars.agentAuthentication" doc:id="93f0fa6a-b708-4be5-9f7b-415ab152bbfe" key='#[(vars.userSessionId default "") ++ "-specialized-agent-task-history-" ++ (vars.agentToCall as String)]' objectStore="AgentObjectStore"/>
+		<choice doc:name="Check if task history exists for specialized-agent" doc:id="8631379d-9b58-4905-88d1-a19b6a0dc056" >
+			<when expression="payload">
+				<os:retrieve doc:name="Retrieve specialized-agent task history by agent name and set vars.agentAuthentication" doc:id="1c23162e-47ef-4980-b813-4074da8611c2" key='#[(vars.userSessionId default "") ++ "-specialized-agent-task-history-" ++ (vars.agentToCall as String)]' objectStore="AgentObjectStore"/>
+				<set-variable value="#[vars.specializedAgentTaskId default payload.taskId]" doc:name="specializedAgentTaskId" doc:id="7107c178-27c9-494b-b1dd-d3b8adafb320" variableName="specializedAgentTaskId"/>
+				<set-variable value="#[vars.specializedAgentContextId default payload.contextId]" doc:name="specializedAgentContextId" doc:id="f31f9e75-d3cb-464a-8d64-ce3b5e9a2899" variableName="specializedAgentContextId" />
+				<os:remove doc:name="Remove specialized-agent task history by agent name and set vars.agentAuthentication" doc:id="7e11b1f0-7440-4369-a135-0ad4c277741b" key='#[(vars.userSessionId default "") ++ "-specialized-agent-task-history-" ++ (vars.agentToCall as String)]' objectStore="AgentObjectStore"/>
+			</when>
+		</choice>
+	</sub-flow>
+	<sub-flow name="prepare-a2a-message" doc:id="ea75b2d7-7678-4254-9e10-a1d3630fb9f2" >
+		<choice doc:name="Choice" doc:id="24ad2207-38d3-4cf8-90a1-eeb85cdd93df">
+			<when expression="#[!isBlank(vars.specializedAgentTaskId) and !isBlank(vars.specializedAgentContextId)]" >
+				<ee:transform doc:name="Prepare A2A Task" doc:id="e3b17f33-d3e9-494b-8248-7c91225a7e00">
+			<ee:message>
+			</ee:message>
+			<ee:variables>
+				<ee:set-variable variableName="specializedAgentRequest"><![CDATA[%dw 2.0
 output application/json
 ---
 {
-	"id": uuid(),
-	"sessionId": vars.sessionId,
 	"message": {
+		"kind": "message",
 		"messageId": uuid(),
+		"taskId": vars.specializedAgentTaskId,
+		"contextId": vars.specializedAgentContextId,
         "role": "user",
 		"parts": [
 			{
-                "type": "text",
+                "kind": "text",
 				"text": vars.agentPrompt as String
 			}
 		]
 	}
 }
-]]></ee:set-payload>
-			</ee:message>
+]]></ee:set-variable>
+			</ee:variables>
 		</ee:transform>
-		<logger level="INFO" doc:name="📤 Agent send task request 📤" doc:id="1a49348f-ec5c-4631-aa37-0107e18126bf" message='#[%dw 2.0
+			</when>
+			<otherwise >
+				<ee:transform doc:name="Prepare A2A Message" doc:id="6eb6c05c-9336-4906-9bef-01dddc23fbd5" >
+					<ee:message />
+					<ee:variables >
+						<ee:set-variable variableName="specializedAgentRequest" ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"message": {
+		"kind": "message",
+		"messageId": uuid(),
+        "role": "user",
+		"parts": [
+			{
+                "kind": "text",
+				"text": vars.agentPrompt as String
+			}
+		]
+	}
+}
+]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+			</otherwise>
+		</choice>
+		<logger level="INFO" doc:name="📤 Specialized agent request 📤" doc:id="1a49348f-ec5c-4631-aa37-0107e18126bf" message='#[%dw 2.0
 output text
 ---
 "\n\n" ++
 "📤📤📤📤📤️️ --------------------------  Task Request -------------------------- 📤📤📤📤📤️\n" ++
 "Agent " ++ (vars.agentToCall as String default "") ++ " (" ++ (vars.agentUrl  as String default "missing URL") ++ ")\n" ++
 "Send task request: \n" ++ 
-write(payload default {}, "application/json") ++ "\n" ++
+write(vars.specializedAgentRequest default {}, "application/json") ++ "\n" ++
 "\n📤📤📤📤📤️️ ----------------------------------------------------------------- 📤📤📤📤📤️" ++
 "\n\n"]' />
-		<set-variable value="#[payload]" doc:name="agentTaskRequest" doc:id="26c19ce2-331b-4c91-b7da-07efe50754f0" variableName="agentTaskRequest" />
-		<try doc:name="Try" doc:id="cfe033da-3fbc-48ee-848c-b680f38c6c7d" >
-			<choice doc:name='Route based on the Authentication Type (Default "none")' doc:id="a0acf3cb-88f1-4641-b97d-3d6916f59bda" >
-				<when expression='#[vars.agentAuthentication."type" == "client-credentials"]'>
-					<a2a:send-task doc:name="Send task to {agentToCall} Agent with ClientCredentials Grant Type" doc:id="2a320c55-b5ee-4ee7-b8eb-4915d3d430da" config-ref="A2A_Client_Auth_client-credentials" />
+	</sub-flow>
+	<sub-flow name="send_a2a_message" doc:id="6a008357-7b3a-402a-abc7-f6463ffb188d" >
+		<try doc:name="Try" doc:id="cc8f797e-370c-4e08-8460-8a4db44921f8" >
+			<choice doc:name='Route based on the Authentication Type (Default "none")' doc:id="d483139e-478c-437c-891e-54a558b70615" >
+				<when expression='#[vars.agentAuthentication."type" == "client-credentials"]' >
+					<a2a:send-message doc:name="Send message to {agentToCall} Agent with ClientCredentials Grant Type" doc:id="fa68bdec-8ca1-40a6-be51-6c37764c983e" config-ref="A2A_Client_Auth_client-credentials" >
+						<a2a:message ><![CDATA[#["input-required" == vars.specializedAgentRequest.status.state]]]></a2a:message>
+					</a2a:send-message>
 				</when>
 				<otherwise >
-					<a2a:send-task doc:name="Send task to {agentToCall} Agent with NO AUTH" doc:id="fc48742f-a46f-4e63-b860-5013fe0d3c7c" config-ref="A2A_Client_Auth_none" />
+					<a2a:send-message doc:name="Send message to {agentToCall} Agent with NO AUTH" doc:id="6d89a763-8d79-4b60-9347-9337ae339a0a" config-ref="A2A_Client_Auth_none" >
+						<a2a:message ><![CDATA[#[vars.specializedAgentRequest]]]></a2a:message>
+					</a2a:send-message>
 				</otherwise>
 			</choice>
 			<error-handler >
-				<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="c2c8669c-6896-40a4-afbd-66d4d1946639" >
+				<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="e5a24c7a-f528-4f5a-be79-a6d0d1cca4c3" >
 					<set-payload value='#[%dw 2.0
 output application/json
 ---
 {
-	sessionId: vars.sessionId,
+	contextId: vars.specializedAgentContextId,
+	taskId: vars.specializedAgentTaskId,
 	status: "error",
 	errorMessage: error.errorMessage,
 	detailedDescription: error.detailedDescription
-}]' doc:name="Set Payload" doc:id="6153f211-a3e4-4f5d-aee4-d8822712ea5b" />
-					<logger level="INFO" doc:name="❗️Log error sending A2A Task/Message❗️" doc:id="e7a4654f-cc93-41d8-8f51-d2c3c42cb0e0" message="❗️❗️❗️❗️❗️ Error sending A2A Task/Message ❗️❗️❗️❗️❗️" />
+}]' doc:name="Set Payload" doc:id="32b87ad5-a34c-4e2a-aec3-ec6b6c0cc2d1" />
+					<logger level="INFO" doc:name="❗️Log error sending A2A Task/Message❗️" doc:id="bc48e7c4-7281-4a57-99e8-debb55126cd2" message="❗️❗️❗️❗️❗️ Error sending A2A Task/Message ❗️❗️❗️❗️❗️" />
 				</on-error-continue>
 			</error-handler>
 		</try>
-		<logger level="INFO" doc:name="📞 Agent send task response 📞" doc:id="2efc3984-1529-4db3-ab51-fd4f4b150ebc" message='#[%dw 2.0
+		<set-variable value="#[payload]" doc:name="specializedAgentResponse" doc:id="c065b5dd-53db-40ec-82e4-183d5421f17a" variableName="specializedAgentResponse" />
+		<logger level="INFO" doc:name="📞 Specialized gent response 📞" doc:id="24dc9c3d-ab36-4aa3-914f-a52db87afc4a" message='#[%dw 2.0
 output text
 ---
 "\n\n" ++
-"📞📞📞📞📞️️ --------------------------  Task Response -------------------------- 📞📞📞📞📞️\n" ++
+"📞📞📞📞📞️️ --------------------------  Specialized Agent Response -------------------------- 📞📞📞📞📞️\n" ++
 "Agent " ++ vars.agentToCall ++ " send task response: \n" ++ 
-write(payload, "application/json") ++ "\n" ++
+write(vars.specializedAgentResponse, "application/json") ++ "\n" ++
 "\n📞📞📞📞📞️️ -------------------------------------------------------------------- 📞📞📞📞📞️" ++
 "\n\n"]' />
-		<ee:transform doc:name="set agent task execution details" doc:id="3f722ab2-aae5-433f-97c7-82b62e83d200" >
-			<ee:message >
-				<ee:set-payload ><![CDATA[%dw 2.0
-output application/json
----
-{
-	agentName: vars.agentToCallDisplayName, 
-	agentAPIName: vars.agentToCall,
-	planNumber: (vars.replanCount default 0) + 1,
-	agentTaskRequest: vars.agentTaskRequest,
-	agentTaskResponse: payload
-}]]></ee:set-payload>
-			</ee:message>
-		</ee:transform>
-	</flow>
+	</sub-flow>
+	<sub-flow name="store-task-context-info" doc:id="8bf765cd-faa2-4ebe-9b22-a6177c891203" >
+		<choice doc:name="Choice" doc:id="c38f2e12-017c-46fd-8648-1399b7917aa7" >
+			<when expression='#["input-required" == vars.specializedAgentResponse.status.state]'>
+				<os:store doc:name="Retrieve specialized-agent task history by agent name and set vars.agentAuthentication" doc:id="799c15c3-d2a6-46fa-890d-2a59dcbb80fd" objectStore="AgentObjectStore" key='#[(vars.userSessionId default "") ++ "-specialized-agent-task-history-" ++ (vars.agentToCall as String)]'>
+					<os:value ><![CDATA[#[{
+	"taskId": vars.specializedAgentResponse.id,
+	"contextId": vars.specializedAgentResponse.contextId
+}]]]></os:value>
+				</os:store>
+			</when>
+		</choice>
+	</sub-flow>
 </mule>
