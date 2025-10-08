@@ -189,7 +189,14 @@ let sessionsLoaded = false;
 let settingsLoaded = false;
 
 function loadConversation(forceReload = false) {
-    if (conversationLoaded && !forceReload) return;
+    if (conversationLoaded && !forceReload) {
+        // Re-apply theme when revisiting Conversation without reload - schedule after visibility
+        if (window.ConversationManager && typeof window.ConversationManager.applyTheme === 'function') {
+            setTimeout(() => window.ConversationManager.applyTheme(), 0);
+            setTimeout(() => window.ConversationManager.applyTheme(), 100);
+        }
+        return;
+    }
     
     const conversationContent = document.getElementById('conversation-content');
     
@@ -234,6 +241,9 @@ function loadConversation(forceReload = false) {
                         
                         if (window.ConversationManager && window.ConversationManager.init) {
                             window.ConversationManager.init();
+                    if (typeof window.ConversationManager.applyTheme === 'function') {
+                        window.ConversationManager.applyTheme();
+                    }
                         }
                     }, 100);
                 };
@@ -264,6 +274,9 @@ function loadConversation(forceReload = false) {
                     }
                     
                     window.ConversationManager.init();
+                    if (typeof window.ConversationManager.applyTheme === 'function') {
+                        window.ConversationManager.applyTheme();
+                    }
                 }
             }
             

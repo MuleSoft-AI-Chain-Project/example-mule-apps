@@ -18,6 +18,30 @@ window.ConversationManager = (function() {
     // UTILITY FUNCTIONS
     // ----------------------------------------------------------------------------
 
+    function applyChatBackgroundFromSettings() {
+        try {
+            const settings = (typeof window.getAppSettings === 'function')
+                ? window.getAppSettings()
+                : JSON.parse(localStorage.getItem('settings') || 'null');
+            const url = settings && settings.themeSettings && settings.themeSettings.chatBackgroundUrl;
+            const chat = document.querySelector('.chat-messages');
+            if (!chat) return;
+            if (url) {
+                chat.style.backgroundImage = 'url(' + url + ')';
+                chat.style.backgroundPosition = 'center';
+                chat.style.backgroundSize = 'cover';
+                chat.style.backgroundRepeat = 'no-repeat';
+                chat.style.backgroundColor = 'transparent';
+            } else {
+                chat.style.backgroundImage = '';
+                chat.style.backgroundPosition = '';
+                chat.style.backgroundSize = '';
+                chat.style.backgroundRepeat = '';
+                chat.style.backgroundColor = '';
+            }
+        } catch (e) {}
+    }
+
     // Function to add and track event listeners
     function addTrackedEventListener(element, event, handler) {
         if (!element) return;
@@ -688,6 +712,9 @@ window.ConversationManager = (function() {
             return;
         }
 
+        // Apply themed chat background if configured
+        applyChatBackgroundFromSettings();
+
         // Mark as initialized
         window.ConversationManager._initialized = true;
 
@@ -705,6 +732,7 @@ window.ConversationManager = (function() {
                 currentReasoningUpdates = [];
                 responseReasoningMap.clear();
                 chatMessages.innerHTML = '';
+                applyChatBackgroundFromSettings();
                 addMessage("Hello! I'm your Host Agent. How can I help you today?", false);
                 if (promptInput) promptInput.value = '';
                 // WebSocket connection will be created when user sends first message
@@ -810,6 +838,7 @@ window.ConversationManager = (function() {
     return {
         init: init,
         cleanup: cleanup,
+        applyTheme: applyChatBackgroundFromSettings,
         removeSessionModal: function() {
             const modal = document.getElementById('interactionModal');
             if (modal) {
