@@ -112,9 +112,9 @@ function fetchAgentsAndPopulateModal() {
     };
     
     try {
-        const exchangeCredentials = localStorage.getItem('exchange_credentials');
-        if (exchangeCredentials) {
-            const config = JSON.parse(exchangeCredentials);
+        const settings = (window.getAppSettings && window.getAppSettings()) || {};
+        const config = settings.exchangeCredentials || null;
+        if (config) {
             if (config.type === 'custom' && config.url && config.organizationId && config.environmentId) {
                 // Build the URL with custom credentials as query parameters
                 const customUrl = `/platform/a2a-agents?url=${encodeURIComponent(config.url)}&organizationId=${config.organizationId}&environmentId=${config.environmentId}`;

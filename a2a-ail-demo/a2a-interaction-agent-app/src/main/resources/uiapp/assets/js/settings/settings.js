@@ -19,6 +19,13 @@ window.SettingsManager = (function() {
         organizationId: '',
         environmentId: ''
     };
+    
+    let themeConfig = {
+        primaryColor: '#00a2ff',
+        secondaryColor: '#e3f2fd',
+        chatBackgroundUrl: '',
+        logoUrl: ''
+    };
 
     // ----------------------------------------------------------------------------
     // UTILITY FUNCTIONS
@@ -34,31 +41,17 @@ window.SettingsManager = (function() {
         eventListeners.get(element).push({ event, handler });
     }
 
-    // Load current engine from cookie
+    // Load current engine from unified settings
     function loadCurrentEngine() {
         try {
-            const engine = getCookie('reasoningEngine') || 'inference';
+            const settings = (window.getAppSettings && window.getAppSettings()) || {};
+            const engine = settings.reasoningEngine || 'inference';
             selectedEngine = engine;
             return engine;
         } catch (error) {
             console.error('[Settings] Error loading current engine:', error);
             return 'inference';
         }
-    }
-
-    // Get cookie value
-    function getCookie(name) {
-        const value = `; ${document.cookie}`;
-        const parts = value.split(`; ${name}=`);
-        if (parts.length === 2) return parts.pop().split(';').shift();
-        return null;
-    }
-
-    // Set cookie value
-    function setCookie(name, value, days = 30) {
-        const expires = new Date();
-        expires.setTime(expires.getTime() + (days * 24 * 60 * 60 * 1000));
-        document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/`;
     }
 
     // Update engine selection UI
@@ -75,8 +68,10 @@ window.SettingsManager = (function() {
     // Save engine selection
     function saveEngineSelection() {
         try {
-            // Save to cookie
-            setCookie('reasoningEngine', selectedEngine, 365);
+            // Save to unified settings
+            if (window.updateAppSettings) {
+                window.updateAppSettings({ reasoningEngine: selectedEngine });
+            }
             
             // Update the main interface if available
             if (window.setReasoningEngine) {
@@ -105,18 +100,31 @@ window.SettingsManager = (function() {
         }
     }
 
-    // Load exchange configuration from localStorage
+    // Load exchange configuration from unified settings
     function loadExchangeConfig() {
         try {
-            const stored = localStorage.getItem('exchange_credentials');
-            if (stored) {
-                const config = JSON.parse(stored);
-                exchangeConfig = { ...exchangeConfig, ...config };
+            const settings = (window.getAppSettings && window.getAppSettings()) || {};
+            if (settings.exchangeCredentials) {
+                exchangeConfig = { ...exchangeConfig, ...settings.exchangeCredentials };
             }
             return exchangeConfig;
         } catch (error) {
             console.error('[Settings] Error loading exchange config:', error);
             return exchangeConfig;
+        }
+    }
+
+    // Load theme configuration from unified settings
+    function loadThemeConfig() {
+        try {
+            const settings = (window.getAppSettings && window.getAppSettings()) || {};
+            if (settings.themeSettings) {
+                themeConfig = { ...themeConfig, ...settings.themeSettings };
+            }
+            return themeConfig;
+        } catch (error) {
+            console.error('[Settings] Error loading theme config:', error);
+            return themeConfig;
         }
     }
 
@@ -163,7 +171,7 @@ window.SettingsManager = (function() {
         }
     }
 
-    // Save exchange configuration to localStorage
+    // Save exchange configuration to unified settings
     async function saveExchangeConfig() {
         try {
             // For custom type, validate all required fields are filled
@@ -198,14 +206,58 @@ window.SettingsManager = (function() {
                 // Hide spinner after successful validation
                 hideSpinner();
             }
-            
-            localStorage.setItem('exchange_credentials', JSON.stringify(exchangeConfig));
+            // Persist to unified settings
+            if (window.updateAppSettings) {
+                window.updateAppSettings({ exchangeCredentials: { ...exchangeConfig } });
+            }
             console.log('[Settings] Exchange config saved:', exchangeConfig);
             return true;
         } catch (error) {
             console.error('[Settings] Error saving exchange config:', error);
             hideSpinner();
             return false;
+        }
+    }
+
+    // Save theme configuration to unified settings
+    function saveThemeConfig() {
+        try {
+            if (window.updateAppSettings) {
+                window.updateAppSettings({ themeSettings: { ...themeConfig } });
+            }
+            console.log('[Settings] Theme config saved:', themeConfig);
+            return true;
+        } catch (error) {
+            console.error('[Settings] Error saving theme config:', error);
+            return false;
+        }
+    }
+
+    // Update theme configuration UI
+    function updateThemeConfigUI() {
+        const primaryColorPicker = document.getElementById('primaryColorPicker');
+        const primaryColorHex = document.getElementById('primaryColorHex');
+        const secondaryColorPicker = document.getElementById('secondaryColorPicker');
+        const secondaryColorHex = document.getElementById('secondaryColorHex');
+        const chatBackgroundUrl = document.getElementById('chatBackgroundUrl');
+        const logoUrl = document.getElementById('logoUrl');
+
+        if (primaryColorPicker && primaryColorHex) {
+            primaryColorPicker.value = themeConfig.primaryColor;
+            primaryColorHex.value = themeConfig.primaryColor;
+        }
+
+        if (secondaryColorPicker && secondaryColorHex) {
+            secondaryColorPicker.value = themeConfig.secondaryColor;
+            secondaryColorHex.value = themeConfig.secondaryColor;
+        }
+
+        if (chatBackgroundUrl) {
+            chatBackgroundUrl.value = themeConfig.chatBackgroundUrl;
+        }
+
+        if (logoUrl) {
+            logoUrl.value = themeConfig.logoUrl;
         }
     }
 
@@ -310,6 +362,14 @@ window.SettingsManager = (function() {
                 } else {
                     message = 'Failed to save exchange configuration. Please try again.';
                 }
+            } else if (settingType === 'themes-brand') {
+                // Save theme configuration
+                success = saveThemeConfig();
+                if (success) {
+                    message = 'Theme and brand settings saved successfully!';
+                } else {
+                    message = 'Failed to save theme and brand settings. Please try again.';
+                }
             }
         } finally {
             // Hide spinner
@@ -393,6 +453,60 @@ window.SettingsManager = (function() {
         }
     }
 
+    // Handle theme color picker changes
+    function handleThemeColorChange(event) {
+        const field = event.target;
+        const value = field.value;
+        
+        switch (field.id) {
+            case 'primaryColorPicker':
+            case 'primaryColorHex':
+                themeConfig.primaryColor = value;
+                // Sync the other field
+                if (field.id === 'primaryColorPicker') {
+                    const hexField = document.getElementById('primaryColorHex');
+                    if (hexField) hexField.value = value;
+                } else {
+                    const pickerField = document.getElementById('primaryColorPicker');
+                    if (pickerField) pickerField.value = value;
+                }
+                break;
+            case 'secondaryColorPicker':
+            case 'secondaryColorHex':
+                themeConfig.secondaryColor = value;
+                // Sync the other field
+                if (field.id === 'secondaryColorPicker') {
+                    const hexField = document.getElementById('secondaryColorHex');
+                    if (hexField) hexField.value = value;
+                } else {
+                    const pickerField = document.getElementById('secondaryColorPicker');
+                    if (pickerField) pickerField.value = value;
+                }
+                break;
+        }
+        
+        saveThemeConfig();
+        console.log('[Settings] Theme color changed:', field.id, value);
+    }
+
+    // Handle theme URL changes
+    function handleThemeUrlChange(event) {
+        const field = event.target;
+        const value = field.value;
+        
+        switch (field.id) {
+            case 'chatBackgroundUrl':
+                themeConfig.chatBackgroundUrl = value;
+                break;
+            case 'logoUrl':
+                themeConfig.logoUrl = value;
+                break;
+        }
+        
+        saveThemeConfig();
+        console.log('[Settings] Theme URL changed:', field.id, value);
+    }
+
     // Handle settings navigation clicks
     function handleSettingsNavigation(event) {
         event.preventDefault();
@@ -418,6 +532,9 @@ window.SettingsManager = (function() {
         } else if (settingType === 'anypoint-exchange') {
             const exchangeContent = document.getElementById('anypoint-exchange-content');
             if (exchangeContent) exchangeContent.classList.add('active');
+        } else if (settingType === 'themes-brand') {
+            const themesBrandContent = document.getElementById('themes-brand-content');
+            if (themesBrandContent) themesBrandContent.classList.add('active');
         }
         
         console.log('[Settings] Switched to:', settingType);
@@ -513,6 +630,18 @@ window.SettingsManager = (function() {
         if (saveBtn) {
             addTrackedEventListener(saveBtn, 'click', handleSaveButtonClick);
         }
+        
+        // Theme color pickers and hex inputs
+        const themeColorFields = document.querySelectorAll('#primaryColorPicker, #primaryColorHex, #secondaryColorPicker, #secondaryColorHex');
+        themeColorFields.forEach(field => {
+            addTrackedEventListener(field, 'input', handleThemeColorChange);
+        });
+        
+        // Theme URL inputs
+        const themeUrlFields = document.querySelectorAll('#chatBackgroundUrl, #logoUrl');
+        themeUrlFields.forEach(field => {
+            addTrackedEventListener(field, 'input', handleThemeUrlChange);
+        });
     }
 
     // ----------------------------------------------------------------------------
@@ -539,6 +668,10 @@ window.SettingsManager = (function() {
         // Load exchange configuration and update UI
         loadExchangeConfig();
         updateExchangeConfigUI();
+        
+        // Load theme configuration and update UI
+        loadThemeConfig();
+        updateThemeConfigUI();
         
         // Setup event listeners
         setupEventListeners();

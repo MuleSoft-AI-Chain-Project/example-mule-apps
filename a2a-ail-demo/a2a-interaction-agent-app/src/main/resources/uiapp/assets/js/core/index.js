@@ -19,6 +19,113 @@ function getCookie(name) {
     return null;
 }
 
+function deleteCookie(name) {
+    document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`;
+}
+
+// ----------------------------------------------------------------------------
+// APPLICATION SETTINGS (Unified localStorage under key 'settings')
+// ----------------------------------------------------------------------------
+
+const SETTINGS_STORAGE_KEY = 'settings';
+
+function getDefaultAppSettings() {
+    return {
+        reasoningEngine: 'inference',
+        exchangeCredentials: {
+            type: 'default',
+            url: '',
+            clientId: '',
+            clientSecret: '',
+            organizationId: '',
+            environmentId: ''
+        },
+        themeSettings: {
+            primaryColor: '#00a2ff',
+            secondaryColor: '#e3f2fd',
+            chatBackgroundUrl: '',
+            logoUrl: ''
+        }
+    };
+}
+
+function getAppSettings() {
+    try {
+        let settings = JSON.parse(localStorage.getItem(SETTINGS_STORAGE_KEY) || 'null');
+        if (!settings) {
+            settings = getDefaultAppSettings();
+        } else {
+            // ensure nested defaults exist
+            const defaults = getDefaultAppSettings();
+            settings.exchangeCredentials = { ...defaults.exchangeCredentials, ...(settings.exchangeCredentials || {}) };
+            settings.themeSettings = { ...defaults.themeSettings, ...(settings.themeSettings || {}) };
+            settings.reasoningEngine = settings.reasoningEngine || 'inference';
+        }
+
+        let migrated = false;
+
+        // Migrate legacy cookie for reasoningEngine
+        const legacyEngine = getCookie('reasoningEngine');
+        if (legacyEngine && !settings.reasoningEngine) {
+            settings.reasoningEngine = legacyEngine;
+            migrated = true;
+        }
+
+        // Migrate legacy localStorage keys
+        const legacyExchange = localStorage.getItem('exchange_credentials');
+        if (legacyExchange) {
+            try {
+                const parsed = JSON.parse(legacyExchange);
+                settings.exchangeCredentials = { ...settings.exchangeCredentials, ...parsed };
+                migrated = true;
+            } catch (e) {
+                // ignore
+            }
+        }
+        const legacyTheme = localStorage.getItem('themeSettings');
+        if (legacyTheme) {
+            try {
+                const parsed = JSON.parse(legacyTheme);
+                settings.themeSettings = { ...settings.themeSettings, ...parsed };
+                migrated = true;
+            } catch (e) {
+                // ignore
+            }
+        }
+
+        if (migrated) {
+            localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(settings));
+            deleteCookie('reasoningEngine');
+            localStorage.removeItem('exchange_credentials');
+            localStorage.removeItem('themeSettings');
+        }
+
+        return settings;
+    } catch (e) {
+        return getDefaultAppSettings();
+    }
+}
+
+function saveAppSettings(settings) {
+    localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(settings));
+    return settings;
+}
+
+function updateAppSettings(partial) {
+    const existing = getAppSettings();
+    const merged = {
+        ...existing,
+        ...partial,
+        exchangeCredentials: partial.exchangeCredentials ? { ...existing.exchangeCredentials, ...partial.exchangeCredentials } : existing.exchangeCredentials,
+        themeSettings: partial.themeSettings ? { ...existing.themeSettings, ...partial.themeSettings } : existing.themeSettings
+    };
+    return saveAppSettings(merged);
+}
+
+// Expose globally for other modules
+window.getAppSettings = getAppSettings;
+window.updateAppSettings = updateAppSettings;
+
 // ----------------------------------------------------------------------------
 // SIDEBAR STATE MANAGEMENT
 // ----------------------------------------------------------------------------
@@ -592,11 +699,12 @@ window.ENGINE_INFO = {
 };
 
 window.getReasoningEngine = function() {
-    return getCookie('reasoningEngine') || 'inference';
+    const settings = getAppSettings();
+    return settings.reasoningEngine || 'inference';
 };
 
 window.setReasoningEngine = function(engine) {
-    setCookie('reasoningEngine', engine, 365);
+    updateAppSettings({ reasoningEngine: engine });
 };
 
 function updatePoweredByDisplay() {
@@ -635,9 +743,8 @@ function saveReasoningEngine() {
 
 function setupReasoningEngineHandlers() {
     // Set default if not exists
-    if (!getCookie('reasoningEngine')) {
-        window.setReasoningEngine('inference');
-    }
+    const current = window.getReasoningEngine();
+    if (!current) window.setReasoningEngine('inference');
     updatePoweredByDisplay();
     
     // Modal event listeners
