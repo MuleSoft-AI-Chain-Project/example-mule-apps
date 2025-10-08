@@ -733,7 +733,9 @@ window.ConversationManager = (function() {
                 responseReasoningMap.clear();
                 chatMessages.innerHTML = '';
                 applyChatBackgroundFromSettings();
-                addMessage("Hello! I'm your Host Agent. How can I help you today?", false);
+                const settings = (typeof window.getAppSettings === 'function') ? window.getAppSettings() : null;
+                const hostName = settings && settings.hostAgentName ? settings.hostAgentName : 'Host Agent';
+                addMessage("Hello! I'm your " + hostName + ". How can I help you today?", false);
                 if (promptInput) promptInput.value = '';
                 // WebSocket connection will be created when user sends first message
             });
@@ -797,7 +799,9 @@ window.ConversationManager = (function() {
 
         // Add initial message if chat is empty
         if (chatMessages.children.length === 0) {
-            addMessage("Hello! I'm your Host Agent. How can I help you today?", false);
+            const settings = (typeof window.getAppSettings === 'function') ? window.getAppSettings() : null;
+            const hostName = settings && settings.hostAgentName ? settings.hostAgentName : 'Host Agent';
+            addMessage("Hello! I'm your " + hostName + ". How can I help you today?", false);
         }
     }
 
