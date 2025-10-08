@@ -22,14 +22,81 @@ window.SettingsManager = (function() {
     
     let themeConfig = {
         primaryColor: '#00a2ff',
-        secondaryColor: '#e3f2fd',
+        primaryLightColor: '#e3f2fd',
         chatBackgroundUrl: '',
         logoUrl: ''
     };
 
+    let hostAgentName = 'Host Agent';
+
     // ----------------------------------------------------------------------------
     // UTILITY FUNCTIONS
     // ----------------------------------------------------------------------------
+
+    function updateBackgroundPreview(url) {
+        try {
+            const preview = document.getElementById('backgroundPreview');
+            const previewImg = document.getElementById('backgroundPreviewImg');
+            if (!preview) return;
+            const applyStyles = function(valid) {
+                if (!valid) {
+                    preview.style.display = 'none';
+                    preview.style.backgroundImage = '';
+                    preview.style.backgroundPosition = '';
+                    preview.style.backgroundSize = '';
+                    preview.style.backgroundRepeat = '';
+                    if (previewImg) {
+                        previewImg.src = '';
+                        previewImg.style.display = 'none';
+                    }
+                    return;
+                }
+                preview.style.display = 'flex';
+                preview.style.height = '50px';
+                preview.style.backgroundImage = 'url(' + url + ')';
+                preview.style.backgroundPosition = 'center';
+                preview.style.backgroundSize = 'cover';
+                preview.style.backgroundRepeat = 'no-repeat';
+                if (previewImg) {
+                    previewImg.style.display = 'none';
+                }
+            };
+            if (!url || url.trim() === '') {
+                applyStyles(false);
+                return;
+            }
+            const img = new Image();
+            img.onload = function() { applyStyles(true); };
+            img.onerror = function() { applyStyles(false); };
+            img.src = url;
+        } catch (e) {}
+    }
+
+    function updateLogoPreview(url) {
+        try {
+            const preview = document.getElementById('logoPreview');
+            const img = document.getElementById('logoPreviewImg');
+            if (!preview || !img) return;
+            const apply = function(valid) {
+                if (!valid) {
+                    preview.style.display = 'none';
+                    img.src = '';
+                    return;
+                }
+                preview.style.display = 'flex';
+                preview.style.backgroundColor = '#fff';
+                img.src = url;
+            };
+            if (!url || url.trim() === '') {
+                apply(false);
+                return;
+            }
+            const testImg = new Image();
+            testImg.onload = function() { apply(true); };
+            testImg.onerror = function() { apply(false); };
+            testImg.src = url;
+        } catch (e) {}
+    }
 
     // Function to add and track event listeners
     function addTrackedEventListener(element, event, handler) {
@@ -51,6 +118,25 @@ window.SettingsManager = (function() {
         } catch (error) {
             console.error('[Settings] Error loading current engine:', error);
             return 'inference';
+        }
+    }
+
+    // Load host agent name from unified settings
+    function loadHostAgentName() {
+        try {
+            const settings = (window.getAppSettings && window.getAppSettings()) || {};
+            hostAgentName = settings.hostAgentName || 'Host Agent';
+            return hostAgentName;
+        } catch (e) {
+            hostAgentName = 'Host Agent';
+            return hostAgentName;
+        }
+    }
+
+    function updateHostAgentNameUI() {
+        const nameInput = document.getElementById('hostAgentName');
+        if (nameInput) {
+            nameInput.value = hostAgentName;
         }
     }
 
@@ -85,6 +171,20 @@ window.SettingsManager = (function() {
             return true;
         } catch (error) {
             console.error('[Settings] Error saving engine selection:', error);
+            return false;
+        }
+    }
+
+    function saveHostAgentName() {
+        try {
+            if (window.updateAppSettings) {
+                window.updateAppSettings({ hostAgentName: hostAgentName });
+            }
+            if (typeof window.updateHostAgentNameDisplay === 'function') {
+                window.updateHostAgentNameDisplay();
+            }
+            return true;
+        } catch (e) {
             return false;
         }
     }
@@ -237,8 +337,8 @@ window.SettingsManager = (function() {
     function updateThemeConfigUI() {
         const primaryColorPicker = document.getElementById('primaryColorPicker');
         const primaryColorHex = document.getElementById('primaryColorHex');
-        const secondaryColorPicker = document.getElementById('secondaryColorPicker');
-        const secondaryColorHex = document.getElementById('secondaryColorHex');
+        const primaryLightColorPicker = document.getElementById('primaryLightColorPicker');
+        const primaryLightColorHex = document.getElementById('primaryLightColorHex');
         const chatBackgroundUrl = document.getElementById('chatBackgroundUrl');
         const logoUrl = document.getElementById('logoUrl');
 
@@ -247,9 +347,9 @@ window.SettingsManager = (function() {
             primaryColorHex.value = themeConfig.primaryColor;
         }
 
-        if (secondaryColorPicker && secondaryColorHex) {
-            secondaryColorPicker.value = themeConfig.secondaryColor;
-            secondaryColorHex.value = themeConfig.secondaryColor;
+        if (primaryLightColorPicker && primaryLightColorHex) {
+            primaryLightColorPicker.value = themeConfig.primaryLightColor;
+            primaryLightColorHex.value = themeConfig.primaryLightColor;
         }
 
         if (chatBackgroundUrl) {
@@ -259,6 +359,11 @@ window.SettingsManager = (function() {
         if (logoUrl) {
             logoUrl.value = themeConfig.logoUrl;
         }
+
+        // Update background preview
+        updateBackgroundPreview(themeConfig.chatBackgroundUrl);
+        // Update logo preview
+        updateLogoPreview(themeConfig.logoUrl);
     }
 
     // Update exchange configuration UI
@@ -363,8 +468,17 @@ window.SettingsManager = (function() {
                     message = 'Failed to save exchange configuration. Please try again.';
                 }
             } else if (settingType === 'themes-brand') {
-                // Save theme configuration
-                success = saveThemeConfig();
+                // Save theme configuration and host agent name
+                const themeSaved = saveThemeConfig();
+                const nameSaved = saveHostAgentName();
+                // Reflect saved logo in header after saving
+                if (typeof window.updateNavbarLogoDisplay === 'function') {
+                    window.updateNavbarLogoDisplay();
+                }
+                if (typeof window.updateThemeVariablesFromSettings === 'function') {
+                    window.updateThemeVariablesFromSettings();
+                }
+                success = themeSaved && nameSaved;
                 if (success) {
                     message = 'Theme and brand settings saved successfully!';
                 } else {
@@ -471,21 +585,20 @@ window.SettingsManager = (function() {
                     if (pickerField) pickerField.value = value;
                 }
                 break;
-            case 'secondaryColorPicker':
-            case 'secondaryColorHex':
-                themeConfig.secondaryColor = value;
+            case 'primaryLightColorPicker':
+            case 'primaryLightColorHex':
+                themeConfig.primaryLightColor = value;
                 // Sync the other field
-                if (field.id === 'secondaryColorPicker') {
-                    const hexField = document.getElementById('secondaryColorHex');
+                if (field.id === 'primaryLightColorPicker') {
+                    const hexField = document.getElementById('primaryLightColorHex');
                     if (hexField) hexField.value = value;
                 } else {
-                    const pickerField = document.getElementById('secondaryColorPicker');
+                    const pickerField = document.getElementById('primaryLightColorPicker');
                     if (pickerField) pickerField.value = value;
                 }
                 break;
         }
-        
-        saveThemeConfig();
+        // Do not persist or apply CSS variables until Save is clicked
         console.log('[Settings] Theme color changed:', field.id, value);
     }
 
@@ -503,8 +616,20 @@ window.SettingsManager = (function() {
                 break;
         }
         
-        saveThemeConfig();
+        if (field.id === 'chatBackgroundUrl') {
+            // Persist chat background changes immediately and show preview
+            saveThemeConfig();
+            updateBackgroundPreview(value);
+        } else if (field.id === 'logoUrl') {
+            // Only preview logo; do not save or update header until Save is clicked
+            updateLogoPreview(value);
+        }
         console.log('[Settings] Theme URL changed:', field.id, value);
+    }
+
+    function handleHostAgentNameChange(event) {
+        const field = event.target;
+        hostAgentName = field.value;
     }
 
     // Handle settings navigation clicks
@@ -591,6 +716,68 @@ window.SettingsManager = (function() {
     }
 
     // ----------------------------------------------------------------------------
+    // EXPORT / IMPORT SETTINGS
+    // ----------------------------------------------------------------------------
+
+    function exportSettings() {
+        try {
+            const settings = window.getAppSettings ? window.getAppSettings() : null;
+            if (!settings) {
+                showNotification('No settings to export.', 'error');
+                return;
+            }
+            const data = new Blob([JSON.stringify(settings, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(data);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'settings.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        } catch (e) {
+            showNotification('Failed to export settings.', 'error');
+        }
+    }
+
+    function importSettingsFromFile(file) {
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+            try {
+                const parsed = JSON.parse(evt.target.result);
+                if (typeof parsed !== 'object' || parsed === null) {
+                    throw new Error('Invalid settings file');
+                }
+                // Persist imported settings
+                if (window.updateAppSettings) {
+                    // Overwrite completely
+                    localStorage.setItem('settings', JSON.stringify(parsed));
+                }
+                // Refresh UI from imported settings
+                loadCurrentEngine();
+                updateEngineSelectionUI();
+                loadExchangeConfig();
+                updateExchangeConfigUI();
+                loadThemeConfig();
+                updateThemeConfigUI();
+                loadHostAgentName();
+                updateHostAgentNameUI();
+                if (typeof window.updateNavbarLogoDisplay === 'function') window.updateNavbarLogoDisplay();
+                if (typeof window.updateHostAgentNameDisplay === 'function') window.updateHostAgentNameDisplay();
+                if (typeof window.updateThemeVariablesFromSettings === 'function') window.updateThemeVariablesFromSettings();
+                showNotification('Settings imported successfully.', 'success');
+            } catch (e) {
+                showNotification('Failed to import settings. Ensure it is a valid JSON export.', 'error');
+            }
+        };
+        reader.onerror = function() {
+            showNotification('Failed to read the selected file.', 'error');
+        };
+        reader.readAsText(file);
+    }
+
+    // ----------------------------------------------------------------------------
     // SETUP FUNCTIONS
     // ----------------------------------------------------------------------------
 
@@ -632,7 +819,7 @@ window.SettingsManager = (function() {
         }
         
         // Theme color pickers and hex inputs
-        const themeColorFields = document.querySelectorAll('#primaryColorPicker, #primaryColorHex, #secondaryColorPicker, #secondaryColorHex');
+        const themeColorFields = document.querySelectorAll('#primaryColorPicker, #primaryColorHex, #primaryLightColorPicker, #primaryLightColorHex');
         themeColorFields.forEach(field => {
             addTrackedEventListener(field, 'input', handleThemeColorChange);
         });
@@ -642,6 +829,102 @@ window.SettingsManager = (function() {
         themeUrlFields.forEach(field => {
             addTrackedEventListener(field, 'input', handleThemeUrlChange);
         });
+
+        // Host Agent Name input
+        const nameField = document.getElementById('hostAgentName');
+        if (nameField) {
+            addTrackedEventListener(nameField, 'input', handleHostAgentNameChange);
+        }
+
+        // Export / Import buttons
+        const exportBtn = document.getElementById('exportSettingsBtn');
+        if (exportBtn) {
+            addTrackedEventListener(exportBtn, 'click', function() {
+                exportSettings();
+            });
+        }
+        const importBtn = document.getElementById('importSettingsBtn');
+        const importInput = document.getElementById('importSettingsFile');
+        if (importBtn && importInput) {
+            addTrackedEventListener(importBtn, 'click', function() {
+                importInput.click();
+            });
+            addTrackedEventListener(importInput, 'change', function(e) {
+                const file = e.target.files && e.target.files[0];
+                importSettingsFromFile(file);
+                importInput.value = '';
+            });
+        }
+
+        // Reset settings button
+        const resetBtn = document.getElementById('resetSettingsBtn');
+        if (resetBtn) {
+            addTrackedEventListener(resetBtn, 'click', function() {
+                try {
+                    // Clear unified settings and legacy keys
+                    localStorage.removeItem('settings');
+                    localStorage.removeItem('exchange_credentials');
+                    localStorage.removeItem('themeSettings');
+                    document.cookie = 'reasoningEngine=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/';
+
+                    // Reload defaults into UI
+                    themeConfig = {
+                        primaryColor: '#00a2ff',
+                        primaryLightColor: '#e3f2fd',
+                        chatBackgroundUrl: '',
+                        logoUrl: ''
+                    };
+                    exchangeConfig = {
+                        type: 'default',
+                        url: '', clientId: '', clientSecret: '', organizationId: '', environmentId: ''
+                    };
+                    selectedEngine = 'inference';
+                    hostAgentName = 'Host Agent';
+
+                    updateThemeConfigUI();
+                    updateExchangeConfigUI();
+                    updateEngineSelectionUI();
+                    updateHostAgentNameUI();
+                    updateBackgroundPreview('');
+                    updateLogoPreview('');
+
+                    if (typeof window.updateThemeVariablesFromSettings === 'function') window.updateThemeVariablesFromSettings();
+                    if (typeof window.updateNavbarLogoDisplay === 'function') window.updateNavbarLogoDisplay();
+                    if (typeof window.updateHostAgentNameDisplay === 'function') window.updateHostAgentNameDisplay();
+
+                    showNotification('Settings were reset to defaults.', 'success');
+                } catch (e) {
+                    showNotification('Failed to reset settings.', 'error');
+                }
+            });
+        }
+
+        // Remove background button
+        const removeBgBtn = document.getElementById('removeBackgroundBtn');
+        if (removeBgBtn) {
+            addTrackedEventListener(removeBgBtn, 'click', function() {
+                const urlField = document.getElementById('chatBackgroundUrl');
+                if (urlField) urlField.value = '';
+                themeConfig.chatBackgroundUrl = '';
+                saveThemeConfig();
+                updateBackgroundPreview('');
+                if (window.ConversationManager && typeof window.ConversationManager.applyTheme === 'function') {
+                    window.ConversationManager.applyTheme();
+                }
+            });
+        }
+
+        // Remove logo button
+        const removeLogoBtn = document.getElementById('removeLogoBtn');
+        if (removeLogoBtn) {
+            addTrackedEventListener(removeLogoBtn, 'click', function() {
+                const urlField = document.getElementById('logoUrl');
+                if (urlField) urlField.value = '';
+                themeConfig.logoUrl = '';
+                // Only update preview; defer persistence and header update until Save
+                updateLogoPreview('');
+            });
+        }
     }
 
     // ----------------------------------------------------------------------------
@@ -672,6 +955,10 @@ window.SettingsManager = (function() {
         // Load theme configuration and update UI
         loadThemeConfig();
         updateThemeConfigUI();
+        updateBackgroundPreview(themeConfig.chatBackgroundUrl);
+        // Load Host Agent Name and update UI
+        loadHostAgentName();
+        updateHostAgentNameUI();
         
         // Setup event listeners
         setupEventListeners();

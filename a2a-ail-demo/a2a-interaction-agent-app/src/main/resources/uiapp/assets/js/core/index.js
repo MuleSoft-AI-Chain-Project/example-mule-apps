@@ -32,6 +32,7 @@ const SETTINGS_STORAGE_KEY = 'settings';
 function getDefaultAppSettings() {
     return {
         reasoningEngine: 'inference',
+        hostAgentName: 'Host Agent',
         exchangeCredentials: {
             type: 'default',
             url: '',
@@ -42,7 +43,7 @@ function getDefaultAppSettings() {
         },
         themeSettings: {
             primaryColor: '#00a2ff',
-            secondaryColor: '#e3f2fd',
+            primaryLightColor: '#e3f2fd',
             chatBackgroundUrl: '',
             logoUrl: ''
         }
@@ -729,6 +730,66 @@ function updatePoweredByDisplay() {
     }
 }
 
+function updateHostAgentNameDisplay() {
+    const name = (typeof getAppSettings === 'function' ? getAppSettings().hostAgentName : null) || 'Host Agent';
+    const brandNameSpan = document.getElementById('navbarBrandName');
+    if (brandNameSpan) {
+        brandNameSpan.textContent = name;
+    }
+}
+// Expose globally so Settings page can update live on save
+window.updateHostAgentNameDisplay = updateHostAgentNameDisplay;
+
+function updateNavbarLogoDisplay() {
+    const settings = typeof getAppSettings === 'function' ? getAppSettings() : null;
+    const logoUrl = settings && settings.themeSettings ? settings.themeSettings.logoUrl : '';
+    const brand = document.getElementById('navbarBrand');
+    const icon = document.getElementById('navbarBrandIcon');
+    // Remove existing img if present
+    const existingImg = brand ? brand.querySelector('img.navbar-brand-logo') : null;
+    if (existingImg && (!logoUrl || logoUrl.trim() === '')) {
+        existingImg.remove();
+    }
+    if (brand) {
+        if (logoUrl && logoUrl.trim() !== '') {
+            if (!existingImg) {
+                const img = document.createElement('img');
+                img.className = 'navbar-brand-logo';
+                img.src = logoUrl;
+                img.alt = 'Logo';
+                img.style.height = '50px';
+                img.style.paddingBottom = '10px';
+                img.style.paddingRight = '10px';
+                brand.insertBefore(img, brand.firstChild);
+            } else {
+                existingImg.src = logoUrl;
+            }
+            if (icon) icon.style.display = 'none';
+        } else {
+            if (icon) icon.style.display = '';
+        }
+    }
+}
+window.updateNavbarLogoDisplay = updateNavbarLogoDisplay;
+
+function updateThemeVariablesFromSettings() {
+    try {
+        const settings = typeof getAppSettings === 'function' ? getAppSettings() : null;
+        const theme = (settings && settings.themeSettings) || {};
+        const root = document.documentElement;
+        if (theme.primaryColor) {
+            root.style.setProperty('--primary-color', theme.primaryColor);
+        }
+        // Backward compatibility for legacy secondaryColor
+        const light = theme.primaryLightColor || theme.secondaryColor;
+        if (light) {
+            root.style.setProperty('--primary-light-color', light);
+            root.style.setProperty('--secondary-color', light);
+        }
+    } catch (e) {}
+}
+window.updateThemeVariablesFromSettings = updateThemeVariablesFromSettings;
+
 function openReasoningEngineModal() {
     const modal = new bootstrap.Modal(document.getElementById('reasoningEngineModal'));
     const currentEngine = window.getReasoningEngine();
@@ -808,6 +869,12 @@ function initializeIndex() {
     setupButtonHandlers();
     setupInitialState();
     setupReasoningEngineHandlers();
+    // Apply navbar brand name from settings
+    updateHostAgentNameDisplay();
+    // Apply navbar logo from settings
+    updateNavbarLogoDisplay();
+    // Apply CSS variable overrides from theme settings
+    updateThemeVariablesFromSettings();
     
     // Setup tab switch cleanup
     patchTabSwitchCleanup();

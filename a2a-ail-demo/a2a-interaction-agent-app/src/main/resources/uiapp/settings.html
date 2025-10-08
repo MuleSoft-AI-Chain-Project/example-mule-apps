@@ -165,49 +165,33 @@
                              <p class="setting-description">Customize the visual appearance and branding of your application</p>
                          </div>
                          
-                         <div class="themes-brand-container">
-                             <!-- Colors Section -->
-                             <div class="themes-section">
-                                 <h4><i class="fas fa-palette me-2"></i>Colors</h4>
-                                 <p class="themes-description">Choose your brand colors that will be used throughout the application</p>
-                                 
-                                 <!-- Primary Color -->
-                                 <div class="color-group">
-                                     <h5>Primary Color</h5>
-                                     <div class="color-picker-container">
-                                         <div class="color-picker-wrapper">
-                                             <input type="color" id="primaryColorPicker" class="color-picker" value="#00a2ff">
-                                             <label for="primaryColorPicker" class="color-picker-label">
-                                                 <span class="color-text">Primary</span>
-                                             </label>
-                                         </div>
-                                         <div class="color-hex-input">
-                                             <input type="text" id="primaryColorHex" class="form-control" placeholder="#00a2ff" maxlength="7">
-                                             <small class="form-text text-muted">Enter hex color code (e.g., #00a2ff)</small>
-                                         </div>
-                                     </div>
-                                 </div>
-                                 
-                                 <!-- Secondary Color -->
-                                 <div class="color-group">
-                                     <h5>Secondary Color</h5>
-                                     <div class="color-picker-container">
-                                         <div class="color-picker-wrapper">
-                                             <input type="color" id="secondaryColorPicker" class="color-picker" value="#e3f2fd">
-                                             <label for="secondaryColorPicker" class="color-picker-label">
-                                                 <span class="color-text">Secondary</span>
-                                             </label>
-                                         </div>
-                                         <div class="color-hex-input">
-                                             <input type="text" id="secondaryColorHex" class="form-control" placeholder="#e3f2fd" maxlength="7">
-                                             <small class="form-text text-muted">Enter hex color code (e.g., #e3f2fd)</small>
-                                         </div>
-                                     </div>
-                                 </div>
-                             </div>
-                             
-                             <!-- Chat Background Section -->
-                             <div class="themes-section">
+                        <div class="themes-brand-container">
+                            <!-- Host Agent Name Section -->
+                            <div class="themes-section">
+                                <h4><i class="fas fa-id-badge me-2"></i>Host Agent Name</h4>
+                                <p class="themes-description">Set the display name for your Host Agent</p>
+                                <div class="url-input-container">
+                                    <input type="text" id="hostAgentName" class="form-control" placeholder="Host Agent">
+                                </div>
+                            </div>
+
+                            <!-- Logo Section (moved before Colors) -->
+                            <div class="themes-section">
+                                <h4><i class="fas fa-tag me-2"></i>Logo</h4>
+                                <p class="themes-description">Set your custom logo using a public URL</p>
+                                <div class="url-input-container">
+                                    <input type="url" id="logoUrl" class="form-control" placeholder="https://example.com/logo.png">
+                                    <div class="url-preview" id="logoPreview" style="display: none;">
+                                        <img id="logoPreviewImg" src="" alt="Logo preview" class="logo-preview-img">
+                                        <button type="button" class="btn btn-sm btn-outline-danger" id="removeLogoBtn">
+                                            <i class="fas fa-times"></i> Remove
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Chat Background Section -->
+                            <div class="themes-section">
                                  <h4><i class="fas fa-image me-2"></i>Chat Background</h4>
                                  <p class="themes-description">Set a background image for the chat interface using a public URL</p>
                                  <div class="url-input-container">
@@ -221,20 +205,41 @@
                                  </div>
                              </div>
                              
-                             <!-- Logo Section -->
-                             <div class="themes-section">
-                                 <h4><i class="fas fa-tag me-2"></i>Logo</h4>
-                                 <p class="themes-description">Set your custom logo using a public URL</p>
-                                 <div class="url-input-container">
-                                     <input type="url" id="logoUrl" class="form-control" placeholder="https://example.com/logo.png">
-                                     <div class="url-preview" id="logoPreview" style="display: none;">
-                                         <img id="logoPreviewImg" src="" alt="Logo preview" class="preview-image logo-preview">
-                                         <button type="button" class="btn btn-sm btn-outline-danger" id="removeLogoBtn">
-                                             <i class="fas fa-times"></i> Remove
-                                         </button>
+                            <!-- Colors Section (after Chat Background) -->
+                            <div class="themes-section">
+                                 <h4><i class="fas fa-palette me-2"></i>Colors</h4>
+                                 <p class="themes-description">Choose your brand colors that will be used throughout the application</p>
+                                 
+                                 <!-- Primary Color -->
+                                 <div class="color-group">
+                                     <h5>Primary Color</h5>
+                                     <div class="color-picker-container">
+                                        <div class="color-picker-wrapper">
+                                            <input type="color" id="primaryColorPicker" class="color-picker" value="#00a2ff">
+                                            <label for="primaryColorPicker" class="color-picker-label"></label>
+                                        </div>
+                                         <div class="color-hex-input">
+                                             <input type="text" id="primaryColorHex" class="form-control" placeholder="#00a2ff" maxlength="7">
+                                             <small class="form-text text-muted">Enter hex color code (e.g., #00a2ff)</small>
+                                         </div>
                                      </div>
                                  </div>
-                             </div>
+                                 
+                                <!-- Primary Light Color -->
+                                 <div class="color-group">
+                                    <h5>Primary Light Color</h5>
+                                     <div class="color-picker-container">
+                                        <div class="color-picker-wrapper">
+                                            <input type="color" id="primaryLightColorPicker" class="color-picker" value="#e3f2fd">
+                                            <label for="primaryLightColorPicker" class="color-picker-label"></label>
+                                        </div>
+                                         <div class="color-hex-input">
+                                            <input type="text" id="primaryLightColorHex" class="form-control" placeholder="#e3f2fd" maxlength="7">
+                                            <small class="form-text text-muted">Enter hex color code (e.g., #e3f2fd)</small>
+                                         </div>
+                                     </div>
+                                 </div>
+                            </div>
                              
                          </div>
                      </div>
@@ -243,9 +248,21 @@
              
              <!-- Save Button -->
              <div class="settings-save-section">
-                 <button id="saveEngineSettingsBtn" class="btn btn-primary">
-                     <i class="fas fa-save me-2"></i>Save
-                 </button>
+                <div style="display:flex; gap: 0.5rem; align-items:center;">
+                    <button id="exportSettingsBtn" class="btn btn-outline-secondary">
+                        <i class="fas fa-file-export me-2"></i>Export
+                    </button>
+                    <button id="importSettingsBtn" class="btn btn-outline-secondary">
+                        <i class="fas fa-file-import me-2"></i>Import
+                    </button>
+                    <input type="file" id="importSettingsFile" accept="application/json" style="display:none;">
+                    <button id="resetSettingsBtn" class="btn">
+                        <i class="fas fa-undo me-2"></i>Reset
+                    </button>
+                    <button id="saveEngineSettingsBtn" class="btn btn-primary">
+                        <i class="fas fa-save me-2"></i>Save
+                    </button>
+                </div>
              </div>
          </div>
 
@@ -257,125 +274,5 @@
     </div>
 </div>
 
-<style>
-/* Themes and Brand section styling */
-.themes-section {
-    margin-bottom: 2rem;
-    padding: 1.5rem;
-    border: 1px solid #e9ecef;
-    border-radius: 8px;
-    background-color: #f8f9fa;
-}
-
-.themes-section:last-child {
-    margin-bottom: 0;
-}
-
-.themes-section h4 {
-    color: #495057;
-    margin-bottom: 0.5rem;
-    font-weight: 600;
-}
-
-.themes-description {
-    color: #6c757d;
-    margin-bottom: 1rem;
-    font-size: 0.9rem;
-}
-
-.color-group {
-    margin-bottom: 1.5rem;
-    padding: 1rem;
-    background-color: #ffffff;
-    border: 1px solid #e9ecef;
-    border-radius: 6px;
-}
-
-.color-group:last-child {
-    margin-bottom: 0;
-}
-
-.color-group h5 {
-    color: #495057;
-    margin-bottom: 0.75rem;
-    font-weight: 600;
-    font-size: 1rem;
-}
-
-.color-picker-container {
-    display: flex;
-    align-items: flex-start;
-    gap: 1rem;
-    flex-wrap: wrap;
-}
-
-.color-picker-wrapper {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.5rem;
-}
-
-.color-picker {
-    width: 50px;
-    height: 50px;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-}
-
-.color-picker-label {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    cursor: pointer;
-    font-weight: 500;
-}
-
-
-.color-hex-input {
-    flex: 1;
-    min-width: 200px;
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-}
-
-.color-hex-input .form-control {
-    height: 50px;
-    border: 1px solid #ced4da;
-    border-radius: 8px;
-    padding: 0.375rem 0.75rem;
-    font-size: 1rem;
-}
-
-.url-input-container {
-    margin-top: 1rem;
-}
-
-.url-input-container .form-control {
-    border: 1px solid #ced4da;
-    border-radius: 4px;
-    padding: 0.375rem 0.75rem;
-}
-
-.url-preview {
-    margin-top: 1rem;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-}
-
-.preview-image {
-    max-width: 100px;
-    max-height: 60px;
-    border-radius: 4px;
-    border: 1px solid #dee2e6;
-}
-
-.logo-preview {
-    max-width: 60px;
-    max-height: 60px;
-}
-</style>
+ 
 
