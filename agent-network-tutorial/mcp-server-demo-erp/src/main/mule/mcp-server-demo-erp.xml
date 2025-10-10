@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:mac-inference="http://www.mulesoft.org/schema/mule/mac-inference"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:tls="http://www.mulesoft.org/schema/mule/tls"
+	xmlns:mcp="http://www.mulesoft.org/schema/mule/mcp"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/mcp http://www.mulesoft.org/schema/mule/mcp/current/mule-mcp.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/mac-inference http://www.mulesoft.org/schema/mule/mac-inference/current/mule-mac-inference.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="8c9e12bc-68ef-4625-86b2-dbb11ced1ae3" >
+		<http:listener-connection host="0.0.0.0" port="${http.port}" readTimeout="60000">
+		</http:listener-connection>
+		<http:listener-interceptors >
+			<http:cors-interceptor >
+				<http:origins >
+					<http:public-resource />
+				</http:origins>
+			</http:cors-interceptor>
+		</http:listener-interceptors>
+   	</http:listener-config>
+	<mcp:server-config name="MCP_Server_SSE" doc:name="MCP Server" doc:id="91104337-173b-49be-bf3d-b34f64237a84" serverName="mcp-mule-server" serverVersion="1.0.0" >
+		<mcp:sse-server-connection listenerConfig="HTTP_Listener_config" />
+	</mcp:server-config>
+	<mcp:server-config name="MCP_Server_Streamable" doc:name="MCP Server" doc:id="82d10f39-71c5-4df0-9913-ea9e1da5b7e9" serverName="mule-mcp-server" serverVersion="1.0.0" >
+		<mcp:streamable-http-server-connection listenerConfig="HTTP_Listener_config" />
+	</mcp:server-config>
+	<configuration-properties doc:name="Configuration properties" doc:id="b205393f-9df8-4fe4-98da-a33b7046d04d" file="config.properties" />
+	<flow name="ecc-get-inventory-sse" doc:id="21787a18-e9c7-44ff-b95b-e1a360eb1361" >
+		<mcp:tool-listener doc:name="SSE Get inventory" doc:id="d82bd2db-2d2c-49bd-8383-4a02dd39875f" config-ref="MCP_Server_SSE" name="get_inventory">
+			<mcp:description ><![CDATA[This tool gets inventory from ERP. Check inventory details for material in SAP by providing the materialNo as input for paramValue. Please use the materialNo and not materialNumber. This action applies whenever users' intent is 'Stock overview', 'product availability', 'Inventory', 'available stock'. Use the headers to perform the request.]]></mcp:description>
+			<mcp:parameters-schema ><![CDATA[{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "materialNo": {
+      "type": "string",
+      "description": "The material number for querying inventory data"
+    }
+  },
+  "required": ["materialNo"],
+  "additionalProperties": false
+}]]></mcp:parameters-schema>
+			<mcp:responses >
+				<mcp:text-tool-response-content text="#[payload.^raw]" priority="1" >
+					<mcp:audience >
+						<mcp:audience-item value="ASSISTANT" />
+					</mcp:audience>
+				</mcp:text-tool-response-content>
+			</mcp:responses>
+		</mcp:tool-listener>
+		<flow-ref doc:name="ecc-get-inventory-sub-flow" doc:id="c3b28ab2-dbf9-40d1-ac08-e3644cccdc37" name="ecc-get-inventory-sub-flow"/>
+	</flow>
+	<flow name="ecc-get-inventory-streamable" doc:id="b9fc799c-4e85-4166-85a5-ac1d18a25bb2">
+		<mcp:tool-listener doc:name="Streamable Get inventory" doc:id="f12baff7-bc6c-438b-938b-80e59deb13a0" config-ref="MCP_Server_Streamable" name="get_inventory">
+			<mcp:description><![CDATA[This tool gets inventory from ERP. Check inventory details for material in SAP by providing the materialNo as input for paramValue. Please use the materialNo and not materialNumber. This action applies whenever users' intent is 'Stock overview', 'product availability', 'Inventory', 'available stock'. Use the headers to perform the request.]]></mcp:description>
+			<mcp:parameters-schema><![CDATA[{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "materialNo": {
+      "type": "string",
+      "description": "The material number for querying inventory data"
+    }
+  },
+  "required": ["materialNo"],
+  "additionalProperties": false
+}]]></mcp:parameters-schema>
+			<mcp:responses>
+				<mcp:text-tool-response-content text="#[payload.^raw]" priority="1">
+					<mcp:audience>
+						<mcp:audience-item value="ASSISTANT" />
+					</mcp:audience>
+				</mcp:text-tool-response-content>
+			</mcp:responses>
+		</mcp:tool-listener>
+		<flow-ref doc:name="ecc-get-inventory-sub-flow" doc:id="e295bb72-f0e1-4fbc-83e5-b6d696edc7a5" name="ecc-get-inventory-sub-flow" />
+	</flow>
+	<sub-flow name="ecc-get-inventory-sub-flow" doc:id="be703e10-d4e2-4eff-be82-6fe46d523b50" >
+		<ee:transform doc:name="Transform Message" doc:id="ccf90be9-0508-4e20-97bb-ffa230edb3cc">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<http:request method="POST" doc:name="Request" doc:id="9c098e86-73cd-4193-8870-b55996e3fafe" url="${sap.inventory}" />
+	</sub-flow>
+	<flow name="ecc-post-order-sse" doc:id="e26a6cab-c086-48d6-a07e-aa943b8e0dfc">
+		<mcp:tool-listener doc:name="SSE Post order" doc:id="909d30cc-64c1-44c8-b13e-3f665327bb22" config-ref="MCP_Server_SSE" name="submit_order">
+			<mcp:description ><![CDATA[This tool submits an order for a product in ERP. Submit a Sales Order in ERP for a material. This action applies whenever users' intent is 'Create Sales Order', 'Order Submission', 'submit an order', 'create an order'. Use the headers to perform the request. If TARGET_QTY is provided, good, otherwise set it to 1. ]]></mcp:description>
+			<mcp:parameters-schema><![CDATA[{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "MATERIAL": {
+      "type": "string"
+    },
+    "TARGET_QTY": {
+      "type": "string"
+    }
+  },
+  "required": ["MATERIAL"],
+  "additionalProperties": false
+}
+]]></mcp:parameters-schema>
+			<mcp:responses>
+				<mcp:text-tool-response-content text="#[payload.^raw]" priority="1">
+					<mcp:audience>
+						<mcp:audience-item value="ASSISTANT" />
+					</mcp:audience>
+				</mcp:text-tool-response-content>
+			</mcp:responses>
+		</mcp:tool-listener>
+		<flow-ref doc:name="ecc-post-order-sub-flow" doc:id="a537831e-cde5-4f30-89ba-504023a90f42" name="ecc-post-order-sub-flow"/>
+	</flow>
+	<flow name="ecc-post-order-streamable" doc:id="f95d077f-d85e-4927-8571-43e0873765ab">
+		<mcp:tool-listener doc:name="Streamable Post order" doc:id="f2d26d05-7c99-42b4-93b7-1c49158e705e" config-ref="MCP_Server_Streamable" name="submit_order">
+			<mcp:description><![CDATA[This tool submits an order for a product in ERP. Submit a Sales Order in ERP for a material. This action applies whenever users' intent is 'Create Sales Order', 'Order Submission', 'submit an order', 'create an order'. Use the headers to perform the request. If TARGET_QTY is provided, good, otherwise set it to 1. ]]></mcp:description>
+			<mcp:parameters-schema><![CDATA[{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "MATERIAL": {
+      "type": "string"
+    },
+    "TARGET_QTY": {
+      "type": "string"
+    }
+  },
+  "required": ["MATERIAL"],
+  "additionalProperties": false
+}
+]]></mcp:parameters-schema>
+			<mcp:responses>
+				<mcp:text-tool-response-content text="#[payload.^raw]" priority="1">
+					<mcp:audience>
+						<mcp:audience-item value="ASSISTANT" />
+					</mcp:audience>
+				</mcp:text-tool-response-content>
+			</mcp:responses>
+		</mcp:tool-listener>
+		<flow-ref doc:name="ecc-post-order-sub-flow" doc:id="5b83b6af-18ef-4517-afe4-df2fb4349b29" name="ecc-post-order-sub-flow" />
+	</flow>
+	<sub-flow name="ecc-post-order-sub-flow" doc:id="755d2e57-7464-4a43-b2ca-0133cc6aba02" >
+		<ee:transform doc:name="Transform Message" doc:id="1c107ad6-4326-44b1-af52-056358956f05">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  "SALES_ORG": "3000",
+  "DISTR_CHAN": "10",
+  "DIVISION": "00",
+  "PURCH_NO": "MAC MCP Demo",
+  "MATERIAL": payload.MATERIAL default "MULETEST0",
+  "PLANT": "3000",
+  "TARGET_QTY": payload.TARGET_QTY default "1",
+  "CUSTOMER": "0000000007"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<http:request method="POST" doc:name="Request" doc:id="27a0a8f1-615a-4e52-b8dc-eea6e58f18ae" url="${sap.order}" />
+	</sub-flow>
+	<flow name="ecc-post-delivery-sse" doc:id="2e5cef6d-ea94-4d5c-9d7f-af9d84616c24">
+		<mcp:tool-listener doc:name="SSE Post delivery" doc:id="cef8a4a5-6e63-42c7-8972-8e5ed1950c94" config-ref="MCP_Server_SSE" name="submit_delivery">
+			<mcp:description><![CDATA[This tool submits a delivery for an existing order in ERP. Submit a Delivery in ERP for an order. This action applies whenever users' intent is 'Create Delivery', 'Outbound Delivery', 'Picking and packaging', 'create delivery for order number'. Use the headers to perform the request. If ORDER_NO is not provided, don't execute this tool. ORDER_NO must be provided or is created by the tool submit_order]]></mcp:description>
+			<mcp:parameters-schema><![CDATA[{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "ORDER_NO": {
+      "type": "string"
+    }
+  },
+  "required": ["ORDER_NO"],
+  "additionalProperties": false
+}]]></mcp:parameters-schema>
+			<mcp:responses>
+				<mcp:text-tool-response-content text="#[payload.^raw]" priority="1">
+					<mcp:audience>
+						<mcp:audience-item value="ASSISTANT" />
+					</mcp:audience>
+				</mcp:text-tool-response-content>
+			</mcp:responses>
+		</mcp:tool-listener>
+		<flow-ref doc:name="ecc-post-delivery-sub-flow" doc:id="6ad1893a-8091-46f5-944e-ead27fc75826" name="ecc-post-delivery-sub-flow"/>
+	</flow>
+	<flow name="ecc-post-delivery-streamable" doc:id="fea972f2-bfad-4b3a-9174-8874885b4220">
+		<mcp:tool-listener doc:name="Streamable Post delivery" doc:id="714b9032-1645-42c7-a04e-f7b632d11557" config-ref="MCP_Server_Streamable" name="submit_delivery">
+			<mcp:description><![CDATA[This tool submits a delivery for an existing order in ERP. Submit a Delivery in ERP for an order. This action applies whenever users' intent is 'Create Delivery', 'Outbound Delivery', 'Picking and packaging', 'create delivery for order number'. Use the headers to perform the request. If ORDER_NO is not provided, don't execute this tool. ORDER_NO must be provided or is created by the tool submit_order]]></mcp:description>
+			<mcp:parameters-schema><![CDATA[{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "ORDER_NO": {
+      "type": "string"
+    }
+  },
+  "required": ["ORDER_NO"],
+  "additionalProperties": false
+}]]></mcp:parameters-schema>
+			<mcp:responses>
+				<mcp:text-tool-response-content text="#[payload.^raw]" priority="1">
+					<mcp:audience>
+						<mcp:audience-item value="ASSISTANT" />
+					</mcp:audience>
+				</mcp:text-tool-response-content>
+			</mcp:responses>
+		</mcp:tool-listener>
+		<flow-ref doc:name="ecc-post-delivery-sub-flow" doc:id="f09a70ba-39d9-46a9-b999-3b530ee34366" name="ecc-post-delivery-sub-flow" />
+	</flow>
+	<sub-flow name="ecc-post-delivery-sub-flow" doc:id="abd34cfb-ac17-47a0-bc81-2aaaa8828ea7" >
+		<ee:transform doc:name="Transform Message" doc:id="e50df98b-18e6-4f27-9a60-2843609f8313">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  "ORDER_NO": payload.ORDER_NO,
+  "DELIVERY_NO": (now() as Number {unit: "seconds"} as String)[-7 to -1] as Number
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+</mule>
