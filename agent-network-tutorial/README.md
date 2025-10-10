@@ -27,7 +27,7 @@ The following agent applications are included under the workspace and should be 
 - `a2a-030-erp-native-mcp-agent` (ERP agent)
 - `a2a-030-hubspot-agent` (HubSpot / Einstein agent)
 - `a2a-030-jira-agent` (Jira / Einstein agent)
-- `a2a-030-knowledge-agentforce-agent` (Agentforce knowledge/reservation agent)
+- `a2a-030-knowledge-agentforce-agent` (Agentforce knowledge agent)
 
 ## 🔧 Included MCP servers (must be deployed by you)
 
