@@ -174,9 +174,8 @@ window.SessionsManager = (function() {
         }
         interactions.forEach((interaction, i) => {
             const data = interaction.data || {};
-            // Collect all task IDs and statuses for this session
+            // Collect all task IDs for this session
             let taskIds = [];
-            let taskStatuses = [];
             if (Array.isArray(data.reasoning)) {
                 data.reasoning.forEach(r => {
                     if (Array.isArray(r.calledAgents)) {
@@ -184,10 +183,6 @@ window.SessionsManager = (function() {
                             const taskId = agent.agentTaskResponse?.id || agent.agentTaskRequest?.id;
                             if (taskId) {
                                 taskIds.push(taskId);
-                            }
-                            const statusState = agent.agentTaskResponse?.status?.state;
-                            if (statusState) {
-                                taskStatuses.push(statusState);
                             }
                         });
                     }
@@ -209,7 +204,6 @@ window.SessionsManager = (function() {
                     ${interactionId}
                 </td>
                 <td>${taskIds.map(id => `<div>${id}</div>`).join('')}</td>
-                <td>${taskStatuses.map(s => `<div>${s}</div>`).join('')}</td>
                 <td>${timestamp}</td>
                 <td>${renderAgentPills(data.reasoning)}</td>
             `;

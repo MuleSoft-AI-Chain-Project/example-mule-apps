@@ -73,7 +73,10 @@
                             html += `<div class='interaction-task-section'><span class='interaction-task-label'>Context ID:</span> <span class='interaction-task-value'>${responseContextId}</span></div>`;
                         }
                         
-                        // Keep status timestamp and message; fallback to artifact text if status message is absent
+                        // Keep status.state, timestamp and message; fallback to artifact text if status message is absent
+                        if (agent.agentTaskResponse.status && agent.agentTaskResponse.status.state) {
+                            html += `<div class='interaction-task-section'><span class='interaction-task-label'>Status:</span> <span class='interaction-task-value'>${agent.agentTaskResponse.status.state}</span></div>`;
+                        }
                         if (agent.agentTaskResponse.status && agent.agentTaskResponse.status.timestamp) {
                             html += `<div class='interaction-task-section'><span class='interaction-task-label'>Timestamp:</span> <span class='interaction-task-value'>${agent.agentTaskResponse.status.timestamp}</span></div>`;
                         }
