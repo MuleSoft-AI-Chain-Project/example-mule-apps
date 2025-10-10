@@ -1,0 +1,48 @@
+{
+  "main": "agent-network.yaml",
+  "name": "tutorial-agent-network",
+  "classifier": "agent-network",
+  "organizationId": "769a1d3e-0648-41de-95e8-e7dbbd27c0c1",
+  "descriptorVersion": "1.0.0",
+  "tags": [],
+  "metadata": {
+    "variables": {
+      "sap-sales-distribution-agent": {
+        "cardUrl": {
+          "description": "Sales and Distrubution Agent Card URL",
+          "default": "",
+          "secret": false
+        }
+      },
+      "knowledge-management-agent": {
+        "cardUrl": {
+          "description": "Knowledge Management Agent Card URL",
+          "default": "",
+          "secret": false
+        }
+      },
+      "google-search-mcp": {
+        "url": {
+          "description": "Google Search MCP Server URL",
+          "default": "",
+          "secret": false
+        }
+      },
+      "openai": {
+        "apiKey": {
+          "description": "Heroku AI API key",
+          "default": ""
+        },
+        "apiUrl": {
+          "description": "OpenAI API URL",
+          "default": "https://api.openai.com/v1",
+          "secret": false
+        }
+      }
+    }
+  },
+  "dependencies": [],
+  "groupId": "769a1d3e-0648-41de-95e8-e7dbbd27c0c1",
+  "assetId": "tutorial-agent-network",
+  "version": "1.2.0"
+}
