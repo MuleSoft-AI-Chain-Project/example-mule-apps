@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:mcp="http://www.mulesoft.org/schema/mule/mcp" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:ms-webcrawler="http://www.mulesoft.org/schema/mule/ms-webcrawler"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ms-webcrawler http://www.mulesoft.org/schema/mule/ms-webcrawler/current/mule-ms-webcrawler.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/mcp http://www.mulesoft.org/schema/mule/mcp/current/mule-mcp.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="26621007-60cf-42f6-9a6c-3db9c256450d" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<mcp:server-config name="MCP_Server" doc:name="MCP Server" doc:id="8344afd4-24df-44b3-8a21-ae4dcfd4d348" serverName="mule-mcp-server" serverVersion="1.0.0" >
+		<mcp:streamable-http-server-connection listenerConfig="HTTP_Listener_config" />
+	</mcp:server-config>
+	<configuration-properties doc:name="Configuration properties" doc:id="780de85f-d3a0-4903-af27-1d9c60dcf340" file="config.properties" />
+	<sub-flow name="google-api-impl" doc:id="94a9c0d8-981f-414c-83d4-6cd99aa0f1d2" >
+		<ee:transform doc:name="Extract Query" doc:id="968d020b-b9ac-4f69-b94f-42bf17089eb7">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/java
+import * from dw::core::URL
+---
+{
+    url: "https://www.googleapis.com/customsearch/v1?key=${google.key}" ++ encodeURIComponent(payload.query)
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<http:request method="GET" doc:name="Perform Google Search" doc:id="e4449b73-1a04-4c82-8010-e31b6a209471" url="#[payload.url]" />
+		<ee:transform doc:name="Extract only search results" doc:id="962458a4-6c7e-4c99-ba46-2f285deee788">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	searchResults: payload.items
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+	<flow name="google-search-api" doc:id="afba8cc3-5d2a-43c4-891b-83821369058f" >
+		<mcp:tool-listener doc:name="google search tool" doc:id="ce4dad9e-3daf-443b-b594-642782427d3b" config-ref="MCP_Server" name="google_search">
+			<mcp:description ><![CDATA[Performs a google search natively using the google api. It requires a query parameter for the search to be performed.]]></mcp:description>
+			<mcp:parameters-schema ><![CDATA[{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "query": {
+      "type": "string",
+      "description": "The search query for retrieving relevant data and perform the search, supports partial matching."
+    }
+  },
+  "required": [],
+  "additionalProperties": false
+}]]></mcp:parameters-schema>
+			<mcp:responses >
+				<mcp:text-tool-response-content text="#[payload.^raw]" priority="1" >
+					<mcp:audience >
+						<mcp:audience-item value="ASSISTANT" />
+					</mcp:audience>
+				</mcp:text-tool-response-content>
+			</mcp:responses>
+		</mcp:tool-listener>
+		<flow-ref doc:name="google-search-sub-flow" doc:id="69b57ab4-42af-48c7-a4fb-490ad72ce79b" name="google-api-impl" />
+	</flow>
+</mule>

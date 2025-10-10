@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:a2a="http://www.mulesoft.org/schema/mule/a2a"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/a2a http://www.mulesoft.org/schema/mule/a2a/current/mule-a2a.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<flow name="a2a-server-listner" doc:id="474fcae8-af7e-4631-ad40-9584ac13aa12" >
+		<a2a:task-listener doc:name="Task Listener" doc:id="fd3dd540-76c6-4afa-9430-846831da2001" config-ref="Einstein_Agent_A2A_Server" />
+		<logger level="INFO" doc:name="❓Incoming A2A Payload ❓" doc:id="10707d53-fff1-433c-a9cc-3ac3205bbe9c" message='#[%dw 2.0&#10;output text&#10;---&#10;"\n\n" ++&#10;"❓❓❓❓❓️️ -------------- Incoming Payload A2A Listener --------------- ❓❓❓❓❓️\n\n" ++&#10;(write(payload, "application/json") default "") ++ "\n" ++&#10;"\n❓❓❓❓❓️️ ------------------------------------------------------------------ ❓❓❓❓❓️" ++&#10;"\n\n"]' />
+		<logger level="INFO" doc:name="❓Incoming A2A Attributes ❓" doc:id="b5c53be1-beff-4912-bb2c-d8f0d1f517a9" message='#[%dw 2.0&#10;output text&#10;---&#10;"\n\n" ++&#10;"❓❓❓❓❓️️ -------------- Incoming Attributes A2A Listener --------------- ❓❓❓❓❓️\n\n" ++&#10;(write(attributes, "application/json") default "") ++ "\n" ++&#10;"\n❓❓❓❓❓️️ ------------------------------------------------------------------ ❓❓❓❓❓️" ++&#10;"\n\n"]' />
+		<logger level="INFO" doc:name="❓Log user prompt ❓" doc:id="964c3c2a-f015-4554-abdc-5813563839a2" message='#[%dw 2.0&#10;output text&#10;---&#10;"\n\n" ++&#10;"❓❓❓❓❓️️ --------------------------  User Prompt -------------------------- ❓❓❓❓❓️\n\n" ++&#10;(payload.message.parts[0].text default "") ++ "\n" ++&#10;"\n❓❓❓❓❓️️ ------------------------------------------------------------------ ❓❓❓❓❓️" ++&#10;"\n\n"]' category="❓Log user prompt ❓" />
+		<flow-ref doc:name="Initialise" doc:id="3ecaeff4-1f31-47ab-9feb-242c1e8ef416" name="a2a-einstein-set-init" />
+		<flow-ref doc:name="Einstein Agent" doc:id="e60c54b9-3524-44b6-942a-24dfa7aec528" name="einstein-agent" />
+		<logger level="INFO" doc:name="❗️Response ❗️" doc:id="fcb97997-1982-43dc-a96b-fa7484f60114" message='#[%dw 2.0&#10;output text&#10;---&#10;"\n\n" ++&#10;"❗️❗️❗️❗️❗️️ --------------------------  Response -------------------------- ❗️❗️❗️❗️❗️\n\n" ++&#10;(payload.response default "") ++ "\n" ++&#10;"\n❗️❗️❗️❗️❗️️ -------------------------------------------------------------- ❗️❗️❗️❗️❗️" ++&#10;"\n\n"]' category="❗️Response ❗" />
+		<ee:transform doc:name="Prepare A2A Server Response" doc:id="4e1d3e55-721b-405c-9374-db5a2bcad444" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "contextId": uuid(),
+    "status": {
+      "state": "completed"
+    },
+    "artifacts": [
+      {
+        "artifactId": uuid(),
+        "name": "task",
+        "parts": [
+          {
+            "kind": "text",
+            "text": payload.response
+          }
+        ]
+      }
+    ],
+    "history": [
+      {
+        "role": "user",
+        "parts": [
+          {
+            "kind": "text",
+            "text": vars.userPrompt
+          }
+        ],
+        "messageId": vars.messageId,
+        "taskId": vars.taskId,
+        "contextId": vars.contextId
+      }
+    ],
+    "kind": "task",
+    "metadata": {}
+
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>

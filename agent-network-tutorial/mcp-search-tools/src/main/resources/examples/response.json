@@ -1,0 +1,513 @@
+{
+  "kind": "customsearch#search",
+  "url": {
+    "type": "application/json",
+    "template": "https://www.googleapis.com/customsearch/v1?q={searchTerms}&num={count?}&start={startIndex?}&lr={language?}&safe={safe?}&cx={cx?}&sort={sort?}&filter={filter?}&gl={gl?}&cr={cr?}&googlehost={googleHost?}&c2coff={disableCnTwTranslation?}&hq={hq?}&hl={hl?}&siteSearch={siteSearch?}&siteSearchFilter={siteSearchFilter?}&exactTerms={exactTerms?}&excludeTerms={excludeTerms?}&linkSite={linkSite?}&orTerms={orTerms?}&dateRestrict={dateRestrict?}&lowRange={lowRange?}&highRange={highRange?}&searchType={searchType}&fileType={fileType?}&rights={rights?}&imgSize={imgSize?}&imgType={imgType?}&imgColorType={imgColorType?}&imgDominantColor={imgDominantColor?}&alt=json"
+  },
+  "queries": {
+    "request": [
+      {
+        "title": "Google Custom Search - MCP MuleSofT Connector",
+        "totalResults": "29900",
+        "searchTerms": "MCP MuleSofT Connector",
+        "count": 10,
+        "startIndex": 1,
+        "inputEncoding": "utf8",
+        "outputEncoding": "utf8",
+        "safe": "off",
+        "cx": "34f10dc7cf47942c0"
+      }
+    ],
+    "nextPage": [
+      {
+        "title": "Google Custom Search - MCP MuleSofT Connector",
+        "totalResults": "29900",
+        "searchTerms": "MCP MuleSofT Connector",
+        "count": 10,
+        "startIndex": 11,
+        "inputEncoding": "utf8",
+        "outputEncoding": "utf8",
+        "safe": "off",
+        "cx": "34f10dc7cf47942c0"
+      }
+    ]
+  },
+  "context": {
+    "title": "mac"
+  },
+  "searchInformation": {
+    "searchTime": 0.374424,
+    "formattedSearchTime": "0.37",
+    "totalResults": "29900",
+    "formattedTotalResults": "29,900"
+  },
+  "items": [
+    {
+      "kind": "customsearch#result",
+      "title": "MCP Connector 1.2 | MuleSoft Documentation",
+      "htmlTitle": "\u003cb\u003eMCP Connector\u003c/b\u003e 1.2 | \u003cb\u003eMuleSoft\u003c/b\u003e Documentation",
+      "link": "https://docs.mulesoft.com/mcp-connector/latest/",
+      "displayLink": "docs.mulesoft.com",
+      "snippet": "Use MCP Connector to connect LLM applications with your APIs. Expose APIs with complex endpoints as simpler, more atomic tools or resources.",
+      "htmlSnippet": "Use \u003cb\u003eMCP Connector\u003c/b\u003e to connect LLM applications with your APIs. Expose APIs with complex endpoints as simpler, more atomic tools or resources.",
+      "formattedUrl": "https://docs.mulesoft.com/mcp-connector/latest/",
+      "htmlFormattedUrl": "https://docs.\u003cb\u003emulesoft\u003c/b\u003e.com/\u003cb\u003emcp\u003c/b\u003e-\u003cb\u003econnector\u003c/b\u003e/latest/",
+      "pagemap": {
+        "cse_thumbnail": [
+          {
+            "src": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQReWrFblAZYYYFf2phENDs2F7hCzeFI452E87AfAJ6MSbQvfSKOxh0sns&s",
+            "width": "254",
+            "height": "198"
+          }
+        ],
+        "metatags": [
+          {
+            "product": "MCP Connector",
+            "viewport": "width=device-width, height=device-height, initial-scale=1",
+            "page-component": "mcp-connector",
+            "version-with-latest": "1.2 (Mule 4) [latest]",
+            "page-url": "/mcp-connector/latest/",
+            "is-latest-version": "true",
+            "page-version": "1.2",
+            "version": "1.2 (Mule 4)",
+            "version-major": "1",
+            "version-minor": "2"
+          }
+        ],
+        "cse_image": [
+          {
+            "src": "https://www.mulesoft.com/sites/default/files/cmm_files/image-mulesoft-solutions-create-connected-experiences-with-ai.png"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "customsearch#result",
+      "title": "Introducing Model Context Protocol Support | MuleSoft",
+      "htmlTitle": "Introducing Model Context Protocol Support | \u003cb\u003eMuleSoft\u003c/b\u003e",
+      "link": "https://www.mulesoft.com/platform/ai/model-context-protocol",
+      "displayLink": "www.mulesoft.com",
+      "snippet": "Jul 10, 2025 ... MuleSoft introduces Model Context Protocol (MCP), a framework for securely connecting AI agents to enterprise applications for context-aware ...",
+      "htmlSnippet": "Jul 10, 2025 \u003cb\u003e...\u003c/b\u003e \u003cb\u003eMuleSoft\u003c/b\u003e introduces Model Context Protocol (\u003cb\u003eMCP\u003c/b\u003e), a framework for securely connecting AI agents to enterprise applications for context-aware&nbsp;...",
+      "formattedUrl": "https://www.mulesoft.com/platform/ai/model-context-protocol",
+      "htmlFormattedUrl": "https://www.\u003cb\u003emulesoft\u003c/b\u003e.com/platform/ai/model-context-protocol",
+      "pagemap": {
+        "cse_thumbnail": [
+          {
+            "src": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRlEtx2qIT1712HLxW4Zpi4j_6hXDPvfSSqwaU7hUCw_FVz2GgA8XR5VoQ&s",
+            "width": "311",
+            "height": "162"
+          }
+        ],
+        "metatags": [
+          {
+            "og:image": "https://wp.sfdcdigital.com/mulesoft/en-us/wp-content/uploads/sites/40/2024/10/image_mulesoft_logo_og.jpg?w=1024",
+            "og:type": "article",
+            "twitter:card": "summary_large_image",
+            "og:site_name": "Mulesoft",
+            "twitter:url": "https://www.mulesoft.com/platform/ai/model-context-protocol",
+            "og:title": "Introducing Model Context Protocol Support | MuleSoft",
+            "modified_date": "2025-08-05",
+            "og:description": "MuleSoft introduces Model Context Protocol (MCP), a framework for securely connecting AI agents to enterprise applications for context-aware decision making.",
+            "viewport": "width=device-width, initial-scale=1.0",
+            "og:locale": "en_US",
+            "visitor": "prospect",
+            "og:url": "https://www.mulesoft.com/platform/ai/model-context-protocol",
+            "published_date": "2025-04-15"
+          }
+        ],
+        "cse_image": [
+          {
+            "src": "https://wp.sfdcdigital.com/mulesoft/en-us/wp-content/uploads/sites/40/2024/10/image_mulesoft_logo_og.jpg?w=1024"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "customsearch#result",
+      "title": "MCP Connector 1.2 - Examples | MuleSoft Documentation",
+      "htmlTitle": "\u003cb\u003eMCP Connector\u003c/b\u003e 1.2 - Examples | \u003cb\u003eMuleSoft\u003c/b\u003e Documentation",
+      "link": "https://docs.mulesoft.com/mcp-connector/latest/mcp-connector-examples",
+      "displayLink": "docs.mulesoft.com",
+      "snippet": "This example demonstrates how to configure an MCP server within your Mule application using the Streamable HTTP transport. When acting as an MCP client, ...",
+      "htmlSnippet": "This example demonstrates how to configure an \u003cb\u003eMCP\u003c/b\u003e server within your \u003cb\u003eMule\u003c/b\u003e application using the Streamable HTTP transport. When acting as an \u003cb\u003eMCP\u003c/b\u003e client,&nbsp;...",
+      "formattedUrl": "https://docs.mulesoft.com/mcp-connector/latest/mcp-connector-examples",
+      "htmlFormattedUrl": "https://docs.\u003cb\u003emulesoft\u003c/b\u003e.com/\u003cb\u003emcp\u003c/b\u003e-\u003cb\u003econnector\u003c/b\u003e/latest/\u003cb\u003emcp\u003c/b\u003e-\u003cb\u003econnector\u003c/b\u003e-examples",
+      "pagemap": {
+        "cse_thumbnail": [
+          {
+            "src": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQReWrFblAZYYYFf2phENDs2F7hCzeFI452E87AfAJ6MSbQvfSKOxh0sns&s",
+            "width": "254",
+            "height": "198"
+          }
+        ],
+        "metatags": [
+          {
+            "product": "MCP Connector",
+            "viewport": "width=device-width, height=device-height, initial-scale=1",
+            "page-component": "mcp-connector",
+            "version-with-latest": "1.2 (Mule 4) [latest]",
+            "page-url": "/mcp-connector/latest/mcp-connector-examples",
+            "is-latest-version": "true",
+            "page-version": "1.2",
+            "version": "1.2 (Mule 4)",
+            "version-major": "1",
+            "version-minor": "2"
+          }
+        ],
+        "cse_image": [
+          {
+            "src": "https://www.mulesoft.com/sites/default/files/cmm_files/image-mulesoft-solutions-create-connected-experiences-with-ai.png"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "customsearch#result",
+      "title": "MuleSoft MCP Support: Getting Started With MCP | MuleSoft Blog",
+      "htmlTitle": "\u003cb\u003eMuleSoft MCP\u003c/b\u003e Support: Getting Started With \u003cb\u003eMCP\u003c/b\u003e | \u003cb\u003eMuleSoft\u003c/b\u003e Blog",
+      "link": "https://blogs.mulesoft.com/news/model-context-protocol/",
+      "displayLink": "blogs.mulesoft.com",
+      "snippet": "Apr 16, 2025 ... MuleSoft's Anypoint Platform now supports Model Context Protocol (MCP), enabling organizations to seamlessly connect AI agents to enterprise systems and data.",
+      "htmlSnippet": "Apr 16, 2025 \u003cb\u003e...\u003c/b\u003e \u003cb\u003eMuleSoft&#39;s Anypoint\u003c/b\u003e Platform now supports Model Context Protocol (\u003cb\u003eMCP\u003c/b\u003e), enabling organizations to seamlessly connect AI agents to enterprise systems and data.",
+      "formattedUrl": "https://blogs.mulesoft.com/news/model-context-protocol/",
+      "htmlFormattedUrl": "https://blogs.\u003cb\u003emulesoft\u003c/b\u003e.com/news/model-context-protocol/",
+      "pagemap": {
+        "cse_thumbnail": [
+          {
+            "src": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQWZVLUUYcLKDccG3l2eI6vK5jYA2W9GWn1UTmZ2NFKp73JMaDPIUz8WGI&s",
+            "width": "245",
+            "height": "206"
+          }
+        ],
+        "BreadcrumbList": [
+          {}
+        ],
+        "metatags": [
+          {
+            "og:image": "https://blogs.mulesoft.com/wp-content/uploads/MCP-article-1.png",
+            "twitter:card": "summary_large_image",
+            "article:published_time": "2025-04-16T08:00:00-07:00",
+            "og:site_name": "MuleSoft Blog",
+            "msapplication-tileimage": "https://blogs.mulesoft.com/wp-content/uploads/M_32x32.png",
+            "og:description": "\u003c!-- wp:paragraph --\u003e\n\u003cp\u003eMuleSoft's Anypoint Platform now supports \u003ca | MuleSoft Blog",
+            "twitter:image": "https://blogs.mulesoft.com/wp-content/uploads/MCP-article-1.png",
+            "be:norm_url": "https%3A%2F%2Fblogs.mulesoft.com%2Fnews%2Fmodel-context-protocol%2F",
+            "be:capsule_url": "https%3A%2F%2Fixfd1-api.bc0a.com%2Fapi%2Fixf%2F1.0.0%2Fget_capsule%2Ff00000000247468%2F1620385886",
+            "article:modified_time": "2025-06-26T21:35:07-07:00",
+            "be:timer": "16ms",
+            "be:diag": "vZBO0aNYDgrK4XJEyAvu+kCQnUXK7eabqfGWbEumnAXDTmxaLEs0TLQ0YxDPCLOE+SZdH1BGKap5h4AtcN4jTsRsFvJzrViroKzAC+cgbJ/V4VihTbW9AWDjMaI0RG+tJVuK6L2UdFizc8pDKVWPVME4TO3DvrQMmfCdNrniGMyBbLJbcavKp3GvNxTHks9Hq3+g9XhtlpXXWgv+FIweCRn3B3LiyPR9MwEsz6CkDDuOhdxPjWMQADBbV5UhKzoBQqq8sICX6VKdBqoNf57AgPdBns9E0wiInDRmmfZD2OS/1QMIDEVo94fKbaLkgxYSF9zb8AjCM5q1FCNJ1oxJAJgj+Y5Z46St/mhfZs1/zSN97UZYxIFDINUmqiT8GECTH3dzoSiiI5Pe9AoDus2Z2B5PGzFXbhtYri8mI4Z6bAo77Lm7IOEJ7pqZqrMBi6sgYwgP9kRAg1W2OoWZdFZrl1if+H/+yyWmD0+3DJRq9ajajaHwRBvqQK0bzENxhjmmtOeN5KYJ4gd9rcHQLeY6TmP9eh4xDr3LofpdaiXCa7CfvPjN/q4/fivRyNACiKx4qo5GRU/nEKaSLt2XgduwHU0RBUvsDsW6YB1RFg8ROrHHIB8UseIpTOc992ZsROvyL1rVtPFx7Zl3NQ5TncwgRy6tqxmp3fcHnGFeSvIwD+WKZ9MQt1HkmXwckx37yiWxw/greoynTYY04HcAF9AgfZHYZhQXAympm+AOlUlCB85ec6pCd6DbINkziOk0dS8bgZnOLB1ZubXz6vObhbOKKKVlyVkwjx2s5ZVIBTIY6m1F6JlqkTnsuy2c5bWMmmtdTqsiykOHWAOXhKUE/x+AmZIdUuS9xzsQ6ZdOXUNSbo+w10U6X87nmFnsys8dvf1DW4hTKKPNfaUPQDjo5bPiMAkQCNhyxJbaQFX/tL2oqwdmw/9o/fV0FHvyXfuv3SrQbKIyfeIZzzWiSmmRVGldo+Iq2wB2D2Iz2/l8Vz6WAkpugrRkkpcmW4AyEPHRcKLv",
+            "be:messages": "true",
+            "og:type": "article",
+            "article:section": "News",
+            "twitter:title": "MuleSoft MCP Support: Get Started With Model Context Protocol",
+            "be:wp": "1.1.14",
+            "be:sdk": "php_sdk_1.5.11",
+            "og:title": "MuleSoft MCP Support: Get Started With Model Context Protocol | MuleSoft Blog",
+            "article:author": "https://blogs.mulesoft.com/author/mariano-gonzalez/",
+            "url": "https://blogs.mulesoft.com/news/model-context-protocol/",
+            "viewport": "width=device-width, initial-scale=1",
+            "twitter:description": "MuleSoft's Anypoint Platform now supports Model Context Protocol (MCP), enabling organizations to seamlessly connect AI agents to enterprise systems and…",
+            "be:api_dt": "Zy_2025;Zm_07;Zd_09;Zh_08;Zmh_33;p_epoch:1752050026426",
+            "og:locale": "en_US",
+            "be:mod_dt": "Zy_2025;Zm_07;Zd_09;Zh_08;Zmh_33;p_epoch:1752050026426",
+            "position": "1",
+            "og:url": "https://blogs.mulesoft.com/news/model-context-protocol/",
+            "be:orig_url": "https%3A%2F%2Fblogs.mulesoft.com%2Fnews%2Fmodel-context-protocol%2F"
+          }
+        ],
+        "cse_image": [
+          {
+            "src": "https://blogs.mulesoft.com/wp-content/uploads/MCP-article-1.png"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "customsearch#result",
+      "title": "MuleSoft MCP: Building an AI Agent with Anypoint Platform APIs | by ...",
+      "htmlTitle": "\u003cb\u003eMuleSoft MCP\u003c/b\u003e: Building an AI Agent with \u003cb\u003eAnypoint\u003c/b\u003e Platform APIs | by ...",
+      "link": "https://medium.com/another-integration-blog/mulesoft-mcp-build-an-ai-agent-with-anypoint-platform-apis-4c775340f61c",
+      "displayLink": "medium.com",
+      "snippet": "May 29, 2025 ... For this walkthrough, I'll be using Anypoint Studio with Mule Runtime 4.9.5 and the MCP Connector to implement an SSE-based MCP Server.",
+      "htmlSnippet": "May 29, 2025 \u003cb\u003e...\u003c/b\u003e For this walkthrough, I&#39;ll be using \u003cb\u003eAnypoint\u003c/b\u003e Studio with \u003cb\u003eMule\u003c/b\u003e Runtime 4.9.5 and the \u003cb\u003eMCP Connector\u003c/b\u003e to implement an SSE-based \u003cb\u003eMCP\u003c/b\u003e Server.",
+      "formattedUrl": "https://medium.com/.../mulesoft-mcp-build-an-ai-agent-with-anypoint-platf...",
+      "htmlFormattedUrl": "https://medium.com/.../\u003cb\u003emulesoft\u003c/b\u003e-\u003cb\u003emcp\u003c/b\u003e-build-an-ai-agent-with-anypoint-platf...",
+      "pagemap": {
+        "cse_thumbnail": [
+          {
+            "src": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRUbqtm24n5w_YiY9No8NXiFx8eycwTJBav-B8AWYiaYHLSKG7jYxbnCg&s",
+            "width": "450",
+            "height": "112"
+          }
+        ],
+        "metatags": [
+          {
+            "apple-itunes-app": "app-id=828256236, app-argument=/another-integration-blog/mulesoft-mcp-build-an-ai-agent-with-anypoint-platform-apis-4c775340f61c, affiliate-data=pt=698524&ct=smart_app_banner&mt=8",
+            "og:image": "https://miro.medium.com/v2/resize:fit:1200/1*9FPAQNy41lZ1q35m2GffvQ.png",
+            "twitter:app:url:iphone": "medium://p/4c775340f61c",
+            "theme-color": "#000000",
+            "article:published_time": "2025-06-05T16:37:28.921Z",
+            "twitter:card": "summary_large_image",
+            "og:site_name": "Medium",
+            "al:android:package": "com.medium.reader",
+            "twitter:label1": "Reading time",
+            "twitter:app:id:iphone": "828256236",
+            "title": "MuleSoft MCP: Building an AI Agent with Anypoint Platform APIs | by Sravan Nerella | Another Integration Blog | Medium",
+            "al:ios:url": "medium://p/4c775340f61c",
+            "og:description": "Build an MCP Server to Interface with Anypoint Design Center via Natural Language or plain english. Sounds exciting right?",
+            "al:ios:app_store_id": "828256236",
+            "twitter:data1": "7 min read",
+            "twitter:site": "@MuleDev",
+            "og:type": "article",
+            "twitter:title": "MuleSoft MCP: Building an AI Agent with Anypoint Platform APIs",
+            "al:ios:app_name": "Medium",
+            "author": "Sravan Nerella",
+            "og:title": "MuleSoft MCP: Building an AI Agent with Anypoint Platform APIs",
+            "al:web:url": "https://medium.com/another-integration-blog/mulesoft-mcp-build-an-ai-agent-with-anypoint-platform-apis-4c775340f61c",
+            "article:author": "https://medium.com/@sravannerella007",
+            "twitter:image:src": "https://miro.medium.com/v2/resize:fit:1200/1*9FPAQNy41lZ1q35m2GffvQ.png",
+            "al:android:url": "medium://p/4c775340f61c",
+            "referrer": "unsafe-url",
+            "fb:app_id": "542599432471018",
+            "viewport": "width=device-width,minimum-scale=1,initial-scale=1,maximum-scale=1",
+            "twitter:description": "Build an MCP Server to Interface with Anypoint Design Center via Natural Language or plain english. Sounds exciting right?",
+            "og:url": "https://medium.com/another-integration-blog/mulesoft-mcp-build-an-ai-agent-with-anypoint-platform-apis-4c775340f61c",
+            "twitter:app:name:iphone": "Medium",
+            "al:android:app_name": "Medium"
+          }
+        ],
+        "cse_image": [
+          {
+            "src": "https://miro.medium.com/v2/resize:fit:1200/1*9FPAQNy41lZ1q35m2GffvQ.png"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "customsearch#result",
+      "title": "MuleSoft's MCP Connector Goes GA | MuleSoft Blog",
+      "htmlTitle": "\u003cb\u003eMuleSoft&#39;s MCP Connector\u003c/b\u003e Goes GA | \u003cb\u003eMuleSoft\u003c/b\u003e Blog",
+      "link": "https://blogs.mulesoft.com/news/model-context-protocol-connector-ga/",
+      "displayLink": "blogs.mulesoft.com",
+      "snippet": "Jun 27, 2025 ... MuleSoft's MCP Connector is now GA. Along with the GA status and support, this version includes new features, performance improvements, and bug fixes.",
+      "htmlSnippet": "Jun 27, 2025 \u003cb\u003e...\u003c/b\u003e \u003cb\u003eMuleSoft&#39;s MCP Connector\u003c/b\u003e is now GA. Along with the GA status and support, this version includes new features, performance improvements, and bug fixes.",
+      "formattedUrl": "https://blogs.mulesoft.com/news/model-context-protocol-connector-ga/",
+      "htmlFormattedUrl": "https://blogs.\u003cb\u003emulesoft\u003c/b\u003e.com/news/model-context-protocol-\u003cb\u003econnector\u003c/b\u003e-ga/",
+      "pagemap": {
+        "cse_thumbnail": [
+          {
+            "src": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSAsE_q2rUWbwpXrJh2tQpmHAOemNaf0JDa0nRDZ301r5pwh9my76jgBuE&s",
+            "width": "245",
+            "height": "206"
+          }
+        ],
+        "BreadcrumbList": [
+          {}
+        ],
+        "metatags": [
+          {
+            "og:image": "https://blogs.mulesoft.com/wp-content/uploads/MCP-goes-GA.png",
+            "twitter:card": "summary_large_image",
+            "article:published_time": "2025-06-27T10:00:00-07:00",
+            "og:site_name": "MuleSoft Blog",
+            "msapplication-tileimage": "https://blogs.mulesoft.com/wp-content/uploads/M_32x32.png",
+            "og:description": "\u003c!-- wp:paragraph --\u003e\n\u003cp\u003eWe are thrilled to announce the long awaited GA of MuleSoft’s MCP Connector. \u003c/p\u003e\n\u003c!-- /wp:paragraph --\u003e \u003c!-- wp:heading --\u003e\n\u003ch2 | MuleSoft Blog",
+            "twitter:image": "https://blogs.mulesoft.com/wp-content/uploads/MCP-goes-GA.png",
+            "be:norm_url": "https%3A%2F%2Fblogs.mulesoft.com%2Fnews%2Fmodel-context-protocol-connector-ga%2F",
+            "be:capsule_url": "https%3A%2F%2Fixfd1-api.bc0a.com%2Fapi%2Fixf%2F1.0.0%2Fget_capsule%2Ff00000000247468%2F0903455175",
+            "article:modified_time": "2025-06-26T21:48:44-07:00",
+            "be:timer": "19ms",
+            "be:diag": "/Z9dL+07e73gqUxA/BdrktNRCvPboVthz6pSRSJ6omngqdLHZHrmYNPAx323Ucm8yEKEleWD3SW03A5HD3SS1SMKvQb9R1ayPS/SwgIMX4bN07PmsY8iuKLRnOrhB/cbZ0Lnz/fAfsypQZAbpGYEPMo26pwTsVQ5DPGn0P1MbZHf7FtBOQE9PiE2G1cMZe1ZwHaZR8LSUoBlK8L7ncSoYgGKyOOcKYV/r7ssgcVyp94Gv7GgDn+Tdq3fOeI9i9nOf25EFJg0mno/InjgYMH2cSDFGSqHP3NJJn/ny37y1HY3rALLH/iJOEVp+QWYb3wJi0VHB3NAmCsvINQbT0B1CA2KVQR3C1KvSqkH1iUFN/h37HX9NZgFwmcvQI6quwDROeZN4AGY+qeAlw3oDOw05mnrI4a1Vi46GS5i5BPc49gXc0bSUCOSfME2UD0ySlT25fcR2si6T06FhZMX6T20vHFvWb1TFd4Q1r3B/MuXfbRfUWiSzD2Hn85niDkn1aPoSBfYY//H/OqGlaev8oOmWIU4upS7lEyJEeRXtYj2jtEFYKLIZj62GsODawqMbmjGYfqgus2TOND/v+bMe1xqmJ2r8flaD9i5MhCsV/dXH56W202MfhySSYlY08tK4AhQ5szdaiQGT32HhuNLJ0GP9y5aR0cnKqSOnQRZ5DQOyHYoEr/cD8fIRLAFlFwbSivoYPvOs6Js9z7MOIMt8DsjH0EAvpUsYw0Lxnh/854l9UxgwW8P2jeMFpQbzchITftbkGrb0KindShr/DWbkaHC7UBGwOsB8eUohQC2hf6NfC+FZKB6L/TDnAkk7RPAoFLuDs3c7Tkch3l506qU9yqdiD4BZIZfU8LWQVlo3rSbWb2BlcLJlR0fVL1kjd9V/TVYad722tmUOjnq3LLYwF3M8pLfG72vfWARFxdcc1Ygat8tA5TDRkFeJQEXB1G9w9dYbtit00n6n8GoywYdaFEtZCVbv+Lp1cDRrQ4Wsrqty7MjetmuBBBTKNaIaovy71uN",
+            "be:messages": "true",
+            "og:type": "article",
+            "article:section": "News",
+            "twitter:title": "MuleSoft’s MCP Connector Goes GA",
+            "be:wp": "1.1.14",
+            "be:sdk": "php_sdk_1.5.11",
+            "og:title": "MuleSoft’s MCP Connector Goes GA | MuleSoft Blog",
+            "article:author": "https://blogs.mulesoft.com/author/mariano-gonzalez/",
+            "url": "https://blogs.mulesoft.com/news/model-context-protocol-connector-ga/",
+            "viewport": "width=device-width, initial-scale=1",
+            "twitter:description": "We are thrilled to announce the long awaited GA of MuleSoft’s MCP Connector. MuleSoft's MCP Connector is now GA Along…",
+            "be:api_dt": "Zy_2025;Zm_04;Zd_30;Zh_17;Zmh_21;p_epoch:1746033702314",
+            "og:locale": "en_US",
+            "be:mod_dt": "Zy_2025;Zm_04;Zd_30;Zh_17;Zmh_21;p_epoch:1746033702314",
+            "position": "1",
+            "og:url": "https://blogs.mulesoft.com/news/model-context-protocol-connector-ga/",
+            "be:orig_url": "https%3A%2F%2Fblogs.mulesoft.com%2Fnews%2Fmodel-context-protocol-connector-ga%2F"
+          }
+        ],
+        "cse_image": [
+          {
+            "src": "https://blogs.mulesoft.com/wp-content/uploads/MCP-goes-GA.png"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "customsearch#result",
+      "title": "@mulesoft/mcp-server - npm",
+      "htmlTitle": "@\u003cb\u003emulesoft\u003c/b\u003e/\u003cb\u003emcp\u003c/b\u003e-server - npm",
+      "link": "https://www.npmjs.com/package/@mulesoft/mcp-server",
+      "displayLink": "www.npmjs.com",
+      "snippet": "Jul 18, 2025 ... The Mulesoft MCP Server is a Model Context Protocol (MCP) implementation that facilitates interaction between large language models (LLMs) and the Mulesoft ...",
+      "htmlSnippet": "Jul 18, 2025 \u003cb\u003e...\u003c/b\u003e The \u003cb\u003eMulesoft MCP\u003c/b\u003e Server is a Model Context Protocol (\u003cb\u003eMCP\u003c/b\u003e) implementation that facilitates interaction between large language models (LLMs) and the Mulesoft&nbsp;...",
+      "formattedUrl": "https://www.npmjs.com/package/@mulesoft/mcp-server",
+      "htmlFormattedUrl": "https://www.npmjs.com/package/@\u003cb\u003emulesoft\u003c/b\u003e/\u003cb\u003emcp\u003c/b\u003e-server",
+      "pagemap": {
+        "cse_thumbnail": [
+          {
+            "src": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR9_PIZpTqIpa0liCRRnQUmkhj2w3NCMbs2QR_X8Qe2cC-areLX1GkLYUF6&s",
+            "width": "310",
+            "height": "163"
+          }
+        ],
+        "metatags": [
+          {
+            "msapplication-tilecolor": "#cb3837",
+            "og:image": "https://static-production.npmjs.com/338e4905a2684ca96e08c7780fc68412.png",
+            "msapplication-config": "https://static-production.npmjs.com/668aac888e52ae13cac9cfd71fabd31f.xml",
+            "theme-color": "#cb3837",
+            "twitter:card": "summary",
+            "twitter:title": "npm: @mulesoft/mcp-server",
+            "og:site_name": "npm",
+            "twitter:url": "https://www.npmjs.com/package/@mulesoft/mcp-server",
+            "og:title": "@mulesoft/mcp-server",
+            "msapplication-tileimage": "https://static-production.npmjs.com/7a7ffabbd910fc60161bc04f2cee4160.png",
+            "og:description": "Mulesoft MCP Server. Latest version: 1.1.0, last published: 19 days ago. Start using @mulesoft/mcp-server in your project by running `npm i @mulesoft/mcp-server`. There are no other projects in the npm registry using @mulesoft/mcp-server.",
+            "viewport": "width=device-width,minimum-scale=1.0,initial-scale=1,user-scalable=yes",
+            "apple-mobile-web-app-capable": "yes",
+            "twitter:description": "Mulesoft MCP Server. Latest version: 1.1.0, last published: 19 days ago. Start using @mulesoft/mcp-server in your project by running `npm i @mulesoft/mcp-server`. There are no other projects in the npm registry using @mulesoft/mcp-server.",
+            "mobile-web-app-capable": "yes",
+            "og:url": "https://www.npmjs.com/package/@mulesoft/mcp-server"
+          }
+        ],
+        "cse_image": [
+          {
+            "src": "https://static-production.npmjs.com/338e4905a2684ca96e08c7780fc68412.png"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "customsearch#result",
+      "title": "MuleSoft Inference Connector Overview",
+      "htmlTitle": "\u003cb\u003eMuleSoft\u003c/b\u003e Inference \u003cb\u003eConnector\u003c/b\u003e Overview",
+      "link": "https://mac-project.ai/docs/ms-inference/connector-overview",
+      "displayLink": "mac-project.ai",
+      "snippet": "The MuleSoft Inference Connector is designed to help developers easily build and manage AI-driven agents within the MuleSoft Anypoint Platform.",
+      "htmlSnippet": "The \u003cb\u003eMuleSoft\u003c/b\u003e Inference \u003cb\u003eConnector\u003c/b\u003e is designed to help developers easily build and manage AI-driven agents within the \u003cb\u003eMuleSoft Anypoint\u003c/b\u003e Platform.",
+      "formattedUrl": "https://mac-project.ai/docs/ms-inference/connector-overview",
+      "htmlFormattedUrl": "https://mac-project.ai/docs/ms-inference/\u003cb\u003econnector\u003c/b\u003e-overview",
+      "pagemap": {
+        "cse_thumbnail": [
+          {
+            "src": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSnATrLnpNXwADD3qL9ukemgcBv6IsFTNjX_7a9hiHYbja7AEKqm4rRDQil&s",
+            "width": "299",
+            "height": "168"
+          }
+        ],
+        "metatags": [
+          {
+            "msapplication-tilecolor": "#fff",
+            "og:image": "https://mac-project.ai/api/og?title=MuleSoft Inference Connector Overview",
+            "theme-color": "#fff",
+            "og:type": "website",
+            "og:image:width": "1200",
+            "og:image:alt": "MAC Project - AI Integration",
+            "twitter:card": "summary_large_image",
+            "twitter:title": "MuleSoft Inference Connector Overview – MAC Project",
+            "og:site_name": "MAC Project",
+            "twitter:url": "https://mac-project.ai",
+            "og:title": "MuleSoft Inference Connector Overview",
+            "apple-mobile-web-app-title": "MAC Project",
+            "og:image:height": "630",
+            "og:description": "MAC Project - Integrate advanced AI capabilities into the MuleSoft Anypoint Platform.",
+            "og:image:secure_url": "https://mac-project.ai/api/og?title=MuleSoft Inference Connector Overview",
+            "twitter:image": "https://mac-project.ai/api/og?title=MuleSoft Inference Connector Overview",
+            "twitter:site:domain": "mac-project.ai",
+            "next-head-count": "32",
+            "twitter:image:alt": "MAC Project - AI Integration",
+            "viewport": "width=device-width, initial-scale=1.0",
+            "twitter:description": "MAC Project - Design, build and manage advanced AI agents with the MuleSoft Anypoint Platform.",
+            "og:url": "https://mac-project.ai"
+          }
+        ],
+        "cse_image": [
+          {
+            "src": "https://mac-project.ai/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Foverview-connector.ad90410f.png&w=3840&q=75"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "customsearch#result",
+      "title": "MuleSoft AI Chain (MAC) Project: Mule Inference + MCP Connector ...",
+      "htmlTitle": "\u003cb\u003eMuleSoft\u003c/b\u003e AI Chain (MAC) Project: \u003cb\u003eMule\u003c/b\u003e Inference + \u003cb\u003eMCP Connector\u003c/b\u003e ...",
+      "link": "https://www.linkedin.com/posts/amir-khan-ak_mulesoft-salesforce-macproject-activity-7318271578616598528-3sEP",
+      "displayLink": "www.linkedin.com",
+      "snippet": "Apr 16, 2025 ... It simplifies the configuration to setup MCP Server and seamlessly use MCP Client to leverage the tools hosted on the MCP Server.",
+      "htmlSnippet": "Apr 16, 2025 \u003cb\u003e...\u003c/b\u003e It simplifies the configuration to setup \u003cb\u003eMCP\u003c/b\u003e Server and seamlessly use \u003cb\u003eMCP\u003c/b\u003e Client to leverage the tools hosted on the \u003cb\u003eMCP\u003c/b\u003e Server.",
+      "formattedUrl": "https://www.linkedin.com/.../amir-khan-ak_mulesoft-salesforce-macproject-...",
+      "htmlFormattedUrl": "https://www.linkedin.com/.../amir-khan-ak_\u003cb\u003emulesoft\u003c/b\u003e-salesforce-macproject-...",
+      "pagemap": {
+        "cse_thumbnail": [
+          {
+            "src": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR0VugHeJXgjmkvTj78RxpRFP0qM3GswKVGl2OFtM9-mgMaUEdUVe8pey0&s",
+            "width": "300",
+            "height": "168"
+          }
+        ],
+        "metatags": [
+          {
+            "og:image": "https://dms.licdn.com/playlist/vid/v2/D4E05AQFlEq1nMGTUTQ/thumbnail-with-play-button-overlay-high/B4EZY.5BVKHkDM-/0/1744811870182?e=2147483647&v=beta&t=-x9OpMubBTCN5IqqFDjOSOhXoNUUF2cP7JtKL3f1XG4",
+            "twitter:title": "𝐌𝐮𝐥𝐞𝐒𝐨𝐟𝐭 𝐀𝐈 𝐂𝐡𝐚𝐢𝐧 (𝐌𝐀𝐂) 𝐏𝐫𝐨𝐣𝐞𝐜𝐭: 𝐌𝐮𝐥𝐞 𝐈𝐧𝐟𝐞𝐫𝐞𝐧𝐜𝐞 + 𝐌𝐂𝐏 𝐂𝐨𝐧𝐧𝐞𝐜𝐭𝐨𝐫 𝐃𝐞𝐦𝐨 | Amir Khan posted on the topic | LinkedIn",
+            "twitter:card": "summary_large_image",
+            "og:type": "article",
+            "al:ios:app_name": "LinkedIn",
+            "twitter:url": "https://www.linkedin.com/posts/amir-khan-ak_mulesoft-salesforce-macproject-activity-7318271578616598528-3sEP",
+            "og:title": "𝐌𝐮𝐥𝐞𝐒𝐨𝐟𝐭 𝐀𝐈 𝐂𝐡𝐚𝐢𝐧 (𝐌𝐀𝐂) 𝐏𝐫𝐨𝐣𝐞𝐜𝐭: 𝐌𝐮𝐥𝐞 𝐈𝐧𝐟𝐞𝐫𝐞𝐧𝐜𝐞 + 𝐌𝐂𝐏 𝐂𝐨𝐧𝐧𝐞𝐜𝐭𝐨𝐫 𝐃𝐞𝐦𝐨 | Amir Khan posted on the topic | LinkedIn",
+            "al:android:package": "com.linkedin.android",
+            "pagekey": "p_public_post",
+            "locale": "en_US",
+            "al:ios:url": "https://www.linkedin.com/posts/amir-khan-ak_mulesoft-salesforce-macproject-activity-7318271578616598528-3sEP",
+            "og:description": "𝐌𝐮𝐥𝐞𝐒𝐨𝐟𝐭 𝐀𝐈 𝐂𝐡𝐚𝐢𝐧 (𝐌𝐀𝐂) 𝐏𝐫𝐨𝐣𝐞𝐜𝐭: 𝐌𝐮𝐥𝐞 𝐈𝐧𝐟𝐞𝐫𝐞𝐧𝐜𝐞 + 𝐌𝐂𝐏 𝐂𝐨𝐧𝐧𝐞𝐜𝐭𝐨𝐫 𝐃𝐞𝐦𝐨\nI just tried our MCP Connector released few days ago and I've to say, it is really cool! It simplifies the configuration to setup MCP Server and seamlessly use MCP Client to leverage the tools hosted on the MCP Server. Whats really nice is that everything is in Mule, no need to go outside. \n\nI wanted to know how it can be used along our MAC Project, so I built a simple AI Agent as you can see in this short demo. \n\n🧮 𝐌𝐂𝐏 𝐒𝐞𝐫𝐯𝐞𝐫 𝐂𝐨𝐧𝐟𝐢𝐠𝐮𝐫𝐚𝐭𝐢𝐨𝐧\nI hosted 2 tools on the MCP Server Configuration with get_inventory and get_crm_accounts, incl. their execution.\n\n🔌 𝐌𝐂𝐏 𝐂𝐥𝐢𝐞𝐧𝐭 𝐂𝐨𝐧𝐟𝐢𝐠𝐮𝐫𝐚𝐭𝐢𝐨𝐧\nI used the MCP Client to discover the available tools and execute if",
+            "al:ios:app_store_id": "288429040",
+            "twitter:image": "https://dms.licdn.com/playlist/vid/v2/D4E05AQFlEq1nMGTUTQ/thumbnail-with-play-button-overlay-high/B4EZY.5BVKHkDM-/0/1744811870182?e=2147483647&v=beta&t=-x9OpMubBTCN5IqqFDjOSOhXoNUUF2cP7JtKL3f1XG4",
+            "al:android:url": "https://www.linkedin.com/posts/amir-khan-ak_mulesoft-salesforce-macproject-activity-7318271578616598528-3sEP",
+            "lnkd:url": "https://www.linkedin.com/feed/update/urn:li:activity:7318271578616598528",
+            "twitter:site": "@linkedin",
+            "viewport": "width=device-width, initial-scale=1.0",
+            "twitter:description": "𝐌𝐮𝐥𝐞𝐒𝐨𝐟𝐭 𝐀𝐈 𝐂𝐡𝐚𝐢𝐧 (𝐌𝐀𝐂) 𝐏𝐫𝐨𝐣𝐞𝐜𝐭: 𝐌𝐮𝐥𝐞 𝐈𝐧𝐟𝐞𝐫𝐞𝐧𝐜𝐞 + 𝐌𝐂𝐏 𝐂𝐨𝐧𝐧𝐞𝐜𝐭𝐨𝐫 𝐃𝐞𝐦𝐨\nI just tried our MCP Connector released few days ago and I've to say, it is really cool! It simplifies the configuration to setup MCP Server and seamlessly use MCP Client to leverage the tools hosted on the MCP Server. Whats really nice is that everything is in Mule, no need to go outside. \n\nI wanted to know how it can be used along our MAC Project, so I built a simple AI Agent as you can see in this short demo. \n\n🧮 𝐌𝐂𝐏 𝐒𝐞𝐫𝐯𝐞𝐫 𝐂𝐨𝐧𝐟𝐢𝐠𝐮𝐫𝐚𝐭𝐢𝐨𝐧\nI hosted 2 tools on the MCP Server Configuration with get_inventory and get_crm_accounts, incl. their execution.\n\n🔌 𝐌𝐂𝐏 𝐂𝐥𝐢𝐞𝐧𝐭 𝐂𝐨𝐧𝐟𝐢𝐠𝐮𝐫𝐚𝐭𝐢𝐨𝐧\nI used the MCP Client to discover the available tools and execute if",
+            "og:url": "https://www.linkedin.com/posts/amir-khan-ak_mulesoft-salesforce-macproject-activity-7318271578616598528-3sEP",
+            "al:android:app_name": "LinkedIn"
+          }
+        ],
+        "cse_image": [
+          {
+            "src": "https://dms.licdn.com/playlist/vid/v2/D4E05AQFlEq1nMGTUTQ/thumbnail-with-play-button-overlay-high/B4EZY.5BVKHkDM-/0/1744811870182?e=2147483647&v=beta&t=-x9OpMubBTCN5IqqFDjOSOhXoNUUF2cP7JtKL3f1XG4"
+          }
+        ]
+      }
+    },
+    {
+      "kind": "customsearch#result",
+      "title": "MCP Connector error deploying on Cloudhub 2.0",
+      "htmlTitle": "\u003cb\u003eMCP Connector\u003c/b\u003e error deploying on Cloudhub 2.0",
+      "link": "https://help.mulesoft.com/s/question/0D5Pr00000cm5veKAA/mcp-connector-error-deploying-on-cloudhub-20",
+      "displayLink": "help.mulesoft.com",
+      "snippet": "Apr 29, 2025 ... sse(HttpServerDelegate.java:104) ~[?:?] at com.mulesoft.connectors.mcp.internal.server.connection.provider.",
+      "htmlSnippet": "Apr 29, 2025 \u003cb\u003e...\u003c/b\u003e sse(HttpServerDelegate.java:104) ~[?:?] at com.\u003cb\u003emulesoft\u003c/b\u003e.\u003cb\u003econnectors\u003c/b\u003e.\u003cb\u003emcp\u003c/b\u003e.internal.server.connection.provider.",
+      "formattedUrl": "https://help.mulesoft.com/.../mcp-connector-error-deploying-on-cloudhub-...",
+      "htmlFormattedUrl": "https://help.\u003cb\u003emulesoft\u003c/b\u003e.com/.../\u003cb\u003emcp\u003c/b\u003e-\u003cb\u003econnector\u003c/b\u003e-error-deploying-on-cloudhub-...",
+      "pagemap": {
+        "metatags": [
+          {
+            "viewport": "initial-scale=1.0, maximum-scale=5.0, minimum-scale=1.0, minimal-ui"
+          }
+        ]
+      }
+    }
+  ]
+}

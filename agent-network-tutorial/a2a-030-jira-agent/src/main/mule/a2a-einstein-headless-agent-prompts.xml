@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:file="http://www.mulesoft.org/schema/mule/file"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+	<sub-flow name="load-prompts" doc:id="1af75afc-921e-411a-99f6-949868165bdb" >
+		<choice doc:name="Choice" doc:id="5d5a6ffd-069e-4443-bbe0-cabe216e1291">
+					<when expression="#[isEmpty(vars.einsteinPlanningInstructions)]">
+						<file:read doc:name="Read einsteinPlanningInstructions" doc:id="b975aab2-4287-4217-8137-1a19507cce26" config-ref="File_Config" path='#[mule.home ++ "/apps/" ++ app.name ++ "/prompts/agent-planning-instructions.prompt"]' />
+						<set-variable value="#[output text
+---
+payload]" doc:name="Set einsteinPlanningInstructions" doc:id="1fd437fb-ed14-4a7c-8ab2-465db9a38a3b" variableName="einsteinPlanningInstructions" />
+					</when>
+				</choice>
+	</sub-flow>	
+</mule>

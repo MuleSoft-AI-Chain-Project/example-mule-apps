@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ms-inference="http://www.mulesoft.org/schema/mule/ms-inference"
+	xmlns:mcp="http://www.mulesoft.org/schema/mule/mcp"
+	xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:a2a="http://www.mulesoft.org/schema/mule/a2a"
+	xmlns:mac-inference="http://www.mulesoft.org/schema/mule/mac-inference"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd 
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/mac-inference http://www.mulesoft.org/schema/mule/mac-inference/current/mule-mac-inference.xsd
+http://www.mulesoft.org/schema/mule/a2a http://www.mulesoft.org/schema/mule/a2a/current/mule-a2a.xsd
+http://www.mulesoft.org/schema/mule/mcp http://www.mulesoft.org/schema/mule/mcp/current/mule-mcp.xsd
+http://www.mulesoft.org/schema/mule/ms-inference http://www.mulesoft.org/schema/mule/ms-inference/current/mule-ms-inference.xsd">
+
+	<http:listener-config name="A2A_ERP_Agent_HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="bcdea437-7a94-4d5f-abf5-2175862130ed" >
+		<http:listener-connection host="0.0.0.0" port="${http.port}" readTimeout="30000000"/>
+		<http:listener-interceptors >
+			<http:cors-interceptor >
+				<http:origins >
+					<http:public-resource />
+				</http:origins>
+			</http:cors-interceptor>
+		</http:listener-interceptors>
+	</http:listener-config>
+	
+	<ms-inference:text-generation-config name="GENERAL" doc:name="MuleSoft Inference Text generation config" doc:id="e4405b57-d8b8-4ed4-9f5a-c671a71ef80a" >
+		<ms-inference:openai-connection apiKey="${openai.apikey}" maxTokens="${openai.maxToken}" openAIModelName="${openai.model}"/>
+	</ms-inference:text-generation-config>
+	
+	<configuration-properties doc:name="Configuration properties" doc:id="badfa291-b7da-486d-b4c2-1e381b9e7b11" file="config.properties" />
+	<a2a:server-config name="ERP_Agent_A2A_Server" doc:name="A2A Server" doc:id="179ff933-a0b0-40d4-bc9b-36ee2d897de6" >
+		<a2a:connection listenerConfig="A2A_ERP_Agent_HTTP_Listener_config" agentPath="/erp-agent" />
+		<a2a:card name="${agent.name}" url="${agent.host}/erp-agent" version="1.0.0" documentationUrl="${agent.documentationUrl}" iconUrl="${agent.iconUrl}" protocolVersion="0.3.0">
+			<a2a:description ><![CDATA[${agent.description}]]></a2a:description>
+			<a2a:skills >
+				<a2a:agent-skill id="${agent.skill.1.id}" name="${agent.skill.1.name}" >
+					<a2a:description ><![CDATA[${agent.skill.1.description}]]></a2a:description>
+					<a2a:tags >
+						<a2a:tag value="inventory_check" />
+					</a2a:tags>
+				</a2a:agent-skill>
+				<a2a:agent-skill id="${agent.skill.2.id}" name="${agent.skill.2.name}" >
+					<a2a:description ><![CDATA[${agent.skill.2.description}]]></a2a:description>
+					<a2a:tags >
+						<a2a:tag value="sales_order" />
+					</a2a:tags>
+				</a2a:agent-skill>
+				<a2a:agent-skill id="${agent.skill.3.id}" name="${agent.skill.3.name}" >
+					<a2a:description ><![CDATA[${agent.skill.3.description}]]></a2a:description>
+					<a2a:tags >
+						<a2a:tag value="process_delivery" />
+					</a2a:tags>
+				</a2a:agent-skill>
+			</a2a:skills>
+			<a2a:provider organization="${agent.providerOrganization}" url="${agent.providerUrl}" />
+		</a2a:card>
+	</a2a:server-config>
+	<file:config name="File_Config" doc:name="File Config" doc:id="c1796159-de77-47a6-847c-f67c637c5fd8" />
+	
+	
+	<mcp:client-config name="MCP_Client" doc:name="MCP Client" doc:id="ae1d7427-c948-4446-9065-b0066bc143b0" clientName="Mule MCP COnnector" clientVersion="1.0.0" >
+		<mcp:streamable-http-client-connection serverUrl="${mcpserver.erp.url}">
+			<mcp:default-request-headers >
+				<mcp:default-request-header key="client_id" value="${mcpserver.erp.clientId}" />
+				<mcp:default-request-header key="client_secret" value="${mcpserver.erp.clientSecret}" />
+			</mcp:default-request-headers>
+		</mcp:streamable-http-client-connection>
+	</mcp:client-config>
+	
+</mule>

@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:jira="http://www.mulesoft.org/schema/mule/jira"
+	xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:ms-einstein-ai="http://www.mulesoft.org/schema/mule/ms-einstein-ai"
+	xmlns:ms-agentforce="http://www.mulesoft.org/schema/mule/ms-agentforce"
+	xmlns:a2a="http://www.mulesoft.org/schema/mule/a2a" xmlns:mac-inference="http://www.mulesoft.org/schema/mule/mac-inference" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:tls="http://www.mulesoft.org/schema/mule/tls" xmlns:mcp="http://www.mulesoft.org/schema/mule/mcp" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/mcp http://www.mulesoft.org/schema/mule/mcp/current/mule-mcp.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/mac-inference http://www.mulesoft.org/schema/mule/mac-inference/current/mule-mac-inference.xsd
+http://www.mulesoft.org/schema/mule/a2a http://www.mulesoft.org/schema/mule/a2a/current/mule-a2a.xsd
+http://www.mulesoft.org/schema/mule/ms-agentforce http://www.mulesoft.org/schema/mule/ms-agentforce/current/mule-ms-agentforce.xsd
+http://www.mulesoft.org/schema/mule/ms-einstein-ai http://www.mulesoft.org/schema/mule/ms-einstein-ai/current/mule-ms-einstein-ai.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+http://www.mulesoft.org/schema/mule/jira http://www.mulesoft.org/schema/mule/jira/current/mule-jira.xsd">
+
+	<sub-flow name="einstein-agent" doc:id="4fc284f7-f286-43a2-8bd1-e6ba158b89e3" >
+		<ms-einstein-ai:agent-define-prompt-template doc:name="Agent define prompt template" doc:id="9ab36144-b3ac-4c06-956b-2782fe87b674" config-ref="Einstein_AI_Configuration" modelApiName="sfdc_ai__DefaultGPT4Omni" >
+			<ms-einstein-ai:template ><![CDATA[You are a issue and bug management agent. Be polite in the way you communicate.]]></ms-einstein-ai:template>
+			<ms-einstein-ai:instructions ><![CDATA[#[vars.einsteinPlanningInstructions]]]></ms-einstein-ai:instructions>
+			<ms-einstein-ai:dataset ><![CDATA[#["Users prompt: " ++ vars.userPrompt]]]></ms-einstein-ai:dataset>
+		</ms-einstein-ai:agent-define-prompt-template>
+		<ee:transform doc:name="transform" doc:id="3d3bc785-3d91-4573-8970-ce50e3d570a2" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+var jsonString = payload.response as String
+var cleanedString = jsonString replace /^```json\n/ with "" replace /```$/ with ""
+---
+read(cleanedString, "application/json")]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="🔎 Tool Assessment 🔎" doc:id="2e93ad79-0c49-4b8b-942c-bc68d4614634" message='#[%dw 2.0&#10;output text&#10;---&#10;"\n\n" ++&#10;"🔎🔎🔎🔎🔎️️ --------------------------  Query Assessment ----------------------- 🔎🔎🔎🔎🔎️\n" ++&#10;"Tools : \n" ++ &#10;write(payload, "application/json") ++ &#10;"\n 🔎🔎🔎🔎🔎️️ ---------------------------------------------------------------------- 🔎🔎🔎🔎🔎️" ++&#10;"\n\n"]' category="🔎 Tool Assessment 🔎" />
+		<choice doc:name="Choice" doc:id="35b585dc-072b-432f-823e-f4f0a3b5e9c3" >
+			<when expression='#[payload.action=="out_of_context"]'>
+				<set-payload value='#[{"response": "I can only answer questions related to leads stored in the lead management system."}]' doc:name="Set Payload" doc:id="18f701bc-39c7-4dcb-a130-cf1341e692b0" />
+			</when>
+			<otherwise >
+				<flow-ref doc:name="Flow Call" doc:id="e3f5b390-4e76-4660-b04e-53052f8d723b" name="#[payload.action]" />
+			</otherwise>
+		</choice>
+		<logger level="INFO" doc:name="🛠️ Tools Result 🛠️" doc:id="c64f52a8-bbb1-47f3-a753-0009da3041bf" message='#[%dw 2.0&#10;output text&#10;---&#10;"\n\n" ++&#10;"🛠️🛠️🛠️🛠️🛠️️ --------------------------  Tool Result -------------------------- 🛠️🛠️🛠️🛠️🛠️\n" ++&#10;"Tools : \n" ++ &#10;write(payload, "application/json") ++ &#10;"\n 🛠️🛠️🛠️🛠️🛠️️ ---------------------------------------------------------------------- 🛠️🛠️🛠️🛠️🛠️" ++&#10;"\n\n"]' category="🛠️ Tools Result 🛠️" />
+		<ms-einstein-ai:agent-define-prompt-template doc:name="Agent define prompt template" doc:id="c824e935-796f-4451-98df-5539ae8ddaa8" config-ref="Einstein_AI_Configuration">
+			<ms-einstein-ai:template ><![CDATA[You are a issue and bug management agent. Be polite in the way you communicate.]]></ms-einstein-ai:template>
+			<ms-einstein-ai:instructions ><![CDATA[Answer for the question. ]]></ms-einstein-ai:instructions>
+			<ms-einstein-ai:dataset ><![CDATA[#["question: " ++ vars.userPrompt ++ ", results: " ++ write(payload, "application/json")]]]></ms-einstein-ai:dataset>
+		</ms-einstein-ai:agent-define-prompt-template>
+		<ee:transform doc:name="Transform Message" doc:id="91242eda-21b8-46ec-8d2d-3952a51bc0b7">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	response: payload.response
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+	<sub-flow name="a2a-einstein-set-init" doc:id="b1ae052d-e3ae-497a-988c-145351e1e505" >
+		<set-variable value="#[payload.message.parts[0].text]" doc:name="Set task user prompt" doc:id="3367dd7d-293c-40c7-bf91-215aebaea2ef" variableName="userPrompt" />
+		<set-variable value="#[attributes.taskId default uuid()]" doc:name="Set Task Id" doc:id="a5bf39db-f592-4ad4-8ce0-6f295cf6715d" variableName="taskId" />
+		<set-variable value='#[(attributes.contextId) default ""]' doc:name="Set context Id" doc:id="d0df8c88-a412-4aa0-a6aa-015340c29453" variableName="contextId" />
+		<set-variable value="#[payload.message.messageId]" doc:name="Set Message Id" doc:id="04e44231-3699-442b-be0d-11432921049f" variableName="messageId" />
+		<logger level="INFO" doc:name="Init" doc:id="8ec6e13b-789a-4acc-baee-50344cb1a042" message="#[attributes.headers.agentforceSession]" />
+		<flow-ref doc:name="load prompts" doc:id="730a1175-c1e3-475a-bfdc-3f0b9b557213" name="load-prompts"/>
+	</sub-flow>
+	<sub-flow name="get_issues" doc:id="1b527cb6-1546-4e13-9b06-7d62921425d9" >
+		<http:request doc:name="Request" doc:id="8023cf2c-e2ee-428c-a939-3756b9ca0569" url="https://agentforce-demo.atlassian.net/rest/api/3/search?jql=project=SCRUM" >
+			<http:headers ><![CDATA[#[output application/java
+---
+{
+	"Authorization" : "Basic ${jira.token}",
+	"Accept" : "application/json"
+}]]]></http:headers>
+		</http:request>
+		<ee:transform doc:name="Transform Message" doc:id="f4d89343-4990-46a6-a2e0-dbc6f8e3557f" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	issueId: payload.issues.id,
+	summary: payload.issues.fields.summary,
+	description: payload.issues.fields.description	
+	
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+</mule>
