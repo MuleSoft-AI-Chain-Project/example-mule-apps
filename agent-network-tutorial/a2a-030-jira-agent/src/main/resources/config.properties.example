@@ -1,0 +1,19 @@
+http.port=8081
+
+agent.name=Issue and Bug Agent
+agent.host=http://localhost:8081
+agent.description=Jira Agent is able to retrieve issues and bugs. 
+agent.iconUrl=https://logos-world.net/wp-content/uploads/2023/03/Atlassian-Logo.jpg
+agent.documentationUrl=https://www.atlassian.com/
+agent.providerOrganization=Jira
+agent.providerUrl=https://www.atlassian.com
+
+agent.skill.1.id=1
+agent.skill.1.name=Get Issues and Bugs
+agent.skill.1.description=Agent has access to all issues and bugs in Jira.
+
+salesforce.tokenUrl=
+salesforce.clientId=
+salesforce.clientSecret=
+
+jira.token=

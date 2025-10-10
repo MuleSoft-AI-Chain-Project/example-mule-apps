@@ -1,0 +1,169 @@
+{
+    "expand": "names,schema",
+    "startAt": 0,
+    "maxResults": 50,
+    "total": 1,
+    "issues": [
+        {
+            "expand": "operations,versionedRepresentations,editmeta,changelog,renderedFields",
+            "id": "10003",
+            "self": "https://agentforce-demo.atlassian.net/rest/api/3/issue/10003",
+            "key": "SCRUM-1",
+            "fields": {
+                "statuscategorychangedate": "2025-09-12T10:01:50.766+0200",
+                "issuetype": {
+                    "self": "https://agentforce-demo.atlassian.net/rest/api/3/issuetype/10003",
+                    "id": "10003",
+                    "description": "Bugs track problems or errors.",
+                    "iconUrl": "https://agentforce-demo.atlassian.net/rest/api/2/universal_avatar/view/type/issuetype/avatar/10303?size=medium",
+                    "name": "Bug",
+                    "subtask": false,
+                    "avatarId": 10303,
+                    "entityId": "6a6b8b28-a942-45fb-bb69-140cd02164da",
+                    "hierarchyLevel": 0
+                },
+                "components": [],
+                "timespent": null,
+                "timeoriginalestimate": null,
+                "project": {
+                    "self": "https://agentforce-demo.atlassian.net/rest/api/3/project/10000",
+                    "id": "10000",
+                    "key": "SCRUM",
+                    "name": "Agentforce",
+                    "projectTypeKey": "software",
+                    "simplified": true,
+                    "avatarUrls": {
+                        "48x48": "https://agentforce-demo.atlassian.net/rest/api/3/universal_avatar/view/type/project/avatar/10421",
+                        "24x24": "https://agentforce-demo.atlassian.net/rest/api/3/universal_avatar/view/type/project/avatar/10421?size=small",
+                        "16x16": "https://agentforce-demo.atlassian.net/rest/api/3/universal_avatar/view/type/project/avatar/10421?size=xsmall",
+                        "32x32": "https://agentforce-demo.atlassian.net/rest/api/3/universal_avatar/view/type/project/avatar/10421?size=medium"
+                    }
+                },
+                "description": {
+                    "type": "doc",
+                    "version": 1,
+                    "content": [
+                        {
+                            "type": "paragraph",
+                            "content": [
+                                {
+                                    "type": "text",
+                                    "text": "I want to access my payments via Invoice API in the Kony app but it returns resouce not found"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "fixVersions": [],
+                "customfield_10033": null,
+                "aggregatetimespent": null,
+                "statusCategory": {
+                    "self": "https://agentforce-demo.atlassian.net/rest/api/3/statuscategory/2",
+                    "id": 2,
+                    "key": "new",
+                    "colorName": "blue-gray",
+                    "name": "To Do"
+                },
+                "resolution": null,
+                "customfield_10015": null,
+                "security": null,
+                "aggregatetimeestimate": null,
+                "resolutiondate": null,
+                "workratio": -1,
+                "summary": "can't access the Kony App Invoice API",
+                "watches": {
+                    "self": "https://agentforce-demo.atlassian.net/rest/api/3/issue/SCRUM-1/watchers",
+                    "watchCount": 0,
+                    "isWatching": false
+                },
+                "lastViewed": null,
+                "creator": {
+                    "self": "https://agentforce-demo.atlassian.net/rest/api/3/user?accountId=557058%3A53a3d7cb-c0cb-495e-87c2-4608149a1f39",
+                    "accountId": "557058:53a3d7cb-c0cb-495e-87c2-4608149a1f39",
+                    "emailAddress": "amir.khan.offenbach.main@gmail.com",
+                    "avatarUrls": {
+                        "48x48": "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/557058:53a3d7cb-c0cb-495e-87c2-4608149a1f39/7327a641-0092-4944-9a07-2e3beee28189/48",
+                        "24x24": "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/557058:53a3d7cb-c0cb-495e-87c2-4608149a1f39/7327a641-0092-4944-9a07-2e3beee28189/24",
+                        "16x16": "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/557058:53a3d7cb-c0cb-495e-87c2-4608149a1f39/7327a641-0092-4944-9a07-2e3beee28189/16",
+                        "32x32": "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/557058:53a3d7cb-c0cb-495e-87c2-4608149a1f39/7327a641-0092-4944-9a07-2e3beee28189/32"
+                    },
+                    "displayName": "Driver",
+                    "active": true,
+                    "timeZone": "Europe/Zurich",
+                    "accountType": "atlassian"
+                },
+                "subtasks": [],
+                "created": "2025-09-12T10:01:50.444+0200",
+                "customfield_10020": [
+                    {
+                        "id": 1,
+                        "name": "SCRUM Sprint 1",
+                        "state": "future",
+                        "boardId": 1
+                    }
+                ],
+                "customfield_10021": null,
+                "reporter": {
+                    "self": "https://agentforce-demo.atlassian.net/rest/api/3/user?accountId=557058%3A53a3d7cb-c0cb-495e-87c2-4608149a1f39",
+                    "accountId": "557058:53a3d7cb-c0cb-495e-87c2-4608149a1f39",
+                    "emailAddress": "amir.khan.offenbach.main@gmail.com",
+                    "avatarUrls": {
+                        "48x48": "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/557058:53a3d7cb-c0cb-495e-87c2-4608149a1f39/7327a641-0092-4944-9a07-2e3beee28189/48",
+                        "24x24": "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/557058:53a3d7cb-c0cb-495e-87c2-4608149a1f39/7327a641-0092-4944-9a07-2e3beee28189/24",
+                        "16x16": "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/557058:53a3d7cb-c0cb-495e-87c2-4608149a1f39/7327a641-0092-4944-9a07-2e3beee28189/16",
+                        "32x32": "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/557058:53a3d7cb-c0cb-495e-87c2-4608149a1f39/7327a641-0092-4944-9a07-2e3beee28189/32"
+                    },
+                    "displayName": "Driver",
+                    "active": true,
+                    "timeZone": "Europe/Zurich",
+                    "accountType": "atlassian"
+                },
+                "aggregateprogress": {
+                    "progress": 0,
+                    "total": 0
+                },
+                "priority": {
+                    "self": "https://agentforce-demo.atlassian.net/rest/api/3/priority/3",
+                    "iconUrl": "https://agentforce-demo.atlassian.net/images/icons/priorities/medium_new.svg",
+                    "name": "Medium",
+                    "id": "3"
+                },
+                "customfield_10001": null,
+                "labels": [],
+                "customfield_10016": null,
+                "environment": null,
+                "customfield_10019": "0|i0000n:",
+                "timeestimate": null,
+                "aggregatetimeoriginalestimate": null,
+                "versions": [],
+                "duedate": null,
+                "progress": {
+                    "progress": 0,
+                    "total": 0
+                },
+                "issuelinks": [],
+                "votes": {
+                    "self": "https://agentforce-demo.atlassian.net/rest/api/3/issue/SCRUM-1/votes",
+                    "votes": 0,
+                    "hasVoted": false
+                },
+                "assignee": null,
+                "updated": "2025-09-12T10:01:55.591+0200",
+                "status": {
+                    "self": "https://agentforce-demo.atlassian.net/rest/api/3/status/10000",
+                    "description": "",
+                    "iconUrl": "https://agentforce-demo.atlassian.net/images/icons/statuses/generic.png",
+                    "name": "To Do",
+                    "id": "10000",
+                    "statusCategory": {
+                        "self": "https://agentforce-demo.atlassian.net/rest/api/3/statuscategory/2",
+                        "id": 2,
+                        "key": "new",
+                        "colorName": "blue-gray",
+                        "name": "To Do"
+                    }
+                }
+            }
+        }
+    ]
+}

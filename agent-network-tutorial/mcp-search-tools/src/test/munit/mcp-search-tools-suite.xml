@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd">
+	<munit:config name="mcp-search-tools-suite.xml" />
+	<munit:test name="google-search-api-test" doc:id="3241d334-772c-490b-bce5-b0e5492be155" >
+		<munit:behavior >
+			<munit:set-event doc:name="Set Input" doc:id="c88793e6-c4d7-489e-8828-c8e151ff1f6d" >
+				<munit:payload value="#[output application/java --- readUrl('classpath://googlesearchapitest/set-event_payload.dwl')]" encoding="UTF-8" mediaType="application/java" />
+				<munit:attributes value="#[readUrl('classpath://googlesearchapitest/set-event_attributes.dwl')]" />
+			</munit:set-event>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to google-search-api" doc:id="d2b79319-3ced-481a-977d-81d2b5260f7f" name="google-search-api"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert doc:name="Assert payload" doc:id="dc23f0d7-2f3b-4a52-ae83-659383c44949" message="The payload does not match">
+				<munit-tools:that ><![CDATA[#[%dw 2.0
+import googlesearchapitest::assert_expression_payload
+---
+assert_expression_payload::main({payload: payload, attributes: attributes, vars: vars})]]]></munit-tools:that>
+			</munit-tools:assert>
+		</munit:validation>
+	</munit:test>
+
+</mule>

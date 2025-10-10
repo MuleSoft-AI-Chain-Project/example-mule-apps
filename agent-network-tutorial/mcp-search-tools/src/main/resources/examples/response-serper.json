@@ -1,0 +1,86 @@
+{
+  "payload": {
+    "credits": 1,
+    "searchParameters": {
+      "q": "MCP MuleSoft Server",
+      "engine": "google",
+      "type": "search"
+    },
+    "organic": [
+      {
+        "snippet": "With just a few clicks, developers can transform their APIs and Mule apps into MCP servers — no complex setup or manual configuration required.",
+        "date": "Jul 10, 2025",
+        "link": "https://www.mulesoft.com/platform/ai/model-context-protocol",
+        "position": 1,
+        "title": "Introducing Model Context Protocol Support | MuleSoft"
+      },
+      {
+        "snippet": "Build your first MCP server in 4 steps · 1. Create an MCP server configuration · 2. Write a “Get Vendors” tool · 3. Write a “Create purchase order” ...",
+        "date": "Apr 16, 2025",
+        "link": "https://blogs.mulesoft.com/news/model-context-protocol/",
+        "position": 2,
+        "title": "MuleSoft MCP Support: Get Started With Model Context Protocol"
+      },
+      {
+        "snippet": "The Mulesoft MCP Server is a Model Context Protocol (MCP) implementation that facilitates interaction between large language models (LLMs) and the Mulesoft ...",
+        "date": "Jul 18, 2025",
+        "link": "https://www.npmjs.com/package/@mulesoft/mcp-server",
+        "position": 3,
+        "title": "@mulesoft/mcp-server - npm"
+      },
+      {
+        "snippet": "You can turn your current MuleSoft Applications into MCP Servers with a few configurations. Let's take a look at it.",
+        "date": "May 10, 2025",
+        "link": "https://medium.com/@rcarrascosps/mulesoft-applications-as-mcp-servers-its-time-to-start-thinking-differently-08a77fb662ad",
+        "position": 4,
+        "title": "MuleSoft applications as MCP Servers. It's time to start thinking ..."
+      },
+      {
+        "snippet": "Use MCP Connector to connect LLM applications with your APIs. Expose APIs with complex endpoints as simpler, more atomic tools or resources.",
+        "link": "https://docs.mulesoft.com/mcp-connector/latest/",
+        "position": 5,
+        "title": "MCP Connector 1.2 - MuleSoft Documentation"
+      },
+      {
+        "snippet": "MuleSoft MCP Server acts as a bridge between AI-powered IDEs like Cursor, Windsurf, and VS Code, and MuleSoft's platform services – enabling ...",
+        "date": "Jun 17, 2025",
+        "link": "https://www.linkedin.com/pulse/how-quickly-configure-mulesoft-your-way-leverage-mcp-server-bajpai-npk6c",
+        "position": 6,
+        "title": "How to quickly configure 'Mulesoft, your way' to leverage ... - LinkedIn"
+      },
+      {
+        "snippet": "The article will demonstrate how MuleSoft can act as a bridge between MCP-enabled AI tools and internal services (eg, databases, APIs, ERPs)",
+        "date": "May 21, 2025",
+        "link": "https://medium.com/@greddy2377/mulesoft-meets-mcp-beginner-tutorial-to-integrate-mcp-to-mulesoft-db9f40cb51f5",
+        "position": 7,
+        "title": "MuleSoft Meets MCP: Beginner Tutorial to Integrate MCP to MuleSoft"
+      },
+      {
+        "snippet": "In this live stream, Developer Advocate Alex Martinez tests out the MuleSoft MCP (Model Context Protocol) Server—from installation to ...",
+        "date": "Aug 4, 2025",
+        "link": "https://www.youtube.com/watch?v=DFH6qXW_zI8",
+        "position": 8,
+        "title": "Trying Out the MuleSoft MCP Server - YouTube"
+      },
+      {
+        "snippet": "MuleSoft MCP Server acts as a bridge between AI-powered IDEs like Cursor, Windsurf, and VS Code, and MuleSoft's platform services – enabling ...",
+        "date": "Jun 3, 2025",
+        "link": "https://blogs.mulesoft.com/news/model-context-protocol-server-for-ai-ides/",
+        "position": 9,
+        "title": "Getting Started With Extending MuleSoft to AI-Native IDEs"
+      },
+      {
+        "snippet": "Learn how to build a YouTube Data API MCP server using MuleSoft and CurieTech AI in 10 minutes. Full setup, testing, and Claude integration tutorial included.",
+        "link": "https://www.prostdev.com/post/building-a-youtube-mcp-server-with-mulesoft-and-curietech-ai-in-10-minutes",
+        "position": 10,
+        "title": "Building a YouTube MCP Server with MuleSoft and CurieTech AI in ..."
+      }
+    ]
+  },
+  "attributes": {
+    "query": null,
+    "otherAttributes": {
+      "query": "MCP MuleSoft Server"
+    }
+  }
+}
