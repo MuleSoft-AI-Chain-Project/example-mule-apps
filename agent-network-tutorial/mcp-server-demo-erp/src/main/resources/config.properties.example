@@ -1,0 +1,5 @@
+# HTTP
+http.port=8081
+
+sap.inventory=https://sap-ecc-inventory-check-material-api-b2jb0y.1d6nel.usa-e1.cloudhub.io/mmbe
+sap.order=https://sap-ecc-1p-orders-sys-api-b2jb0y.1d6nel.usa-e1.cloudhub.io/api/order

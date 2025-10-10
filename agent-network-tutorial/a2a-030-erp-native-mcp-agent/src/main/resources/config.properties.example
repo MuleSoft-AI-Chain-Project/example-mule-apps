@@ -1,0 +1,28 @@
+mcpserver.erp.url=
+mcpserver.erp.clientId=
+mcpserver.erp.clientSecret=
+
+agent.name=Sales Distribution
+agent.host=
+agent.description=ERP Agent which is responsible for inventory check, sales order and delivery.
+agent.iconUrl=https://raw.githubusercontent.com/MuleSoft-AI-Chain-Project/example-mule-apps/refs/heads/master/a2a-ail-demo/a2a-interaction-agent-app/src/main/resources/uiapp/assets/images/muleaichainagent.webp
+agent.documentationUrl=https://github.com/MuleSoft-AI-Chain-Project/example-mule-apps/blob/master/a2a-ail-demo/README.md#2-a2a-erp-headless-agent-app
+agent.providerOrganization=MuleSoft
+agent.providerUrl=https://mac-project.ai/
+
+agent.skill.1.id=1
+agent.skill.1.name=Inventory Check
+agent.skill.1.description=This skill gets inventory from ERP. Check inventory details for material in SAP by providing the materialNo as input for paramValue. Please use the materialNo and not materialNumber. This action applies whenever users' intent is 'Stock overview', 'product availability', 'Inventory', 'available stock'. Use the headers to perform the request.
+
+agent.skill.2.id=2
+agent.skill.2.name=Sales Order
+agent.skill.2.description=This skill submits an order for a product in ERP. Submit a Sales Order in ERP for a material. This action applies whenever users' intent is 'Create Sales Order', 'Order Submission', 'submit an order', 'create an order'. Use the headers to perform the request. If TARGET_QTY is provided, good, otherwise set it to 1.
+
+agent.skill.3.id=3
+agent.skill.3.name=Process Delivery
+agent.skill.3.description=This tool submits a delivery for an existing order in ERP. Submit a Delivery in ERP for an order. This action applies whenever users' intent is 'Create Delivery', 'Outbound Delivery', 'Picking and packaging', 'create delivery for order number'. Use the headers to perform the request. If ORDER_NO is not provided, don't execute this tool. ORDER_NO must be provided or is created by the tool submit_order
+
+
+openai.apikey=
+openai.model=gpt-4o-mini
+openai.maxToken=5000

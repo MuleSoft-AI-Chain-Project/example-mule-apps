@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:os="http://www.mulesoft.org/schema/mule/os"
+	xmlns:ms-agentforce="http://www.mulesoft.org/schema/mule/ms-agentforce" xmlns:a2a="http://www.mulesoft.org/schema/mule/a2a"
+	xmlns:mac-inference="http://www.mulesoft.org/schema/mule/mac-inference"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:tls="http://www.mulesoft.org/schema/mule/tls" xmlns:mcp="http://www.mulesoft.org/schema/mule/mcp" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/mcp http://www.mulesoft.org/schema/mule/mcp/current/mule-mcp.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/mac-inference http://www.mulesoft.org/schema/mule/mac-inference/current/mule-mac-inference.xsd
+http://www.mulesoft.org/schema/mule/a2a http://www.mulesoft.org/schema/mule/a2a/current/mule-a2a.xsd
+http://www.mulesoft.org/schema/mule/ms-agentforce http://www.mulesoft.org/schema/mule/ms-agentforce/current/mule-ms-agentforce.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd">
+	<sub-flow name="agentforce-agent" doc:id="4fc284f7-f286-43a2-8bd1-e6ba158b89e3" >
+		<choice doc:name="Choice" doc:id="325bbde4-1dc2-4245-9575-633a5b11f30c" >
+			<when expression='#[vars.agentforceSessionId==""]'>
+				<ms-agentforce:start-agent-conversation agent="0XxKa0000005xCKKAY" doc:name="Start agent conversation" doc:id="87b52c56-43d8-4e7f-b7c3-637b79750082" config-ref="Agentforce_Configuration" byPassUser="true"/>
+				<set-variable value='#[payload.sessionId]' doc:name="Set agentforceSessionId" doc:id="f605c233-e12c-415a-bc9c-e7fa9b897558" variableName="agentforceSessionId" />
+				<os:store doc:name="Store agentforceSessionId" doc:id="eff650e2-4846-4167-a1d9-f372a5b0beb2" key="#[vars.contextId]" objectStore="Object_store">
+					<os:value ><![CDATA[#[vars.agentforceSessionId]]]></os:value>
+				</os:store>
+			</when>
+			<otherwise >
+				<logger level="INFO" doc:name="💬 Continue conversation 💬" doc:id="a780565d-b602-47ba-ad26-b63a496a69b7" message='#[output text
+---
+"💬💬💬💬💬 ---------- Triggering Agentforce Agent ---------- 💬💬💬💬💬\n\n" ++
+
+"Continue existing conversation with agentforceSessionId: "  ++ 
+vars.agentforceSessionId as String ++ "\n" ++
+
+"\n\n💬💬💬💬💬 ------------------------------------------------ 💬💬💬💬💬"]'/>
+			</otherwise>
+		</choice>
+		<ms-agentforce:continue-agent-conversation doc:name="Continue agent conversation" doc:id="13323ae5-da40-4ec6-a2b9-e4afe9f1fe53" config-ref="Agentforce_Configuration" messageSequenceNumber="10">
+			<ms-agentforce:message ><![CDATA[#[vars.prompt]]]></ms-agentforce:message>
+			<ms-agentforce:session-id ><![CDATA[#[vars.agentforceSessionId]]]></ms-agentforce:session-id>
+		</ms-agentforce:continue-agent-conversation>
+		<ee:transform doc:name="format response" doc:id="4ede0638-66bf-42af-abf0-6fb926b4bd22" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	response: payload
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+	<sub-flow name="a2a-agentforce-set-init" doc:id="b1ae052d-e3ae-497a-988c-145351e1e505" >
+		<set-variable value="#[payload.message.parts[0].text]" doc:name="Set prompt" doc:id="3367dd7d-293c-40c7-bf91-215aebaea2ef" variableName="prompt" />
+		<set-variable value="#[attributes.taskId default uuid()]" doc:name="Set Task Id" doc:id="b26c7848-64ee-4a3e-ab40-7320864e4e51" variableName="taskId" />
+		<set-variable value='#[(attributes.contextId) default ""]' doc:name="Set context Id" doc:id="ee4bc9e8-35d7-41fe-b687-0ab29d6e4974" variableName="contextId" />
+		<set-variable value="#[payload.message.messageId]" doc:name="Set Message Id" doc:id="1deeaac1-ec6c-49d9-bdcd-1acc025e1326" variableName="messageId" />
+		<set-variable value="#[(attributes.headers.history) default true]" doc:name="Set history" doc:id="48a00cf0-4b6a-46b1-8a59-e52eaa93b125" variableName="history" />
+		<os:retrieve doc:name="Retrieve sessionId" doc:id="9d6b56de-1f42-4373-b444-ef6830f71568" key="#[vars.contextId]" objectStore="Object_store" target="agentforceSessionId">
+			<os:default-value ><![CDATA[#[""]]]></os:default-value>
+		</os:retrieve>
+	</sub-flow>
+</mule>
