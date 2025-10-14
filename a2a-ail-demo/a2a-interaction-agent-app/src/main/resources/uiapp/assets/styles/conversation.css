@@ -70,7 +70,8 @@
 }
 
 .btn-primary:hover {
-    background-color: #0088cc;
+    background-color: var(--primary-light-color);
+    color: var(--primary-color);
 }
 
 .typing-indicator {

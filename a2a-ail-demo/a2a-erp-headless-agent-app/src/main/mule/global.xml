@@ -30,7 +30,7 @@ http://www.mulesoft.org/schema/mule/ms-inference http://www.mulesoft.org/schema/
 	<configuration-properties doc:name="Configuration properties" doc:id="badfa291-b7da-486d-b4c2-1e381b9e7b11" file="config.properties" />
 	<a2a:server-config name="ERP_Agent_A2A_Server" doc:name="A2A Server" doc:id="179ff933-a0b0-40d4-bc9b-36ee2d897de6" >
 		<a2a:connection listenerConfig="A2A_ERP_Agent_HTTP_Listener_config" agentPath="/erp-agent" />
-		<a2a:card name="${agent.name}" url="${agent.host}/erp-agent" version="1.0.0" documentationUrl="${agent.documentationUrl}" iconUrl="${agent.iconUrl}">
+		<a2a:card name="${agent.name}" url="${agent.host}/erp-agent" version="1.0.0" documentationUrl="${agent.documentationUrl}" iconUrl="${agent.iconUrl}" protocolVersion="0.3.0">
 			<a2a:description ><![CDATA[${agent.description}]]></a2a:description>
 			<a2a:skills >
 				<a2a:agent-skill id="${agent.skill.1.id}" name="${agent.skill.1.name}" >

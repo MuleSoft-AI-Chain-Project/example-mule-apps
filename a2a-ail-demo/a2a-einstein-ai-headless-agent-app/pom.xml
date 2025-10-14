@@ -7,14 +7,14 @@
 	<version>1.0.2</version>
 	<packaging>mule-application</packaging>
 
-	<name>a2a-einstein-ai-headless-agent-app</name>
+	<name>a2a-0.3.0-hubspot-agent</name>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
 		<app.runtime>4.9.4</app.runtime>
-		<mule.maven.plugin.version>4.3.0</mule.maven.plugin.version>
+		<mule.maven.plugin.version>4.5.3</mule.maven.plugin.version>
 	</properties>
 
 	<build>
@@ -30,7 +30,7 @@
 				<version>${mule.maven.plugin.version}</version>
 				<extensions>true</extensions>
 				<configuration>
-					<classifier>---- select project type ----</classifier>
+					<classifier>mule-application</classifier>
 				</configuration>
 			</plugin>
 		</plugins>
@@ -50,12 +50,6 @@
 		</dependency>
 		<dependency>
 			<groupId>com.mulesoft.connectors</groupId>
-			<artifactId>mule4-a2a-connector</artifactId>
-			<version>0.3.0-BETA</version>
-			<classifier>mule-plugin</classifier>
-		</dependency>
-		<dependency>
-			<groupId>com.mulesoft.connectors</groupId>
 			<artifactId>mule4-einstein-ai-connector</artifactId>
 			<version>1.2.1</version>
 			<classifier>mule-plugin</classifier>
@@ -64,6 +58,18 @@
 			<groupId>org.mule.connectors</groupId>
 			<artifactId>mule-file-connector</artifactId>
 			<version>1.5.3</version>
+			<classifier>mule-plugin</classifier>
+		</dependency>
+		<dependency>
+			<groupId>org.mule.connectors</groupId>
+			<artifactId>mule-sockets-connector</artifactId>
+			<version>1.2.5</version>
+			<classifier>mule-plugin</classifier>
+		</dependency>
+		<dependency>
+			<groupId>com.mulesoft.connectors</groupId>
+			<artifactId>mule4-a2a-connector</artifactId>
+			<version>0.4.0-BETA</version>
 			<classifier>mule-plugin</classifier>
 		</dependency>
 	</dependencies>

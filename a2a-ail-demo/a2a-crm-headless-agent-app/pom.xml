@@ -2,19 +2,19 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>f684513f-280e-403a-ac53-80ca62e3de49</groupId>
-	<artifactId>crm-headless-agent-app</artifactId>
+	<groupId>769a1d3e-0648-41de-95e8-e7dbbd27c0c1</groupId>
+	<artifactId>crm-native-mcp-agent</artifactId>
 	<version>1.0.0</version>
 	<packaging>mule-application</packaging>
 
-	<name>a2a-crm-headless-agent-app</name>
+	<name>crm-native-mcp-agent</name>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
 		<app.runtime>4.9.4</app.runtime>
-		<mule.maven.plugin.version>4.3.0</mule.maven.plugin.version>
+		<mule.maven.plugin.version>4.5.3</mule.maven.plugin.version>
 	</properties>
 
 	<build>
@@ -30,7 +30,7 @@
 				<version>${mule.maven.plugin.version}</version>
 				<extensions>true</extensions>
 				<configuration>
-					<classifier>---- select project type ----</classifier>
+					<classifier>mule-application</classifier>
 				</configuration>
 			</plugin>
 		</plugins>
@@ -55,18 +55,6 @@
 		<!-- 			<classifier>mule-plugin</classifier> -->
 		<!-- 		</dependency> -->
 		<dependency>
-			<groupId>io.github.mulesoft-ai-chain-project</groupId>
-			<artifactId>mule4-inference-connector</artifactId>
-			<version>0.5.7</version>
-			<classifier>mule-plugin</classifier>
-		</dependency>
-		<dependency>
-			<groupId>com.mulesoft.connectors</groupId>
-			<artifactId>mule4-a2a-connector</artifactId>
-			<version>0.3.0-BETA</version>
-			<classifier>mule-plugin</classifier>
-		</dependency>
-		<dependency>
 			<groupId>org.mule.connectors</groupId>
 			<artifactId>mule-file-connector</artifactId>
 			<version>1.5.3</version>
@@ -79,9 +67,15 @@
 			<classifier>mule-plugin</classifier>
 		</dependency>
 		<dependency>
-			<groupId>org.mule.modules</groupId>
-			<artifactId>mule-oauth-module</artifactId>
-			<version>1.1.24</version>
+			<groupId>com.mulesoft.connectors</groupId>
+			<artifactId>mule4-a2a-connector</artifactId>
+			<version>0.4.0-BETA</version>
+			<classifier>mule-plugin</classifier>
+		</dependency>
+		<dependency>
+			<groupId>com.mulesoft.connectors</groupId>
+			<artifactId>mule4-inference-connector</artifactId>
+			<version>1.2.0</version>
 			<classifier>mule-plugin</classifier>
 		</dependency>
 	</dependencies>

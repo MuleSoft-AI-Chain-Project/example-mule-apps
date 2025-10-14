@@ -185,16 +185,16 @@ This demo demonstrates a multi-agent architecture where:
 
 ### Core Technologies
 - **MuleSoft Runtime**: 4.9.6+
-- **A2A Connector**: 0.3.0-BETA (Agent-to-Agent communication)
-- **MCP Connector**: 1.2.0 (Model Context Protocol)
-- **Inference Connector**: 1.0.0 (OpenAI integration)
+- **A2A Connector**: 0.4.0-BETA (Agent-to-Agent communication)
+- **MCP Connector**: 1.2.1 (Model Context Protocol)
+- **Inference Connector**: 1.2.0 (OpenAI integration)
 - **Einstein AI Connector**: 1.2.1 (Salesforce Einstein AI integration)
 
 ### AI/ML Integrations  
 - **OpenAI**: GPT-4o-mini for natural language processing
 - **Salesforce Einstein AI**: Native Salesforce AI capabilities
 - **Salesforce Agentforce**: Advanced agent automation
-- **MuleSoft Inference Connector**: 0.5.7
+- **MuleSoft Inference Connector**: 1.2.0
 
 ### Additional Connectors
 - **HTTP Connector**: REST API integrations  
@@ -289,6 +289,22 @@ mcpserver.crm.clientSecret=your_mcp_client_secret
 ```
 
 ## 📦 Release History
+
+### Release 3.0 - Settings and Connector Updates
+**Release Date**: October 2025
+
+#### ⚙️ Settings Enhancements
+- **Unified Settings Panel**: Centralized configuration for Reasoning Engine, Host Agent name, Anypoint Exchange, and Theme/Brand.
+- **Anypoint Exchange (Custom Instance)**: Configure URL, Client ID/Secret, Org ID, and Env ID with built-in credential validation and progress spinner.
+- **Theme & Brand**: Primary/Light colors, chat background (live preview and immediate apply), logo (preview then apply on save), and host agent display name.
+- **Export/Import & Reset**: Export `settings.json`, import to overwrite and refresh UI, and one-click reset to defaults.
+
+#### 🧭 Protocol Support
+- **A2A Protocol v3**: Explicit support added. Requires A2A Connector `0.3.0-BETA` or later (this release uses `0.4.0-BETA`).
+
+#### 🔌 Connector Updates
+- **A2A Connector**: Upgraded to `0.4.0-BETA`.
+- **MCP Connector**: Upgraded to `1.2.1`.
 
 ### Release 2.1 - Exchange Integration
 **Release Date**: September 2025
@@ -444,6 +460,50 @@ mcpserver.crm.clientSecret=your_mcp_client_secret
 1. Navigate to `https://your-gateway-url/ui/agents.html`
 2. Add one or more agent types (ERP, CRM, Agentforce, Einstein)
 3. Start a conversation with natural language queries
+
+#### Settings Panel
+
+The UI includes a Settings panel that lets you configure agent behavior, Exchange connectivity, and theming. The implementation lives in `a2a-interaction-agent-app/src/main/resources/uiapp/assets/js/settings/settings.js` and is initialized via `window.attachSettingsTab()`.
+
+- **Host Agent & Engine**
+  - **Choose reasoning engine**: Select the active engine (saved to unified settings). The UI highlights the selected `.engine-option`.
+  - **Persistence and side effects**: Saving updates unified settings, applies the engine to the app if available, and refreshes the navbar "Powered by" display.
+  - **Eventing**: Emits `engineChanged` with `{ engine }` on save so other components can react.
+
+- **Anypoint Exchange Integration**
+  - **Modes**: `Default` or `Custom`.
+  - **Custom fields**: URL, Client ID, Client Secret, Organization ID, Environment ID. The URL field displays without protocol for readability; the value is stored as entered.
+  - **Validate/Test**: "Test Credentials" performs a GET to `/platform/a2a-agents` with `client_id` and `client_secret` headers, showing a spinner during the operation. Save validates required fields and tests credentials before persisting.
+  - **Storage**: Saved under unified settings as `exchangeCredentials`.
+
+- **Themes & Brand**
+  - **Colors**: Set Primary and Primary (Light) colors via picker and hex inputs (kept in sync). Changes are logged live but only applied globally on save.
+  - **Chat background image**: Updating the URL immediately saves to settings and shows a live preview. "Remove Background" clears and applies immediately.
+  - **Logo image**: Updating the URL previews only; global header/logo updates on save. "Remove Logo" clears the preview (apply on save).
+  - **Host Agent Name**: Update the visible name for the host agent; applied to the header on save.
+  - **Apply after save**: On save, the UI refreshes theme variables, navbar logo, and host agent name display.
+
+- **Export / Import**
+  - **Export**: Downloads the full unified settings as `settings.json`.
+  - **Import**: Upload a `settings.json` export to overwrite settings and refresh the UI (theme, logo, engine, host agent name). Useful for promoting configurations between environments.
+
+- **Reset to Defaults**
+  - Clears unified settings and legacy keys, resets engine to `inference`, brand/theme to defaults, and refreshes all visuals.
+
+- **UX & System Behavior**
+  - Built-in spinner overlays the settings area during long operations (validation, save).
+  - Toast-style notifications convey success/error states within the settings container.
+  - Unified settings are persisted to `localStorage` under `settings` (legacy keys like `exchange_credentials` and `themeSettings` are cleaned up on reset).
+
+> Tip: If you customize the theme background, it applies immediately to help you preview the look-and-feel while editing; logo updates are applied on save to avoid accidental changes.
+
+#### Sessions View
+
+The sessions view (markup in `a2a-interaction-agent-app/src/main/resources/uiapp/sessions.html`) lists conversation sessions and basic metadata.
+
+- **Table Columns**: Context ID (Conversation), Interaction ID, Task ID, Timestamp, Agents.
+- **Controls**: "Delete All" clears stored sessions for a fresh start in demos or testing.
+- **Population**: Rows are populated via JavaScript at runtime.
 
 ### Sample Conversations
 

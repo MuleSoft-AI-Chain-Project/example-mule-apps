@@ -180,22 +180,23 @@ window.SessionsManager = (function() {
                 data.reasoning.forEach(r => {
                     if (Array.isArray(r.calledAgents)) {
                         r.calledAgents.forEach(agent => {
-                            if (agent.agentTaskRequest?.id) {
-                                taskIds.push(agent.agentTaskRequest.id);
+                            const taskId = agent.agentTaskResponse?.id || agent.agentTaskRequest?.id;
+                            if (taskId) {
+                                taskIds.push(taskId);
                             }
                         });
                     }
                 });
             }
-            // Use the sessionId from the top-level attribute if available
-            let sessionId = data.sessionId || '';
+            // Use the contextId from the top-level attribute if available
+            let contextId = data.contextId || '';
             // Use the timestamp from the top-level attribute in localStorage
             let timestamp = interaction.timestamp ? interaction.timestamp.replace('T', ' ').replace('Z', '') : '';
             // Use the interactionId from the top-level attribute in localStorage
             let interactionId = interaction.interactionId || '';
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td>${sessionId}</td>
+                <td>${contextId}</td>
                 <td style="white-space:nowrap;">
                     <a href="#" class="open-session-modal" title="View session details" data-session-idx="${interactions.length - 1 - i}" data-task-idx="0">
                         <i class="fas fa-search"></i>

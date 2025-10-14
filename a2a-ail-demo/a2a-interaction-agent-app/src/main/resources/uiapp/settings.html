@@ -18,6 +18,10 @@
                     </svg>
                     <span>Anypoint Exchange</span>
                 </a>
+                <a href="#themes-brand" class="settings-nav-item" data-setting="themes-brand">
+                    <i class="fas fa-palette"></i>
+                    <span>Themes and Brand</span>
+                </a>
                 <!-- More settings items can be added here later -->
             </div>
         </div>
@@ -153,14 +157,112 @@
                              </div>
                          </div>
                      </div>
+                     
+                     <!-- Themes and Brand Settings -->
+                     <div id="themes-brand-content" class="setting-content">
+                         <div class="setting-content-header">
+                             <h2><i class="fas fa-palette me-2"></i>Themes and Brand</h2>
+                             <p class="setting-description">Customize the visual appearance and branding of your application</p>
+                         </div>
+                         
+                        <div class="themes-brand-container">
+                            <!-- Host Agent Name Section -->
+                            <div class="themes-section">
+                                <h4><i class="fas fa-id-badge me-2"></i>Host Agent Name</h4>
+                                <p class="themes-description">Set the display name for your Host Agent</p>
+                                <div class="url-input-container">
+                                    <input type="text" id="hostAgentName" class="form-control" placeholder="Host Agent">
+                                </div>
+                            </div>
+
+                            <!-- Logo Section (moved before Colors) -->
+                            <div class="themes-section">
+                                <h4><i class="fas fa-tag me-2"></i>Logo</h4>
+                                <p class="themes-description">Set your custom logo using a public URL</p>
+                                <div class="url-input-container">
+                                    <input type="url" id="logoUrl" class="form-control" placeholder="https://example.com/logo.png">
+                                    <div class="url-preview" id="logoPreview" style="display: none;">
+                                        <img id="logoPreviewImg" src="" alt="Logo preview" class="logo-preview-img">
+                                        <button type="button" class="btn btn-sm btn-outline-danger" id="removeLogoBtn">
+                                            <i class="fas fa-times"></i> Remove
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Chat Background Section -->
+                            <div class="themes-section">
+                                 <h4><i class="fas fa-image me-2"></i>Chat Background</h4>
+                                 <p class="themes-description">Set a background image for the chat interface using a public URL</p>
+                                 <div class="url-input-container">
+                                     <input type="url" id="chatBackgroundUrl" class="form-control" placeholder="https://example.com/background-image.jpg">
+                                     <div class="url-preview" id="backgroundPreview" style="display: none;">
+                                         <img id="backgroundPreviewImg" src="" alt="Background preview" class="preview-image">
+                                         <button type="button" class="btn btn-sm btn-outline-danger" id="removeBackgroundBtn">
+                                             <i class="fas fa-times"></i> Remove
+                                         </button>
+                                     </div>
+                                 </div>
+                             </div>
+                             
+                            <!-- Colors Section (after Chat Background) -->
+                            <div class="themes-section">
+                                 <h4><i class="fas fa-palette me-2"></i>Colors</h4>
+                                 <p class="themes-description">Choose your brand colors that will be used throughout the application</p>
+                                 
+                                 <!-- Primary Color -->
+                                 <div class="color-group">
+                                     <h5>Primary Color</h5>
+                                     <div class="color-picker-container">
+                                        <div class="color-picker-wrapper">
+                                            <input type="color" id="primaryColorPicker" class="color-picker" value="#00a2ff">
+                                            <label for="primaryColorPicker" class="color-picker-label"></label>
+                                        </div>
+                                         <div class="color-hex-input">
+                                             <input type="text" id="primaryColorHex" class="form-control" placeholder="#00a2ff" maxlength="7">
+                                             <small class="form-text text-muted">Enter hex color code (e.g., #00a2ff)</small>
+                                         </div>
+                                     </div>
+                                 </div>
+                                 
+                                <!-- Primary Light Color -->
+                                 <div class="color-group">
+                                    <h5>Primary Light Color</h5>
+                                     <div class="color-picker-container">
+                                        <div class="color-picker-wrapper">
+                                            <input type="color" id="primaryLightColorPicker" class="color-picker" value="#e3f2fd">
+                                            <label for="primaryLightColorPicker" class="color-picker-label"></label>
+                                        </div>
+                                         <div class="color-hex-input">
+                                            <input type="text" id="primaryLightColorHex" class="form-control" placeholder="#e3f2fd" maxlength="7">
+                                            <small class="form-text text-muted">Enter hex color code (e.g., #e3f2fd)</small>
+                                         </div>
+                                     </div>
+                                 </div>
+                            </div>
+                             
+                         </div>
+                     </div>
                  </div>
              </div>
              
              <!-- Save Button -->
              <div class="settings-save-section">
-                 <button id="saveEngineSettingsBtn" class="btn btn-primary">
-                     <i class="fas fa-save me-2"></i>Save
-                 </button>
+                <div style="display:flex; gap: 0.5rem; align-items:center;">
+                    <button id="exportSettingsBtn" class="btn btn-outline-secondary">
+                        <i class="fas fa-file-export me-2"></i>Export
+                    </button>
+                    <button id="importSettingsBtn" class="btn btn-outline-secondary">
+                        <i class="fas fa-file-import me-2"></i>Import
+                    </button>
+                    <input type="file" id="importSettingsFile" accept="application/json" style="display:none;">
+                    <button id="resetSettingsBtn" class="btn">
+                        <i class="fas fa-undo me-2"></i>Reset
+                    </button>
+                    <button id="saveEngineSettingsBtn" class="btn btn-primary">
+                        <i class="fas fa-save me-2"></i>Save
+                    </button>
+                </div>
              </div>
          </div>
 
@@ -171,3 +273,6 @@
         <div class="loading-text">Processing...</div>
     </div>
 </div>
+
+ 
+
