@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ms-einstein-ai="http://www.mulesoft.org/schema/mule/ms-einstein-ai" xmlns:ms-inference="http://www.mulesoft.org/schema/mule/ms-inference"
+	xmlns:os="http://www.mulesoft.org/schema/mule/os"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:mac-inference="http://www.mulesoft.org/schema/mule/mac-inference" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/mac-inference http://www.mulesoft.org/schema/mule/mac-inference/current/mule-mac-inference.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+http://www.mulesoft.org/schema/mule/ms-inference http://www.mulesoft.org/schema/mule/ms-inference/current/mule-ms-inference.xsd
+http://www.mulesoft.org/schema/mule/ms-einstein-ai http://www.mulesoft.org/schema/mule/ms-einstein-ai/current/mule-ms-einstein-ai.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="9d124d07-621d-4673-8b23-a3dacaf4af09" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<os:object-store name="Object_store" doc:name="Object store" doc:id="9026404e-b156-49a0-a754-6215f9ce1b5b" persistent="false" maxEntries="${os.max_entries}" entryTtl="60" entryTtlUnit="MINUTES" expirationInterval="10"/>
+	<ms-inference:text-generation-config name="MISTRAL_CONF" doc:name="MuleSoft Inference Text generation config" doc:id="6dbfb6c9-cf15-4927-a152-701e557e4835" >
+		<ms-inference:mistralai-connection mistralAIModelName="#[vars.context.model]" apiKey="#[vars.context.apiKey]" maxTokens="${provider.max_tokens}" temperature="${provider.temperature}" />
+	</ms-inference:text-generation-config>
+	<ms-inference:text-generation-config name="GENERAL_CONF" doc:name="MuleSoft Inference Text generation config" doc:id="38a21bce-76e6-4894-b36d-72fc58fb0586" >
+		<ms-inference:openai-compatible-connection openAICompatibleModelName="#[vars.context.model]" openAICompatibleURL="${provider.url}" apiKey="#[vars.context.apiKey]" maxTokens="${provider.max_tokens}" temperature="${provider.temperature}" />
+	</ms-inference:text-generation-config>
+
+	<configuration-properties doc:name="Configuration properties" doc:id="3e97ee77-5146-4273-8719-463a5b57236b" file="config.properties" />
+	<ms-inference:text-generation-config name="XAI_CONFIG" doc:name="MuleSoft Inference Text generation config" doc:id="9d6644e9-6e12-4ad1-9590-5649bb7c6c29" >
+		<ms-inference:xai-connection xAiModelName="#[vars.context.model]" apiKey="#[vars.context.apiKey]" maxTokens="${provider.max_tokens}" temperature="${provider.temperature}" />
+	</ms-inference:text-generation-config>
+	<ms-inference:text-generation-config name="ANTHROPIC_CONFIG" doc:name="MuleSoft Inference Text generation config" doc:id="37712f38-9d63-4645-bac1-59ddf0ee862d" >
+		<ms-inference:anthropic-connection anthropicModelName="#[vars.context.model]" apiKey="#[vars.context.apiKey]" maxTokens="${provider.max_tokens}" temperature="${provider.temperature}" />
+	</ms-inference:text-generation-config>
+	<ms-inference:text-generation-config name="GEMINI_CONFIG" doc:name="MuleSoft Inference Text generation config" doc:id="b221a30b-4d94-4e26-b784-3bc611fe5268" >
+		<ms-inference:gemini-connection geminiModelName="#[vars.context.model]" apiKey="#[vars.context.apiKey]" maxTokens="${provider.max_tokens}" temperature="${provider.temperature}" />
+	</ms-inference:text-generation-config>
+	<ms-einstein-ai:config name="EINSTEIN_CONFIG" doc:name="Einstein AI Configuration" doc:id="c036554c-31af-4566-9f8c-db5e73f7e8c4" >
+		<ms-einstein-ai:oauth-client-credentials-connection >
+			<ms-einstein-ai:oauth-client-credentials clientId="${salesforce.clientId}" clientSecret="${salesforce.clientSecret}" tokenUrl="${salesforce.tokenUrl}" />
+		</ms-einstein-ai:oauth-client-credentials-connection>
+	</ms-einstein-ai:config>
+	<flow name="responses-create-to-chat-completions" doc:id="364c12bb-400f-4257-a5df-b9244f761f58" >
+		<http:listener doc:name="POST /responses" doc:id="9c948bab-1bcf-4686-8d59-78d67a76c10a" config-ref="HTTP_Listener_config" path="/{provider}/responses" allowedMethods="POST"/>
+		<ee:transform doc:name="Set Context" doc:id="e6887694-e972-4fab-b30d-f5a374be4e24" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="context" ><![CDATA[%dw 2.0
+output application/java
+---
+{
+	apiKey: attributes.headers['Authorization'][7 to -1],
+	model: payload.model,
+	provider: upper(attributes.uriParams['provider']),
+	prompt: [{
+		"role": "user",
+		"content": payload."input"
+	}],
+	memoryKey: payload.previous_response_id,
+	memory: [],
+	responseId: "resp_" ++ correlationId
+}]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<flow-ref doc:name="Memory Retriever" doc:id="959c91a9-f18c-4726-b793-e563f0c28438" name="memory-retriever"/>
+		<flow-ref doc:name="LLM Provider Callout" doc:id="b3807273-b34e-4bf1-9657-865f85bdfcd9" name="#[vars.context.provider]" />
+		<flow-ref doc:name="update-memory" doc:id="02165cf5-4c37-4af3-9e50-5a012c275b5e" name="update-memory"/>
+		<ee:transform doc:name="To Responses" doc:id="d9c1f248-fcc6-476c-ac1f-11f3c9f7c1bd">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"id": vars.context.responseId,
+	"object": "response",
+	"status": "completed",
+	"error": null,
+	"incomplete_details": null,
+	"instructions": null,
+	"max_output_tokens": null,
+	"model": attributes.additionalAttributes.model default "",
+	"output": [{
+		"type": "message",
+		"id": attributes.additionalAttributes.id default "",
+		"status": "completed",
+		"role": "assistant",
+		"content": [{
+			"type": "output_text",
+          	"text": payload.response,
+          	"annotations": []
+         }]
+	}],
+	"parallel_tool_calls": false,
+	"previous_response_id": null,
+	"reasoning": {
+		"effort": null,
+		"summary": null
+	},
+	"store": true,
+	"temperature": p("provider.temperature"),
+	"text": {
+		"format": {
+			"type": "text"
+		}
+	},
+	"tool_choice": "auto",
+	"tools": [],
+	"top_p": 1.0,
+	"truncation": "disabled",
+	"usage": {
+		"input_tokens": attributes.tokenUsage.inputCount default 0,
+		"input_tokens_details": {
+			"cached_tokens": 0
+		},
+		"output_tokens": attributes.tokenUsage.outputCount default 0,
+		"output_tokens_details": {
+			"reasoning_tokens": 0
+		},
+		"total_tokens": attributes.tokenUsage.totalCount default 0
+	}
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="get-response" doc:id="7994f2d2-6a7c-49ab-a716-7daf0dd22d50" >
+		<http:listener doc:name="GET /responses/{id}" doc:id="8ec8047c-b452-4949-a974-ce03dc619e3f" config-ref="HTTP_Listener_config" path="/responses/{id}" allowedMethods="GET">
+			<http:error-response statusCode="#[payload.status]" >
+				<http:body ><![CDATA[#[output application/json
+---
+{
+	message: payload.message
+}]]]></http:body>
+			</http:error-response>
+		</http:listener>
+		<try doc:name="Try" doc:id="acb7c307-9db0-4dec-89a1-e1cdbdd87679" >
+			<os:retrieve doc:name="Retrieve Memory" doc:id="9e919ea0-d0ce-473d-8c6f-91ec7a0e27d6" key="#[attributes.uriParams['id']]" objectStore="Object_store">
+		</os:retrieve>
+			<error-handler >
+				<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="9865360f-44e7-40e3-ba9d-51a163a4043f" >
+					<set-payload value='#[output application/json&#10;---&#10;{&#10;	status: 404,&#10;	message: "Response Not Found"&#10;}]' doc:name="Set Payload" doc:id="156e92fe-0301-404a-b76c-975b5e5d68f3" />
+				</on-error-propagate>
+			</error-handler>
+		</try>
+		<ee:transform doc:name="To JSON" doc:id="e188f4d2-4b09-4f3b-ade6-a8055fc877a3">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<sub-flow name="memory-retriever" doc:id="de480b90-9635-4d41-ac12-c3d61f6c205e">
+		<choice doc:name="Choice" doc:id="8af7dfc6-abfe-4ca3-9a23-06079cafa35e">
+			<when expression="#[vars.context.memoryKey != null]">
+				<os:retrieve doc:id="58a3cf9c-8f48-470f-b39e-ac28be7d3aba" key="#[vars.context.memoryKey]" objectStore="Object_store" target="memory" doc:name="Load Memory">
+					<os:default-value ><![CDATA[#[output application/java
+---
+[]]]]></os:default-value>
+		</os:retrieve>
+			</when>
+			<otherwise>
+				<set-variable value='#[output application/java&#10;---&#10;[]]' doc:name="memory" doc:id="7af0a788-c136-482b-99f0-505d67df0cfb" variableName="memory" />
+			</otherwise>
+		</choice>
+		<ee:transform doc:name="Update Context" doc:id="3e9638a7-fc7d-41b8-8fed-c687b7ca7261">
+					<ee:message>
+					</ee:message>
+					<ee:variables>
+						<ee:set-variable variableName="context"><![CDATA[%dw 2.0
+output application/java
+---
+(vars.context - "memory") ++ {memory: vars.memory}]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+	</sub-flow>
+	<sub-flow name="update-memory" doc:id="5814e321-3e06-46f3-a813-2ffda7a2df68" >
+		<set-variable value='#[output application/java&#10;---&#10;(vars.context.memory ++ vars.context.prompt) +&#10;	{&#10;		role: "assistant",&#10;		content: payload.response default "",&#10;	}]' doc:name="Update Memory Chat History" doc:id="d99cc5c5-31f4-4895-ba5d-06cd5a11fc58" variableName="memory" />
+		<os:store doc:name="Update Memory" doc:id="3d9e6900-3f25-43bc-93f6-5457c8be7a94" key="#[vars.context.responseId]" objectStore="Object_store">
+			<os:value><![CDATA[#[vars.memory]]]></os:value>
+		</os:store>
+	</sub-flow>
+</mule>
