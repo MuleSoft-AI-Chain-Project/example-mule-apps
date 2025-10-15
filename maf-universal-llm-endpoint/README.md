@@ -8,7 +8,7 @@ This is a template repository, which leverages the MuleSoft AI Chain Project con
 - Einstein Models API (Salesforce-managed models)
 - Gemini API
 
-# Video Tutorial and Explaination
+# Video Tutorial and Explaination 
 Watch the youtube tutorial to use this app: https://youtu.be/-O0XKZNB8TM
 
 # Contributors
