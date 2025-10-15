@@ -1,0 +1,309 @@
+{
+	"info": {
+		"_postman_id": "914ca927-8c81-4bb2-9221-cf5364e48b63",
+		"name": "MAF Wrapper",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "16547909"
+	},
+	"item": [
+		{
+			"name": "OPENAI Example",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{openai-apikey}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"input\": \"You are a task decomposition expert. Tell me how to do two plus two devided by four\",\n    \"model\": \"gpt-4o-mini\",\n    \"reasoning\": {\n        \"effort\": \"medium\"\n    }\n}\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/openai/responses",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"openai",
+						"responses"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "MISTRAL Example",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{mistral-apikey}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"input\": \"You are a task decomposition expert. Tell me how to do two plus two devided by four\",\n    \"model\": \"mistral-large-latest\",\n    \"reasoning\": {\n        \"effort\": \"medium\"\n    }\n}\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/mistral/responses",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"mistral",
+						"responses"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "XAI Example",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{xai-apikey}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"input\": \"You are a task decomposition expert. Tell me how to do two plus two devided by four\",\n    \"model\": \"grok-3\",\n    \"reasoning\": {\n        \"effort\": \"medium\"\n    }\n}\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/xai/responses",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"xai",
+						"responses"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "ANTHROPIC Example",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{anthropic-apikey}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"input\": \"You are a task decomposition expert. Tell me how to do two plus two devided by four\",\n    \"model\": \"claude-sonnet-4-20250514\",\n    \"reasoning\": {\n        \"effort\": \"medium\"\n    }\n}\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/anthropic/responses",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"anthropic",
+						"responses"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GEMINI EXAMPLE",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{gemini-apikey}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"input\": \"You are a task decomposition expert. Tell me how to do two plus two devided by four\",\n    \"model\": \"gemini-2.5-flash-lite\",\n    \"reasoning\": {\n        \"effort\": \"medium\"\n    }\n}\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/gemini/responses",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"gemini",
+						"responses"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Einstein Example",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer ----"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"input\": \"You are a task decomposition expert. Tell me how to do two plus two devided by four\",\n    \"model\": \"sfdc_ai__DefaultGPT41\",\n    \"reasoning\": {\n        \"effort\": \"medium\"\n    }\n}\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/einstein/responses",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"einstein",
+						"responses"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Broker Callout - Example",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "x-anypoint-api-instance-id",
+						"value": "20551771",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"id\": 12312414,\n  \"method\": \"message/send\",\n  \"params\": {\n    \"message\": {\n      \"role\": \"user\",\n      \"kind\": \"message\",\n      \"parts\": [\n        {\n          \"kind\": \"text\",\n          \"text\": \"Get account details for Homeland\"\n        }\n      ],\n      \"messageId\": \"9229e770-767c-417b-a0b0-f0741243c589\"\n    },\n    \"metadata\": {}\n  }\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "<broker-endpoint>",
+					"host": [
+						"<broker-endpoint>"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"requests": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": ""
+		},
+		{
+			"key": "openai-apikey",
+			"value": ""
+		},
+		{
+			"key": "mistral-apikey",
+			"value": ""
+		},
+		{
+			"key": "xai-apikey",
+			"value": ""
+		},
+		{
+			"key": "anthropic-apikey",
+			"value": ""
+		},
+		{
+			"key": "gemini-apikey",
+			"value": ""
+		}
+	]
+}
