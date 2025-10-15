@@ -10,3 +10,8 @@ This is a template repository, which leverages the MuleSoft AI Chain Project con
 
 # Video Tutorial and Explaination
 Watch the youtube tutorial to use this app: https://youtu.be/-O0XKZNB8TM
+
+# Contributors
+- [Jorge Garcia](https://www.linkedin.com/in/jorgegarciaperez/)
+- [Ignacio Lucas](https://www.linkedin.com/in/ignacio-lucas-64892193/)
+- [Amir Khan](https://www.linkedin.com/in/amir-khan-ak/)
