@@ -44,34 +44,48 @@ output text
 				<ee:set-payload ><![CDATA[%dw 2.0
 output application/json
 ---
-{
-    "id": vars.task_id,
-    "sessionId": vars.session_id,
+if (vars.multitools."input-required" == true)
+  {
+  	"id": vars.taskId,
+    "contextId": vars.contextId,
     "status": {
-      "state": "completed",
+      "state": "input-required",
       "message": {
         "role": "agent",
         "parts": [
           {
-            "type": "text",
+            "kind": "text",
             "text": payload.response
           }
-        ]
+        ],
+        "messageId": vars.messageId,
+        "taskId": vars.taskId,
+        "contextId": vars.contextId
       },
-      "timestamp": (now() >> 'UTC') as String {format: "yyyy-MM-dd'T'HH:mm:ss'Z'"}
+    },
+    "kind": "task"
+  }
+else
+  {
+  	"id": vars.taskId,
+    "contextId": vars.contextId,
+    "status": {
+      "state": "completed"
     },
     "artifacts": [
       {
-        "name": "Answer",
-        "index": 0,
+        "artifactId": vars.taskId,
+        "name": "task",
         "parts": [
           {
-            "type": "text",
+            "kind": "text",
             "text": payload.response
           }
         ]
       }
-    ]
+    ],
+    "kind": "task",
+    "metadata": {}
   }]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>

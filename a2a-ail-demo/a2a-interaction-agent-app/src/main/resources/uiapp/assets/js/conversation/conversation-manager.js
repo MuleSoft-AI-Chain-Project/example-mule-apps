@@ -18,6 +18,30 @@ window.ConversationManager = (function() {
     // UTILITY FUNCTIONS
     // ----------------------------------------------------------------------------
 
+    function applyChatBackgroundFromSettings() {
+        try {
+            const settings = (typeof window.getAppSettings === 'function')
+                ? window.getAppSettings()
+                : JSON.parse(localStorage.getItem('settings') || 'null');
+            const url = settings && settings.themeSettings && settings.themeSettings.chatBackgroundUrl;
+            const chat = document.querySelector('.chat-messages');
+            if (!chat) return;
+            if (url) {
+                chat.style.backgroundImage = 'url(' + url + ')';
+                chat.style.backgroundPosition = 'center';
+                chat.style.backgroundSize = 'cover';
+                chat.style.backgroundRepeat = 'no-repeat';
+                chat.style.backgroundColor = 'transparent';
+            } else {
+                chat.style.backgroundImage = '';
+                chat.style.backgroundPosition = '';
+                chat.style.backgroundSize = '';
+                chat.style.backgroundRepeat = '';
+                chat.style.backgroundColor = '';
+            }
+        } catch (e) {}
+    }
+
     // Function to add and track event listeners
     function addTrackedEventListener(element, event, handler) {
         if (!element) return;
@@ -45,7 +69,7 @@ window.ConversationManager = (function() {
         // Close any existing connection before creating a new one
         if (websocket && websocket.readyState === WebSocket.OPEN) {
             console.log('Closing existing WebSocket before creating new connection');
-            websocket.close();
+            websocket.close(1000, 'Normal closure');
         }
         websocket = null;
         
@@ -93,7 +117,7 @@ window.ConversationManager = (function() {
             console.error('WebSocket error:', error);
             // Close the connection on error to ensure clean state
             if (websocket && websocket.readyState === WebSocket.OPEN) {
-                websocket.close();
+                websocket.close(1000, 'Normal closure');
                 websocket = null;
             }
             if (messageHandler) {
@@ -154,7 +178,7 @@ window.ConversationManager = (function() {
                     // Close WebSocket immediately after receiving final response
                     if (websocket && websocket.readyState === WebSocket.OPEN) {
                         console.log('Closing WebSocket connection after final response');
-                        websocket.close();
+                        websocket.close(1000, 'Normal closure');
                         websocket = null;
                     }
                 }
@@ -688,6 +712,9 @@ window.ConversationManager = (function() {
             return;
         }
 
+        // Apply themed chat background if configured
+        applyChatBackgroundFromSettings();
+
         // Mark as initialized
         window.ConversationManager._initialized = true;
 
@@ -698,14 +725,17 @@ window.ConversationManager = (function() {
         if (newConversationBtn) {
             addTrackedEventListener(newConversationBtn, 'click', function() {
                 if (websocket) {
-                    websocket.close();
+                    websocket.close(1000, 'Normal closure');
                     websocket = null;
                 }
                 a2aSessionId = generateUUID();
                 currentReasoningUpdates = [];
                 responseReasoningMap.clear();
                 chatMessages.innerHTML = '';
-                addMessage("Hello! I'm your Host Agent. How can I help you today?", false);
+                applyChatBackgroundFromSettings();
+                const settings = (typeof window.getAppSettings === 'function') ? window.getAppSettings() : null;
+                const hostName = settings && settings.hostAgentName ? settings.hostAgentName : 'Host Agent';
+                addMessage("Hello! I'm your " + hostName + ". How can I help you today?", false);
                 if (promptInput) promptInput.value = '';
                 // WebSocket connection will be created when user sends first message
             });
@@ -769,7 +799,9 @@ window.ConversationManager = (function() {
 
         // Add initial message if chat is empty
         if (chatMessages.children.length === 0) {
-            addMessage("Hello! I'm your Host Agent. How can I help you today?", false);
+            const settings = (typeof window.getAppSettings === 'function') ? window.getAppSettings() : null;
+            const hostName = settings && settings.hostAgentName ? settings.hostAgentName : 'Host Agent';
+            addMessage("Hello! I'm your " + hostName + ". How can I help you today?", false);
         }
     }
 
@@ -777,7 +809,7 @@ window.ConversationManager = (function() {
     function cleanup() {
         // Close websocket if open
         if (websocket && websocket.readyState === WebSocket.OPEN) {
-            websocket.close();
+            websocket.close(1000, 'Normal closure');
             websocket = null;
         }
 
@@ -810,6 +842,7 @@ window.ConversationManager = (function() {
     return {
         init: init,
         cleanup: cleanup,
+        applyTheme: applyChatBackgroundFromSettings,
         removeSessionModal: function() {
             const modal = document.getElementById('interactionModal');
             if (modal) {

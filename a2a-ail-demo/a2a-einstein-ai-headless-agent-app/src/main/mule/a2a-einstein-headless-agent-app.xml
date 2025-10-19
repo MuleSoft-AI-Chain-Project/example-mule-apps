@@ -30,7 +30,15 @@ var cleanedString = jsonString replace /^```json\n/ with "" replace /```$/ with 
 read(cleanedString, "application/json")]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
-		<logger level="INFO" doc:name="🔎 Tool Assessment 🔎" doc:id="2e93ad79-0c49-4b8b-942c-bc68d4614634" message='#[%dw 2.0&#10;output text&#10;---&#10;"\n\n" ++&#10;"🔎🔎🔎🔎🔎️️ --------------------------  Query Assessment ----------------------- 🔎🔎🔎🔎🔎️\n" ++&#10;"Tools : \n" ++ &#10;write(payload, "application/json") ++ &#10;"\n 🔎🔎🔎🔎🔎️️ ---------------------------------------------------------------------- 🔎🔎🔎🔎🔎️" ++&#10;"\n\n"]' category="🔎 Tool Assessment 🔎" />
+		<logger level="INFO" doc:name="🔎 Tool Assessment 🔎" doc:id="2e93ad79-0c49-4b8b-942c-bc68d4614634" message='#[%dw 2.0
+output text
+---
+"\n\n" ++
+"🔎🔎🔎🔎🔎️️ --------------------------  Query Assessment ----------------------- 🔎🔎🔎🔎🔎️\n" ++
+"Tools : \n" ++ 
+write(payload, "application/json") ++ 
+"\n 🔎🔎🔎🔎🔎️️ ---------------------------------------------------------------------- 🔎🔎🔎🔎🔎️" ++
+"\n\n"]' category="🔎 Tool Assessment 🔎" />
 		<choice doc:name="Choice" doc:id="35b585dc-072b-432f-823e-f4f0a3b5e9c3" >
 			<when expression='#[payload.action=="out_of_context"]'>
 				<set-payload value='#[{"response": "I can only answer questions related to leads stored in the lead management system."}]' doc:name="Set Payload" doc:id="18f701bc-39c7-4dcb-a130-cf1341e692b0" />
@@ -39,7 +47,15 @@ read(cleanedString, "application/json")]]></ee:set-payload>
 				<flow-ref doc:name="Flow Call" doc:id="e3f5b390-4e76-4660-b04e-53052f8d723b" name="#[payload.action]" />
 			</otherwise>
 		</choice>
-		<logger level="INFO" doc:name="🛠️ Tools Result 🛠️" doc:id="c64f52a8-bbb1-47f3-a753-0009da3041bf" message='#[%dw 2.0&#10;output text&#10;---&#10;"\n\n" ++&#10;"🛠️🛠️🛠️🛠️🛠️️ --------------------------  Tool Result -------------------------- 🛠️🛠️🛠️🛠️🛠️\n" ++&#10;"Tools : \n" ++ &#10;write(payload, "application/json") ++ &#10;"\n 🛠️🛠️🛠️🛠️🛠️️ ---------------------------------------------------------------------- 🛠️🛠️🛠️🛠️🛠️" ++&#10;"\n\n"]' category="🛠️ Tools Result 🛠️" />
+		<logger level="INFO" doc:name="🛠️ Tools Result 🛠️" doc:id="c64f52a8-bbb1-47f3-a753-0009da3041bf" message='#[%dw 2.0
+output text
+---
+"\n\n" ++
+"🛠️🛠️🛠️🛠️🛠️️ --------------------------  Tool Result -------------------------- 🛠️🛠️🛠️🛠️🛠️\n" ++
+"Tools : \n" ++ 
+write(payload, "application/json") ++ 
+"\n 🛠️🛠️🛠️🛠️🛠️️ ---------------------------------------------------------------------- 🛠️🛠️🛠️🛠️🛠️" ++
+"\n\n"]' category="🛠️ Tools Result 🛠️" />
 		<ms-einstein-ai:agent-define-prompt-template doc:name="Agent define prompt template" doc:id="c824e935-796f-4451-98df-5539ae8ddaa8" config-ref="Einstein_AI_Configuration">
 			<ms-einstein-ai:template ><![CDATA[You are a lead management agent. Be polite in the way you communicate.]]></ms-einstein-ai:template>
 			<ms-einstein-ai:instructions ><![CDATA[Answer for the question. ]]></ms-einstein-ai:instructions>
@@ -58,8 +74,9 @@ output application/json
 	</sub-flow>
 	<sub-flow name="a2a-einstein-set-init" doc:id="b1ae052d-e3ae-497a-988c-145351e1e505" >
 		<set-variable value="#[payload.message.parts[0].text]" doc:name="Set task user prompt" doc:id="3367dd7d-293c-40c7-bf91-215aebaea2ef" variableName="userPrompt" />
-		<set-variable value="#[payload.id]" doc:name="Set Task Id" doc:id="042c5a2f-0e69-4cf5-91d0-d05233be33b4" variableName="task_id" />
-		<set-variable value='#[(payload.sessionId) default ""]' doc:name="Set Session Id" doc:id="770f744a-618e-4864-9422-a565cfc16b98" variableName="session_id" />
+		<set-variable value="#[attributes.taskId default uuid()]" doc:name="Set Task Id" doc:id="042c5a2f-0e69-4cf5-91d0-d05233be33b4" variableName="taskId" />
+		<set-variable value='#[(attributes.contextId) default ""]' doc:name="Set context Id" doc:id="770f744a-618e-4864-9422-a565cfc16b98" variableName="contextId" />
+		<set-variable value="#[payload.message.messageId]" doc:name="Set Message Id" doc:id="5956111d-2d6d-4351-9fde-de10d70d15cc" variableName="messageId" />
 		<logger level="INFO" doc:name="Init" doc:id="8ec6e13b-789a-4acc-baee-50344cb1a042" message="#[attributes.headers.agentforceSession]" />
 		<flow-ref doc:name="load prompts" doc:id="730a1175-c1e3-475a-bfdc-3f0b9b557213" name="load-prompts"/>
 	</sub-flow>

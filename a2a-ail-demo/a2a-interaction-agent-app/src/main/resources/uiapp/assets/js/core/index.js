@@ -19,6 +19,114 @@ function getCookie(name) {
     return null;
 }
 
+function deleteCookie(name) {
+    document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`;
+}
+
+// ----------------------------------------------------------------------------
+// APPLICATION SETTINGS (Unified localStorage under key 'settings')
+// ----------------------------------------------------------------------------
+
+const SETTINGS_STORAGE_KEY = 'settings';
+
+function getDefaultAppSettings() {
+    return {
+        reasoningEngine: 'inference',
+        hostAgentName: 'Host Agent',
+        exchangeCredentials: {
+            type: 'default',
+            url: '',
+            clientId: '',
+            clientSecret: '',
+            organizationId: '',
+            environmentId: ''
+        },
+        themeSettings: {
+            primaryColor: '#00a2ff',
+            primaryLightColor: '#e3f2fd',
+            chatBackgroundUrl: '',
+            logoUrl: ''
+        }
+    };
+}
+
+function getAppSettings() {
+    try {
+        let settings = JSON.parse(localStorage.getItem(SETTINGS_STORAGE_KEY) || 'null');
+        if (!settings) {
+            settings = getDefaultAppSettings();
+        } else {
+            // ensure nested defaults exist
+            const defaults = getDefaultAppSettings();
+            settings.exchangeCredentials = { ...defaults.exchangeCredentials, ...(settings.exchangeCredentials || {}) };
+            settings.themeSettings = { ...defaults.themeSettings, ...(settings.themeSettings || {}) };
+            settings.reasoningEngine = settings.reasoningEngine || 'inference';
+        }
+
+        let migrated = false;
+
+        // Migrate legacy cookie for reasoningEngine
+        const legacyEngine = getCookie('reasoningEngine');
+        if (legacyEngine && !settings.reasoningEngine) {
+            settings.reasoningEngine = legacyEngine;
+            migrated = true;
+        }
+
+        // Migrate legacy localStorage keys
+        const legacyExchange = localStorage.getItem('exchange_credentials');
+        if (legacyExchange) {
+            try {
+                const parsed = JSON.parse(legacyExchange);
+                settings.exchangeCredentials = { ...settings.exchangeCredentials, ...parsed };
+                migrated = true;
+            } catch (e) {
+                // ignore
+            }
+        }
+        const legacyTheme = localStorage.getItem('themeSettings');
+        if (legacyTheme) {
+            try {
+                const parsed = JSON.parse(legacyTheme);
+                settings.themeSettings = { ...settings.themeSettings, ...parsed };
+                migrated = true;
+            } catch (e) {
+                // ignore
+            }
+        }
+
+        if (migrated) {
+            localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(settings));
+            deleteCookie('reasoningEngine');
+            localStorage.removeItem('exchange_credentials');
+            localStorage.removeItem('themeSettings');
+        }
+
+        return settings;
+    } catch (e) {
+        return getDefaultAppSettings();
+    }
+}
+
+function saveAppSettings(settings) {
+    localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(settings));
+    return settings;
+}
+
+function updateAppSettings(partial) {
+    const existing = getAppSettings();
+    const merged = {
+        ...existing,
+        ...partial,
+        exchangeCredentials: partial.exchangeCredentials ? { ...existing.exchangeCredentials, ...partial.exchangeCredentials } : existing.exchangeCredentials,
+        themeSettings: partial.themeSettings ? { ...existing.themeSettings, ...partial.themeSettings } : existing.themeSettings
+    };
+    return saveAppSettings(merged);
+}
+
+// Expose globally for other modules
+window.getAppSettings = getAppSettings;
+window.updateAppSettings = updateAppSettings;
+
 // ----------------------------------------------------------------------------
 // SIDEBAR STATE MANAGEMENT
 // ----------------------------------------------------------------------------
@@ -82,7 +190,14 @@ let sessionsLoaded = false;
 let settingsLoaded = false;
 
 function loadConversation(forceReload = false) {
-    if (conversationLoaded && !forceReload) return;
+    if (conversationLoaded && !forceReload) {
+        // Re-apply theme when revisiting Conversation without reload - schedule after visibility
+        if (window.ConversationManager && typeof window.ConversationManager.applyTheme === 'function') {
+            setTimeout(() => window.ConversationManager.applyTheme(), 0);
+            setTimeout(() => window.ConversationManager.applyTheme(), 100);
+        }
+        return;
+    }
     
     const conversationContent = document.getElementById('conversation-content');
     
@@ -127,6 +242,9 @@ function loadConversation(forceReload = false) {
                         
                         if (window.ConversationManager && window.ConversationManager.init) {
                             window.ConversationManager.init();
+                    if (typeof window.ConversationManager.applyTheme === 'function') {
+                        window.ConversationManager.applyTheme();
+                    }
                         }
                     }, 100);
                 };
@@ -157,6 +275,9 @@ function loadConversation(forceReload = false) {
                     }
                     
                     window.ConversationManager.init();
+                    if (typeof window.ConversationManager.applyTheme === 'function') {
+                        window.ConversationManager.applyTheme();
+                    }
                 }
             }
             
@@ -592,11 +713,12 @@ window.ENGINE_INFO = {
 };
 
 window.getReasoningEngine = function() {
-    return getCookie('reasoningEngine') || 'inference';
+    const settings = getAppSettings();
+    return settings.reasoningEngine || 'inference';
 };
 
 window.setReasoningEngine = function(engine) {
-    setCookie('reasoningEngine', engine, 365);
+    updateAppSettings({ reasoningEngine: engine });
 };
 
 function updatePoweredByDisplay() {
@@ -607,6 +729,66 @@ function updatePoweredByDisplay() {
         poweredByText.innerHTML = ` (Powered by ${info.svg})`;
     }
 }
+
+function updateHostAgentNameDisplay() {
+    const name = (typeof getAppSettings === 'function' ? getAppSettings().hostAgentName : null) || 'Host Agent';
+    const brandNameSpan = document.getElementById('navbarBrandName');
+    if (brandNameSpan) {
+        brandNameSpan.textContent = name;
+    }
+}
+// Expose globally so Settings page can update live on save
+window.updateHostAgentNameDisplay = updateHostAgentNameDisplay;
+
+function updateNavbarLogoDisplay() {
+    const settings = typeof getAppSettings === 'function' ? getAppSettings() : null;
+    const logoUrl = settings && settings.themeSettings ? settings.themeSettings.logoUrl : '';
+    const brand = document.getElementById('navbarBrand');
+    const icon = document.getElementById('navbarBrandIcon');
+    // Remove existing img if present
+    const existingImg = brand ? brand.querySelector('img.navbar-brand-logo') : null;
+    if (existingImg && (!logoUrl || logoUrl.trim() === '')) {
+        existingImg.remove();
+    }
+    if (brand) {
+        if (logoUrl && logoUrl.trim() !== '') {
+            if (!existingImg) {
+                const img = document.createElement('img');
+                img.className = 'navbar-brand-logo';
+                img.src = logoUrl;
+                img.alt = 'Logo';
+                img.style.height = '50px';
+                img.style.paddingBottom = '10px';
+                img.style.paddingRight = '10px';
+                brand.insertBefore(img, brand.firstChild);
+            } else {
+                existingImg.src = logoUrl;
+            }
+            if (icon) icon.style.display = 'none';
+        } else {
+            if (icon) icon.style.display = '';
+        }
+    }
+}
+window.updateNavbarLogoDisplay = updateNavbarLogoDisplay;
+
+function updateThemeVariablesFromSettings() {
+    try {
+        const settings = typeof getAppSettings === 'function' ? getAppSettings() : null;
+        const theme = (settings && settings.themeSettings) || {};
+        const root = document.documentElement;
+        if (theme.primaryColor) {
+            root.style.setProperty('--primary-color', theme.primaryColor);
+        }
+        // Backward compatibility for legacy secondaryColor
+        const light = theme.primaryLightColor || theme.secondaryColor;
+        if (light) {
+            root.style.setProperty('--primary-light-color', light);
+            root.style.setProperty('--secondary-color', light);
+        }
+    } catch (e) {}
+}
+window.updateThemeVariablesFromSettings = updateThemeVariablesFromSettings;
 
 function openReasoningEngineModal() {
     const modal = new bootstrap.Modal(document.getElementById('reasoningEngineModal'));
@@ -635,9 +817,8 @@ function saveReasoningEngine() {
 
 function setupReasoningEngineHandlers() {
     // Set default if not exists
-    if (!getCookie('reasoningEngine')) {
-        window.setReasoningEngine('inference');
-    }
+    const current = window.getReasoningEngine();
+    if (!current) window.setReasoningEngine('inference');
     updatePoweredByDisplay();
     
     // Modal event listeners
@@ -688,6 +869,12 @@ function initializeIndex() {
     setupButtonHandlers();
     setupInitialState();
     setupReasoningEngineHandlers();
+    // Apply navbar brand name from settings
+    updateHostAgentNameDisplay();
+    // Apply navbar logo from settings
+    updateNavbarLogoDisplay();
+    // Apply CSS variable overrides from theme settings
+    updateThemeVariablesFromSettings();
     
     // Setup tab switch cleanup
     patchTabSwitchCleanup();

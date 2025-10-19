@@ -32,48 +32,72 @@
                     if (agent.agentTaskRequest) {
                         html += `<div class='interaction-task-request-tile'>`;
                         html += `<div class='interaction-task-section'><span class='interaction-task-label'>Agent Task Request</span></div>`;
-                        html += `<div class='interaction-task-section'><span class='interaction-task-label'>ID:</span> <span class='interaction-task-value'>${agent.agentTaskRequest.id || ''}</span></div>`;
-                        html += `<div class='interaction-task-section'><span class='interaction-task-label'>Session ID:</span> <span class='interaction-task-value'>${agent.agentTaskRequest.sessionId || ''}</span></div>`;
-                        html += `<div class='interaction-task-section'><span class='interaction-task-label'>Message:</span> <span class='interaction-task-value'>${(agent.agentTaskRequest.message && Array.isArray(agent.agentTaskRequest.message.parts) ? agent.agentTaskRequest.message.parts.map(p => p.text).join('<br>') : '')}</span></div>`;
+                        const messageId = agent.agentTaskRequest.message && agent.agentTaskRequest.message.messageId ? agent.agentTaskRequest.message.messageId : '';
+                        const requestContextId = (agent.agentTaskRequest.message && agent.agentTaskRequest.message.contextId) ? agent.agentTaskRequest.message.contextId : (agent.agentTaskRequest.contextId || '');
+                        const requestTaskId = (agent.agentTaskRequest.message && agent.agentTaskRequest.message.taskId) ? agent.agentTaskRequest.message.taskId : (agent.agentTaskRequest.taskId || '');
+                        if (messageId) {
+                            html += `<div class='interaction-task-section'><span class='interaction-task-label'>Message ID:</span> <span class='interaction-task-value'>${messageId}</span></div>`;
+                        }
+                        if (requestTaskId) {
+                            html += `<div class='interaction-task-section'><span class='interaction-task-label'>Task ID:</span> <span class='interaction-task-value'>${requestTaskId}</span></div>`;
+                        }
+                        if (requestContextId) {
+                            html += `<div class='interaction-task-section'><span class='interaction-task-label'>Context ID:</span> <span class='interaction-task-value'>${requestContextId}</span></div>`;
+                        }
+                        // Show request message text if present
+                        if (agent.agentTaskRequest.message && Array.isArray(agent.agentTaskRequest.message.parts)) {
+                            const reqMsgText = agent.agentTaskRequest.message.parts.map(p => p.text || p.type).join('<br>');
+                            if (reqMsgText && reqMsgText.trim()) {
+                                html += `<div class='interaction-task-section'><span class='interaction-task-label'>Message:</span> <span class='interaction-task-value'>${reqMsgText}</span></div>`;
+                            }
+                        }
                         html += `</div>`;
                     }
                     if (agent.agentTaskResponse) {
                         html += `<div class='interaction-task-response-tile'>`;
                         html += `<div class='interaction-task-section'><span class='interaction-task-label'>Agent Task Response</span></div>`;
                         
-                        // Handle regular response format
-                        if (agent.agentTaskResponse.id) {
-                            html += `<div class='interaction-task-section'><span class='interaction-task-label'>ID:</span> <span class='interaction-task-value'>${agent.agentTaskResponse.id}</span></div>`;
+                        const responseTaskId = agent.agentTaskResponse.id || '';
+                        const responseContextId = agent.agentTaskResponse.contextId || (agent.agentTaskResponse.status && agent.agentTaskResponse.status.message && agent.agentTaskResponse.status.message.contextId ? agent.agentTaskResponse.status.message.contextId : '');
+                        const responseMessageId = (agent.agentTaskResponse.status && agent.agentTaskResponse.status.message && agent.agentTaskResponse.status.message.messageId)
+                            ? agent.agentTaskResponse.status.message.messageId
+                            : (agent.agentTaskResponse.message && agent.agentTaskResponse.message.messageId ? agent.agentTaskResponse.message.messageId : '');
+                        
+                        if (responseMessageId) {
+                            html += `<div class='interaction-task-section'><span class='interaction-task-label'>Message ID:</span> <span class='interaction-task-value'>${responseMessageId}</span></div>`;
                         }
-                        if (agent.agentTaskResponse.sessionId) {
-                            html += `<div class='interaction-task-section'><span class='interaction-task-label'>Session ID:</span> <span class='interaction-task-value'>${agent.agentTaskResponse.sessionId}</span></div>`;
+                        if (responseTaskId) {
+                            html += `<div class='interaction-task-section'><span class='interaction-task-label'>Task ID:</span> <span class='interaction-task-value'>${responseTaskId}</span></div>`;
+                        }
+                        if (responseContextId) {
+                            html += `<div class='interaction-task-section'><span class='interaction-task-label'>Context ID:</span> <span class='interaction-task-value'>${responseContextId}</span></div>`;
                         }
                         
-                        // Handle status object
-                        if (agent.agentTaskResponse.status) {
-                            if (agent.agentTaskResponse.status.state) {
-                                html += `<div class='interaction-task-section'><span class='interaction-task-label'>Status:</span> <span class='interaction-task-value'>${agent.agentTaskResponse.status.state}</span></div>`;
-                            }
-                            if (agent.agentTaskResponse.status.timestamp) {
-                                html += `<div class='interaction-task-section'><span class='interaction-task-label'>Timestamp:</span> <span class='interaction-task-value'>${agent.agentTaskResponse.status.timestamp}</span></div>`;
-                            }
-                            if (agent.agentTaskResponse.status.message && Array.isArray(agent.agentTaskResponse.status.message.parts)) {
-                                const messageText = agent.agentTaskResponse.status.message.parts.map(p => p.text || p.type).join('<br>');
-                                if (messageText.trim()) {
-                                    html += `<div class='interaction-task-section'><span class='interaction-task-label'>Message:</span> <span class='interaction-task-value'>${messageText}</span></div>`;
+                        // Keep status.state, timestamp and message; fallback to artifact text if status message is absent
+                        if (agent.agentTaskResponse.status && agent.agentTaskResponse.status.state) {
+                            html += `<div class='interaction-task-section'><span class='interaction-task-label'>Status:</span> <span class='interaction-task-value'>${agent.agentTaskResponse.status.state}</span></div>`;
+                        }
+                        if (agent.agentTaskResponse.status && agent.agentTaskResponse.status.timestamp) {
+                            html += `<div class='interaction-task-section'><span class='interaction-task-label'>Timestamp:</span> <span class='interaction-task-value'>${agent.agentTaskResponse.status.timestamp}</span></div>`;
+                        }
+                        let responseMessageText = '';
+                        if (agent.agentTaskResponse.status && Array.isArray(agent.agentTaskResponse.status.message && agent.agentTaskResponse.status.message.parts)) {
+                            responseMessageText = agent.agentTaskResponse.status.message.parts.map(p => p.text || p.type).join('<br>');
+                        }
+                        if ((!responseMessageText || !responseMessageText.trim()) && Array.isArray(agent.agentTaskResponse.artifacts)) {
+                            const artifactParts = [];
+                            agent.agentTaskResponse.artifacts.forEach(a => {
+                                if (Array.isArray(a.parts)) {
+                                    a.parts.forEach(part => {
+                                        const txt = part && (part.text || part.type);
+                                        if (txt) artifactParts.push(txt);
+                                    });
                                 }
-                            }
+                            });
+                            responseMessageText = artifactParts.join('<br>');
                         }
-                        
-                        // Handle error format
-                        if (agent.agentTaskResponse.status === 'error') {
-                            html += `<div class='interaction-task-section'><span class='interaction-task-label'>Status:</span> <span class='interaction-task-value'>Error</span></div>`;
-                        }
-                        if (agent.agentTaskResponse.errorMessage) {
-                            html += `<div class='interaction-task-section'><span class='interaction-task-label'>Error Message:</span> <span class='interaction-task-value'>${agent.agentTaskResponse.errorMessage}</span></div>`;
-                        }
-                        if (agent.agentTaskResponse.detailedDescription) {
-                            html += `<div class='interaction-task-section'><span class='interaction-task-label'>Error Detailed Description:</span> <span class='interaction-task-value'>${agent.agentTaskResponse.detailedDescription}</span></div>`;
+                        if (responseMessageText && responseMessageText.trim()) {
+                            html += `<div class='interaction-task-section'><span class='interaction-task-label'>Message:</span> <span class='interaction-task-value'>${responseMessageText}</span></div>`;
                         }
                         
                         html += `</div>`;

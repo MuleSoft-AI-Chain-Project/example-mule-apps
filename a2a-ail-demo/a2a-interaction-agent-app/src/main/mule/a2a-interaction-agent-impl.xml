@@ -63,7 +63,7 @@ var toxicityAggregation = toxicityCategories map (cat) -> {
 }
 ---
 (payload default {}) ++ 
-{ sessionId: vars.sessionId} ++
+{ contextId: vars.ailContextId} ++
 { reasoningEngine: if (vars.useTrustLayer default false) "einstein" else "inference" } ++
 { agents: if (vars.agentUsed default false) "used" else "not used" } ++ 
 { replanCount: (vars.replanCount default 0)} ++
@@ -83,7 +83,7 @@ var toxicityAggregation = toxicityCategories map (cat) -> {
 }
 ---
 (payload default {}) ++ 
-{ sessionId: vars.sessionId} ++
+{ contextId: vars.ailContextId} ++
 { reasoningEngine: if (vars.useTrustLayer default false) "einstein" else "inference" } ++
 { agents: if (vars.agentUsed default false) "used" else "not used" } ++ 
 { replanCount: (vars.replanCount default 0)} ++
@@ -103,11 +103,10 @@ output text
 	</sub-flow>
 	<sub-flow name="set-and-initialise-vars" doc:id="48abd551-7eb5-4b2e-8e63-ba9b7697f603">
 		<set-variable value="#[%dw 2.0
-output application/json
-import * from dw::core::Strings
+output text
 ---
-if (isEmpty(attributes.queryParams.sessionId)) (if (isEmpty(payload.sessionId)) uuid() else payload.sessionId) else attributes.queryParams.sessionId]" doc:name="Set sessionId with sessionID header" doc:id="d6d0e0bc-e3a2-4c68-9ec7-092beff280c2" variableName="sessionId"/>
-		<set-variable value="#[payload.id default uuid()]" doc:name="Set Task Id" doc:id="77e65b0e-f5df-4944-9196-467ca0adae74" variableName="task_id" />
+vars.ailContextId default attributes.queryParams.sessionId default payload.sessionId default uuid()]" doc:name="ailContextId" doc:id="d6d0e0bc-e3a2-4c68-9ec7-092beff280c2" variableName="ailContextId"/>
+		<set-variable value="#[vars.ailTaskId default payload.id default uuid()]" doc:name="ailTaskId" doc:id="77e65b0e-f5df-4944-9196-467ca0adae74" variableName="ailTaskId" />
 		<set-variable value="#[(payload as Object).prompt as String default payload.message.parts[0].text]" doc:name="Set userPrompt with payload.prompt" doc:id="c0dec21e-3afe-41c6-ad9e-3774fad668ee" variableName="userPrompt" />
 		<set-variable value='#[""]' doc:name="Intialise taskHistory" doc:id="fd632a81-a1c5-4d3c-9f1e-6e741863a309" variableName="taskHistory" />
 		<set-variable value="#[[]]" doc:name="Initialise chainsOfThoughts" doc:id="c6f42a73-fe14-4722-8ec7-05b34a2d2127" variableName="chainsOfThoughts" />
@@ -138,10 +137,10 @@ else
 		<flow-ref doc:name="load-prompts" doc:id="97609abe-b733-4aea-badf-0670f198bf99" name="load-prompts"/>
 	</sub-flow>
 	<sub-flow name="get-chat-messages" doc:id="d63f8f77-4fb2-4d33-99cb-a2ae074153c0" >
-		<os:contains doc:name="Contains sessionsId" doc:id="206cfafc-f5a9-45db-8c92-edc505170eb5" key="#[vars.sessionId]" objectStore="ChatMessagesObjectStore"/>
+		<os:contains doc:name="Contains sessionsId" doc:id="206cfafc-f5a9-45db-8c92-edc505170eb5" key="#[vars.ailContextId]" objectStore="ChatMessagesObjectStore"/>
 		<choice doc:name="Choice" doc:id="aac5502d-0ea3-4c57-bf4e-f0b9bbfa1a73" >
 			<when expression="payload">
-				<os:retrieve doc:name="Retrieve chat messages by sessionId" doc:id="482f982e-e9d9-441d-921a-dfb001cbc94e" key="#[vars.sessionId]" objectStore="ChatMessagesObjectStore" target="chatMessages">
+				<os:retrieve doc:name="Retrieve chat messages by contextId" doc:id="482f982e-e9d9-441d-921a-dfb001cbc94e" key="#[vars.ailContextId]" objectStore="ChatMessagesObjectStore" target="chatMessages">
 					<os:default-value ><![CDATA[[]]]></os:default-value>
 				</os:retrieve>
 				<logger level="INFO" doc:name="💬 Log Conversations's chat messages 💬" doc:id="da58f74e-0bb6-4151-855b-fd44129f3ba8" message='#[output text
@@ -165,7 +164,7 @@ output application/json
 output application/json
 ---
 (vars.chatMessages default [] as Array)  ++ [{role: "agent", content: (payload as Object).response default ""}]]' doc:name="Add agent response to chatMessages" doc:id="5c02f591-c99e-4ace-bdd0-eddbb4f826cb" variableName="chatMessages" />
-		<os:store doc:name="Store" doc:id="6c4386c3-d07d-4d66-9bd8-56cb0d1c73fd" key="#[vars.sessionId]" objectStore="ChatMessagesObjectStore">
+		<os:store doc:name="Store" doc:id="6c4386c3-d07d-4d66-9bd8-56cb0d1c73fd" key="#[vars.ailContextId]" objectStore="ChatMessagesObjectStore">
 			<os:value ><![CDATA[#[vars.chatMessages]]]></os:value>
 		</os:store>
 		<logger level="INFO" doc:name="💬 Log Conversations's chat messages 💬" doc:id="3c12fca8-7264-4b3b-bd78-2888bcb9b0d2" message='#[output text
@@ -569,16 +568,10 @@ var cleaned = raw replace '```json' with '' replace '```' with ''
 	<sub-flow name="send-task" doc:id="4be1e4ea-9f9d-4c85-b834-6b2ae7e343a8">
 		<choice doc:name="Choice" doc:id="794eda0e-ed78-4720-aacc-0af6bcb880d3" >
 			<when expression="vars.useTrustLayer == true">
-				<set-variable value='#[%dw 2.0
-output text/plain
----
-vars.selectedAgent.function.arguments.prompt]' doc:name="agentPrompt" doc:id="f02a7365-e442-4734-b67a-588918ca1588" variableName="agentPrompt" />
+				<set-variable value='#[%dw 2.0&#10;output text/plain&#10;---&#10;(vars.selectedAgent.function.arguments.prompt default "")]' doc:name="agentPrompt" doc:id="f02a7365-e442-4734-b67a-588918ca1588" variableName="agentPrompt" />
 			</when>
 			<otherwise >
-				<set-variable value='#[%dw 2.0
-output text/plain
----
-(read(((vars.selectedAgent as Object).function as Object).arguments as String default "", "application/json") as Object).prompt]' doc:name="agentPrompt" doc:id="c4e079c8-8a08-4bd4-97e1-ebade15cf212" variableName="agentPrompt" />
+				<set-variable value='#[%dw 2.0&#10;output text/plain&#10;---&#10;(read(((vars.selectedAgent as Object).function as Object).arguments as String default "", "application/json") as Object).prompt]' doc:name="agentPrompt" doc:id="c4e079c8-8a08-4bd4-97e1-ebade15cf212" variableName="agentPrompt" />
 			</otherwise>
 		</choice>
 		<set-variable value="#[%dw 2.0
@@ -597,7 +590,12 @@ output text/plain
     ) as Object
 ).agentName as String]' doc:name="Set agentToCallDisplayName" doc:id="2efbb23d-6407-4b4d-8bdc-86fa9d37825f" variableName="agentToCallDisplayName" />
 		<try doc:name="Try send update over socket" doc:id="7b070b92-acfe-4759-95b5-e80633652bde" >
-			<set-variable value='#[output application/json&#10;---&#10;{&#10;	content: "Asking agent **" ++ (vars.agentToCallDisplayName as String default "") ++ "**: \"" ++ (vars.agentPrompt as String default "") ++ "\"",&#10;	unicodeContent: "📞 Sending request to agent 🤖 " ++ upper(vars.agentToCallDisplayName default "")&#10;}]' doc:name="Set socketMessage" doc:id="aa4c24b9-07cc-487d-b862-eb9e2c7da8e2" variableName="socketMessage"/>
+			<set-variable value='#[output application/json
+---
+{
+	content: "Asking agent **" ++ (vars.agentToCallDisplayName as String default "") ++ "**: \"" ++ (vars.agentPrompt as String default "") ++ "\"",
+	unicodeContent: "📞 Sending request to agent 🤖 " ++ upper(vars.agentToCallDisplayName default "")
+}]' doc:name="Set socketMessage" doc:id="aa4c24b9-07cc-487d-b862-eb9e2c7da8e2" variableName="socketMessage"/>
 			<flow-ref doc:name="send-update-over-socket-connection" doc:id="e68b0ceb-93bf-4269-bb39-0b9664b47d6e" name="send-update-over-socket-connection" target="socketSendMessageResponse" targetValue="#[null]"/>
 			<error-handler >
 				<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="61926938-f84d-4eb6-85fd-c5e02e718105" >
@@ -615,51 +613,86 @@ payload]" doc:name="agentUrl" doc:id="52bda8cb-caed-4c7f-b06a-83f2743e0b13" vari
 output json
 ---
 payload]" doc:name="agentAuthentication" doc:id="c28de689-1c6c-45c4-9f79-c8042aee457c" variableName="agentAuthentication" />
-		<ee:transform doc:name="Transform Message" doc:id="0f914f47-f198-41b5-bc2d-15cb27670e24">
-			<ee:message>
-				<ee:set-payload><![CDATA[%dw 2.0
+		<os:contains doc:name="Contains specialized-agent task info by agent name and contextId" doc:id="491f8ae1-bcd1-422d-bc12-11b491043f75" key='#[(vars.userSessionId default "") ++ "-" ++ (vars.ailContextId default "") ++  "-specialized-agent-task-history-" ++ (vars.agentToCall as String)]' objectStore="AILObjectStore" />
+		<choice doc:name="Check if task history exists for specialized-agent" doc:id="78988daf-eb69-4784-8e4b-1e55ea65b674">
+			<when expression="payload">
+				<os:retrieve doc:name="Retrieve specialized-agent task info by agent name and contextId" doc:id="61202d0e-39d7-43a2-83b2-eff0fa191cb1" key='#[(vars.userSessionId default "") ++ "-" ++ (vars.ailContextId default "") ++  "-specialized-agent-task-history-" ++ (vars.agentToCall as String)]' objectStore="AILObjectStore" />
+				<set-variable value="#[vars.specializedAgentTaskId default payload.taskId]" doc:name="specializedAgentTaskId" doc:id="e89a742b-c210-436d-b7c6-f0d1e527475a" variableName="specializedAgentTaskId" />
+				<set-variable value="#[vars.specializedAgentContextId default payload.contextId]" doc:name="specializedAgentContextId" doc:id="b08fae0f-fee7-4a81-9fc8-a8c3e4d113ca" variableName="specializedAgentContextId" />
+				<os:remove doc:name="Remove specialized-agent task info by agent name and contextId" doc:id="6c04a541-3020-4d69-923b-99b8cff9e58a" key='#[(vars.userSessionId default "") ++ "-" ++ (vars.ailContextId default "") ++  "-specialized-agent-task-history-" ++ (vars.agentToCall as String)]' objectStore="AILObjectStore" />
+			</when>
+		</choice>
+		<choice doc:name="Choice1" doc:id="ece08c96-33f8-41ed-b054-9024a40dbf1d">
+			<when expression="#[!isBlank(vars.specializedAgentTaskId) and !isBlank(vars.specializedAgentContextId)]">
+				<ee:transform doc:name="Prepare A2A Task" doc:id="d579fab7-7dd8-48fd-95ff-7865d7f613e2">
+					<ee:message >
+					</ee:message>
+					<ee:variables>
+						<ee:set-variable variableName="agentTaskRequest" ><![CDATA[%dw 2.0
 output application/json
 ---
 {
-	"id": uuid(),
-	"sessionId": vars.sessionId,
 	"message": {
+		"kind": "message",
 		"messageId": uuid(),
-        "role": "agent",
+		"taskId": vars.specializedAgentTaskId,
+		"contextId": vars.specializedAgentContextId,
+        "role": "user",
 		"parts": [
 			{
-                "type": "text",
-				"text": vars.agentPrompt as String
+                "kind": "text",
+				"text": (vars.agentPrompt ++ " (ContextId for this request is " ++ (vars.socketId default "") ++ ")") as String
 			}
 		]
 	}
 }
-]]></ee:set-payload>
-			</ee:message>
-		</ee:transform>
-		<logger level="INFO" doc:name="📤 Agent send task request 📤" doc:id="3f482a69-6865-48d4-b7e2-1c4cc3826aa5" message='#[%dw 2.0
-output text
+]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+			</when>
+			<otherwise>
+				<ee:transform doc:name="Prepare A2A Message" doc:id="197667b9-8d25-424f-a34b-60cb35b51fb7">
+					<ee:message >
+					</ee:message>
+					<ee:variables>
+						<ee:set-variable variableName="agentTaskRequest" ><![CDATA[%dw 2.0
+output application/json
 ---
-"\n\n" ++
-"📤📤📤📤📤️️ --------------------------  Task Request -------------------------- 📤📤📤📤📤️\n" ++
-"Agent " ++ (vars.agentToCall as String default "") ++ " (" ++ (vars.agentUrl  as String default "missing URL") ++ ")\n" ++
-"Send task request: \n" ++ 
-write(payload default {}, "application/json") ++ "\n" ++
-"\n📤📤📤📤📤️️ ----------------------------------------------------------------- 📤📤📤📤📤️" ++
-"\n\n"]' />
-		<set-variable value="#[payload]" doc:name="agentTaskRequest" doc:id="ba04a953-36c4-4498-a546-d9c1ec94ae8e" variableName="agentTaskRequest" />
+{
+	"message": {
+		"kind": "message",
+		"messageId": uuid(),
+        "role": "user",
+		"parts": [
+			{
+                "kind": "text",
+				"text": (vars.agentPrompt ++ " (ContextId for this request is " ++ (vars.socketId default "") ++ ")") as String
+			}
+		]
+	}
+}
+]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+			</otherwise>
+		</choice>
+		<logger level="INFO" doc:name="📤 Agent send task request 📤" doc:id="3f482a69-6865-48d4-b7e2-1c4cc3826aa5" message='#[%dw 2.0&#10;output text&#10;---&#10;"\n\n" ++&#10;"📤📤📤📤📤️️ --------------------------  Task Request -------------------------- 📤📤📤📤📤️\n" ++&#10;"Agent " ++ (vars.agentToCall as String default "") ++ " (" ++ (vars.agentUrl  as String default "missing URL") ++ ")\n" ++&#10;"Send task request: \n" ++ &#10;write(vars.agentTaskRequest default {}, "application/json") ++ "\n" ++&#10;"\n📤📤📤📤📤️️ ----------------------------------------------------------------- 📤📤📤📤📤️" ++&#10;"\n\n"]' />
 		<flow-ref doc:name="Capture Request" doc:id="64b06400-cf37-439c-b3e8-a1eb931f5951" name="capture-agent-requests" target="capture_request"/>
 		<try doc:name="Try" doc:id="6cbc4b95-43c1-443d-a18e-3080b331b786">
 			<choice doc:name='Route based on the Authentication Type (Default "none")' doc:id="8ea54aa7-6bc3-45f0-be54-af3ec6ee2328">
 				<when expression='#[vars.agentAuthentication."type" == "client-credentials"]'>
-					<a2a:send-task doc:name="Send task to {agentToCall} Agent with ClientCredentials Grant Type" doc:id="a5a87d33-ccd3-4118-810c-06096a0b12a4" config-ref="A2A_Client_Auth_client-credentials" />
+					<a2a:send-message doc:name="Send task to {agentToCall} Agent with ClientCredentials Grant Type" doc:id="a5a87d33-ccd3-4118-810c-06096a0b12a4" config-ref="A2A_Client_Auth_client-credentials" target="agentTaskResponse">
+						<a2a:message ><![CDATA[#[vars.agentTaskRequest]]]></a2a:message>
+					</a2a:send-message>
 				</when>
 				<otherwise>
-					<a2a:send-task doc:name="Send task to {agentToCall} Agent with NO AUTH" doc:id="0ebe3564-206f-4052-aaaf-bbd130267156" config-ref="A2A_Client_Auth_none" />
+					<a2a:send-message doc:name="Send task to {agentToCall} Agent with NO AUTH" doc:id="0ebe3564-206f-4052-aaaf-bbd130267156" config-ref="A2A_Client_Auth_none" target="agentTaskResponse">
+						<a2a:message ><![CDATA[#[vars.agentTaskRequest]]]></a2a:message>
+					</a2a:send-message>
 				</otherwise>
 			</choice>
 			<try doc:name="Try send update over socket" doc:id="47de575d-ead3-4dd4-9f0e-73e81c1dbb82" >
-				<set-variable value='#[output application/json&#10;---&#10;{&#10;	content: "Collecting response from agent **" ++ (vars.agentToCallDisplayName as String default "") ++ "**: \"" ++ (payload.artifacts[0].parts[0].text as String default "") ++ "\"",&#10;	unicodeContent: "📥 Collecting response from agent 🤖 " ++ upper(vars.agentToCallDisplayName default "")&#10;}]' doc:name="Set socketMessage" doc:id="7dde1e8d-1eb5-4b5e-ad5c-98da4fef9fac" variableName="socketMessage" />
+				<set-variable value='#[output application/json&#10;---&#10;{&#10;	content: "Collecting response from agent **" ++ (vars.agentToCallDisplayName as String default "") ++ "**: \"" ++ (vars.agentTaskResponse.status.message.parts[0].text default vars.agentTaskResponse.artifacts[0].parts[0].text as String default "") ++ "\"",&#10;	unicodeContent: "📥 Collecting response from agent 🤖 " ++ upper(vars.agentToCallDisplayName default "")&#10;}]' doc:name="Set socketMessage" doc:id="7dde1e8d-1eb5-4b5e-ad5c-98da4fef9fac" variableName="socketMessage" />
 				<flow-ref doc:name="send-update-over-socket-connection" doc:id="361b0c7f-1b66-473e-ba1f-8ecc6263a94c" name="send-update-over-socket-connection" target="socketSendMessageResponse" targetValue="#[null]" />
 				<error-handler >
 					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="c5fe8a15-173d-44ec-bbf3-499542a94ff3" >
@@ -673,7 +706,7 @@ write(payload default {}, "application/json") ++ "\n" ++
 output application/json
 ---
 {
-	sessionId: vars.sessionId,
+	contextId: vars.ailContextId,
 	status: "error",
 	errorMessage: error.errorMessage,
 	detailedDescription: error.detailedDescription
@@ -682,15 +715,17 @@ output application/json
 				</on-error-continue>
 			</error-handler>
 		</try>
-		<logger level="INFO" doc:name="📞 Agent send task response 📞" doc:id="8f6c9237-7532-4818-9c86-7a28cab98678" message='#[%dw 2.0
-output text
----
-"\n\n" ++
-"📞📞📞📞📞️️ --------------------------  Task Response -------------------------- 📞📞📞📞📞️\n" ++
-"Agent " ++ vars.agentToCall ++ " send task response: \n" ++ 
-write(payload, "application/json") ++ "\n" ++
-"\n📞📞📞📞📞️️ -------------------------------------------------------------------- 📞📞📞📞📞️" ++
-"\n\n"]' />
+		<logger level="INFO" doc:name="📞 Agent send task response 📞" doc:id="8f6c9237-7532-4818-9c86-7a28cab98678" message='#[%dw 2.0&#10;output text&#10;---&#10;"\n\n" ++&#10;"📞📞📞📞📞️️ --------------------------  Task Response -------------------------- 📞📞📞📞📞️\n" ++&#10;"Agent " ++ vars.agentToCall ++ " send task response: \n" ++ &#10;write(vars.agentTaskResponse, "application/json") ++ "\n" ++&#10;"\n📞📞📞📞📞️️ -------------------------------------------------------------------- 📞📞📞📞📞️" ++&#10;"\n\n"]' />
+		<choice doc:name="In user input required?" doc:id="43c57e9d-1c49-4a79-974f-5e957a917edd">
+			<when expression='#["input-required" == vars.agentTaskResponse.status.state]'>
+				<os:store doc:name="Retrieve specialized-agent task history by agent name and set vars.agentAuthentication" doc:id="b16aefcc-e48f-4cc1-a725-8ae86d1545ae" key='#[(vars.userSessionId default "") ++ "-" ++ (vars.ailContextId default "") ++  "-specialized-agent-task-history-" ++ (vars.agentToCall as String)]' objectStore="AILObjectStore">
+					<os:value><![CDATA[#[{
+	"taskId": vars.agentTaskResponse.id,
+	"contextId": vars.agentTaskResponse.contextId
+}]]]></os:value>
+				</os:store>
+			</when>
+		</choice>
 		<ee:transform doc:name="set agent task execution details" doc:id="4f853030-0619-4295-8e11-4e1c8b0b381f">
 			<ee:message>
 				<ee:set-payload><![CDATA[%dw 2.0
@@ -701,7 +736,7 @@ output application/json
 	agentAPIName: vars.agentToCall,
 	planNumber: (vars.replanCount default 0) + 1,
 	agentTaskRequest: vars.agentTaskRequest,
-	agentTaskResponse: payload
+	agentTaskResponse: vars.agentTaskResponse
 }]]></ee:set-payload>
 			</ee:message>
 			<ee:variables >
@@ -721,7 +756,7 @@ payload]]></ee:set-variable>
 var socketMessage =
 	vars.socketMessage default {} ++
 	{
-		"sessionId": vars.sessionId,
+		"contextId": vars.ailContextId,
 		"sender": "agent",
 		"type": "update",
 		"timestamp": now() as String {format: "yyyy-MM-dd'T'HH:mm:ss.SSSXXX"}

@@ -13,8 +13,9 @@ http://www.mulesoft.org/schema/mule/a2a http://www.mulesoft.org/schema/mule/a2a/
 http://www.mulesoft.org/schema/mule/ms-inference http://www.mulesoft.org/schema/mule/ms-inference/current/mule-ms-inference.xsd">
 	<sub-flow name="set-and-initialise-vars" doc:id="ddd5bf4b-9235-4b7e-9386-e400e5cd8410">
 		<set-variable value='#[payload.message.parts[0].text default ""]' doc:name="Set task user prompt" doc:id="b1456931-b8a7-4677-b174-065899b1cb23" variableName="userPrompt" />
-		<set-variable value="#[payload.id default uuid()]" doc:name="Set Task Id" doc:id="09dcca44-77ae-4647-becc-52969251f04d" variableName="task_id" />
-		<set-variable value='#[(payload.sessionId) default ""]' doc:name="Set Session Id" doc:id="4ed0a3b7-ea19-40cf-ac20-714c9c008afc" variableName="session_id" />
+		<set-variable value="#[attributes.taskId default uuid()]" doc:name="Set Task Id" doc:id="51b833c2-7388-4d5a-84a8-64324e3e58d3" variableName="taskId" />
+		<set-variable value='#[(attributes.contextId) default ""]' doc:name="Set context Id" doc:id="69a381f0-be0b-49f5-aaf0-eda85c3af405" variableName="contextId" />
+		<set-variable value="#[payload.message.messageId]" doc:name="Set Message Id" doc:id="f7633871-3004-4786-a933-fb4a10a3c0b0" variableName="messageId" />
 		<set-variable value='#["OPENAI"]' doc:name="inferenceType" doc:id="7ce22fd1-8ef5-4f88-afb1-b6f6b9ba99f6" variableName="inferenceType"/>
 		<set-variable value='${openai.apikey}' doc:name="apiKey" doc:id="028ca50e-98f4-4ae4-bbea-2e19d9edf32e" variableName="apiKey"/>
 		<set-variable value='#["gpt-4o-mini"]' doc:name="model" doc:id="cc39205e-575d-4436-b049-717c0e25b49a" variableName="model"/>
@@ -27,44 +28,6 @@ http://www.mulesoft.org/schema/mule/ms-inference http://www.mulesoft.org/schema/
 		<set-variable value='#[{"tools":  []}]' doc:name="Set Tool Planning" doc:id="96b639fe-f99d-49b2-ae37-65df5d3ee7dd" variableName="planningPayload"/>
 		<flow-ref doc:name="load prompts" doc:id="7c40a7dd-ba1f-4387-b686-edcd2fca6a19" name="load-prompts"/>
 	</sub-flow>
-	<sub-flow name="list-mcp-tools" doc:id="0873062a-222b-47a9-9b1a-895386e1fdb6">
-		<mcp:list-tools doc:id="15db4396-dcb3-4949-9052-e2370c71413c" doc:name="MCP Client - List Tools" config-ref="MCP_Client"/>
-		<logger level="DEBUG" doc:name="🛠️Available  MCP Tools 🛠️" doc:id="1d9e0f29-0f02-4e06-8878-4d768f70b0af" message='#[output text
----
-"🛠️🛠️🛠️🛠️🛠️ ------------------- MCP Avaialble Tools ------------------- 🛠️🛠️🛠️🛠️🛠\n\n" ++
-
-write(payload, "application/json") ++ "\n\n" ++
-
-"🛠️🛠️🛠️🛠️🛠️ ------------------- MCP Avaialble Tools ------------------- 🛠️🛠️🛠️🛠️🛠\n\n"]' />
-		<ee:transform doc:name="Save all available tools into the right format into variable tools" doc:id="1bbed898-7e73-4ef9-8f26-9b4ac6c33e53">
-			<ee:message />
-			<ee:variables>
-				<ee:set-variable variableName="tools"><![CDATA[%dw 2.0
-output application/json
----
-payload map (item) -> {
-	"type": "function",
-	function: {
-	  name: item.name,
-	  description: item.description,
-	  parameters: {
-	    "type": "object",
-	    properties: (read(item.inputSchema, "application/json").properties default {}),
-	    required: (read(item.inputSchema, "application/json").required default [])
-      }
-    }
- }
-]]></ee:set-variable>
-			</ee:variables>
-		</ee:transform>
-		<logger level="DEBUG" doc:name="🛠️Converted  MCP Tools 🛠️" doc:id="168e037f-81cb-4ecd-88d8-456610555d95" message='#[output text
----
-"🛠️🛠️🛠️🛠️🛠️ ------------------- Converted MCP Tools ------------------- 🛠️🛠️🛠️🛠️🛠\n\n" ++
-
-write(vars.tools, "application/json") ++ "\n\n" ++
-
-"🛠️🛠️🛠️🛠️🛠️ ------------------- MCP Avaialble Tools ------------------- 🛠️🛠️🛠️🛠️🛠\n\n"]' />
-	</sub-flow>
 	<sub-flow name="create-plan" doc:id="ef9c2d20-7967-4d7c-b56a-ddd9af66c363" >
 		<scatter-gather doc:name="Scatter-Gather" doc:id="4411dda8-14f0-4ad2-adbd-38d12f69f73f" >
 			<route >
@@ -73,7 +36,38 @@ write(vars.tools, "application/json") ++ "\n\n" ++
 					<ms-inference:instructions ><![CDATA[#[vars.inferencePlanningInstructions]]]></ms-inference:instructions>
 					<ms-inference:data ><![CDATA[#["Users query: " ++ (vars.userPrompt as String) ++ 
 ", Current Observation through called tools: " ++ (vars.multiToolsResult as String) ++ 
+", available tools: " ++ (write(vars.tools, "application/json") as String) ++ 
 ", already executed tools: " ++ (write(vars.toolsUsed default {}, "application/json") as String)]]]></ms-inference:data>
+					<ms-inference:prompt-request-attributes ><![CDATA[{
+	"response_format": {
+		"type": "json_schema",
+		"json_schema": {
+			"name": "agent_plan",
+			"strict": true,
+			"schema": {
+				"type": "object",
+				  "properties": {
+				    "plan": {
+				      "type": "string"
+				    },
+				    "multiTools": {
+				      "type": "boolean"
+				    },
+				    "final": {
+				      "type": "boolean"
+				    },
+				    "input-required": {
+				      "type": "boolean"
+				    }
+				  },
+				  "required": ["plan", "multiTools", "final", "input-required"],
+				  "additionalProperties": false	
+			}
+				
+		}
+			
+	}
+}]]></ms-inference:prompt-request-attributes>
 				</ms-inference:agent-define-prompt-template>
 				<set-variable value='#[%dw 2.0
 output application/json
@@ -92,27 +86,16 @@ write(vars.multiTools, "application/json") ++
 "\n\n"]' category="🔎 Query Assessment 🔎"/>
 			</route>
 			<route >
-				<ms-inference:tools-native-template doc:name="Use MCP Tools" doc:id="934c43bb-b9cf-4f83-9901-925c0243e76c" config-ref="GENERAL" target="planningPayload">
+				<ms-inference:mcp-tools-native-template doc:name="Use MCP Tools" doc:id="42790cf9-e19c-4a52-b388-97e1f95af343" config-ref="GENERAL" target="planningPayload">
+					<ms-inference:mcp-config-references >
+						<ms-inference:mcp-config mcpClientConfigRef="MCP_Client" />
+					</ms-inference:mcp-config-references>
 					<ms-inference:template ><![CDATA[You are a planner agent. You answer general question based on your knowledge.]]></ms-inference:template>
-					<ms-inference:instructions ><![CDATA[Your Goals:
-- Provide a polite, accurate, and concise response to the user's request, utilizing available tools and memory as appropriate.
-- Ensure responses align with the user's intent while maintaining efficiency and relevance.
-
-Your Tasks:
-- Review the user's query, current observation (if available), and previously executed tools to determine the appropriate response or tool usage.
-- Execute tools (e.g., profile analysis, content analysis, web search) only once, avoiding tools listed in the "already executed tools" section in the data.
-- If the 'Current Observation through called tools' is empty, assume no tools have been executed yet.
-
-Your Guardrails:
-- Do not suggest or execute tools already used, as specified in the 'already executed tools' section in the data.
-- Avoid redundant tool usage by cross-referencing the user's query, current observation, and last tools used before suggesting any tools.
-- Don't make up things
-]]></ms-inference:instructions>
+					<ms-inference:instructions ><![CDATA[#[vars.inferenceToolingInstructions]]]></ms-inference:instructions>
 					<ms-inference:data ><![CDATA[#["Users query: " ++ (vars.userPrompt as String) ++ 
 ", Current Observation through called tools: " ++ (vars.multiToolsResult as String) ++ 
 ", already executed tools: " ++ (write(vars.toolsUsed default {}, "application/json") as String)]]]></ms-inference:data>
-					<ms-inference:tools ><![CDATA[#[vars.tools]]]></ms-inference:tools>
-				</ms-inference:tools-native-template>
+				</ms-inference:mcp-tools-native-template>
 				<logger level="INFO" doc:name="🛠️ Tools reasoning 🛠️" doc:id="0b760f14-59e4-4653-9fae-b7a8694ed603" message='#[%dw 2.0
 output text
 ---
@@ -151,20 +134,12 @@ output text
 output application/json 
 --- 
 (vars.toolsUsed default {}) ++ (vars.planningPayload.tools default {})]' doc:name="toolsUsed" doc:id="c61b8fe9-8b71-456c-99bc-a7d6b78f33f6" variableName="toolsUsed"/>
-				<foreach doc:name="For Each" doc:id="a9626602-22b3-406d-9112-d80a540234d8" collection="#[vars.planningPayload.tools]">
-					<mcp:call-tool toolName='#[output text/plain
+				<set-variable value='#[%dw 2.0
+output text/plain
 ---
-payload.function.name default "get_accounts"]' doc:name="MCP Client - Call Tool" doc:id="76b644a6-58c1-48c4-9cc8-f35b8b586096" config-ref="MCP_Client">
-						<mcp:arguments><![CDATA[#[output application/json
----
-read((payload as Object).function.arguments, "application/json")]]]></mcp:arguments>
-					</mcp:call-tool>
-					<logger level="DEBUG" doc:name="Logger payload after 🛠️ tool call" doc:id="e47d2e6b-4e12-4349-a00e-c8a4740a33e9" message="#[payload]" />
-					<set-variable value='#[%dw 2.0 
-output text/plain 
---- 
-(vars.multiToolsResult default "Tool results: ") ++ "\n" ++ (vars.counter as String) ++ " - " ++ write(payload, "application/json")]' doc:name="multiToolsResult" doc:id="169ca959-7254-4d0e-8cac-f84e0d24675c" variableName="multiToolsResult" />
-				</foreach>
+(vars.multiToolsResult default "Tool results: ") ++ "\n" ++ 
+(vars.counter default "0" as String) ++ " - " ++ 
+write(vars.planningPayload.toolsExecutionReport, "application/json")]' doc:name="multiToolsResult" doc:id="169ca959-7254-4d0e-8cac-f84e0d24675c" variableName="multiToolsResult" />
 				<choice doc:name="Choice" doc:id="7c217439-6bf7-4ba0-a4a6-7f1b1b942cbe" >
 					<when expression="#[(vars.multiTools.multiTools == true)]">
 						<flow-ref doc:name="Replanning" doc:id="2ff30bb8-1e65-4ef0-8357-f718aa0dc8ab" name="create-plan"/>
@@ -180,5 +155,43 @@ output text/plain
 				<set-payload value="#[vars.planningPayload]" doc:name="Set Payload" doc:id="28ce85a6-b882-48a7-a9d4-77c81adf9962" />
 			</otherwise>
 		</choice>
+	</sub-flow>
+	<sub-flow name="list-mcp-tools" doc:id="7913ea48-e01e-4c95-99e1-7493d6bae1c0" >
+		<mcp:list-tools doc:name="MCP Client - List Tools" doc:id="b1a00bd0-df04-49f7-84e9-4ab12341fae3" config-ref="MCP_Client" />
+		<logger level="DEBUG" doc:name="🛠️Available  MCP Tools 🛠️" doc:id="24dfb2ef-3c3e-4b66-827e-a343df30969b" message='#[output text
+---
+"🛠️🛠️🛠️🛠️🛠️ ------------------- MCP Avaialble Tools ------------------- 🛠️🛠️🛠️🛠️🛠\n\n" ++
+
+write(payload, "application/json") ++ "\n\n" ++
+
+"🛠️🛠️🛠️🛠️🛠️ ------------------- MCP Avaialble Tools ------------------- 🛠️🛠️🛠️🛠️🛠\n\n"]' />
+		<ee:transform doc:name="Save all available tools into the right format into variable tools" doc:id="478e5d50-de71-47ef-bad7-0bb64a3ebbf7" >
+			<ee:message />
+			<ee:variables >
+				<ee:set-variable variableName="tools" ><![CDATA[%dw 2.0
+output application/json
+---
+payload map (item) -> {
+	"type": "function",
+	function: {
+	  name: item.name,
+	  description: item.description,
+	  parameters: {
+	    "type": "object",
+	    properties: (read(item.inputSchema, "application/json").properties default {}),
+	    required: (read(item.inputSchema, "application/json").required default [])
+      }
+    }
+ }
+]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<logger level="DEBUG" doc:name="🛠️Converted  MCP Tools 🛠️" doc:id="fa63762e-7315-43a0-923f-09debbb8f842" message='#[output text
+---
+"🛠️🛠️🛠️🛠️🛠️ ------------------- Converted MCP Tools ------------------- 🛠️🛠️🛠️🛠️🛠\n\n" ++
+
+write(vars.tools, "application/json") ++ "\n\n" ++
+
+"🛠️🛠️🛠️🛠️🛠️ ------------------- MCP Avaialble Tools ------------------- 🛠️🛠️🛠️🛠️🛠\n\n"]' />
 	</sub-flow>
 </mule>
