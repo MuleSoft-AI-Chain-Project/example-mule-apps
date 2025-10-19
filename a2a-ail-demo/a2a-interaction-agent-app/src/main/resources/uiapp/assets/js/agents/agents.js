@@ -1,9 +1,9 @@
 // Centralized default agent URLs for maintainability
 window.PREDEFINED_AGENT_URL = window.PREDEFINED_AGENT_URL || [
-    "https://mac-managed-fxgw-fjrr5q.zm3ejw.usa-e2.cloudhub.io/erp-agent",
-    "https://mac-managed-fxgw-fjrr5q.zm3ejw.usa-e2.cloudhub.io/crm-agent",
-    "https://mac-managed-fxgw-fjrr5q.zm3ejw.usa-e2.cloudhub.io/agentforce-agent",
-    "https://mac-managed-fxgw-fjrr5q.zm3ejw.usa-e2.cloudhub.io/einstein-agent"
+    "https://mac-managed-fxgw-fjrr5q.zm3ejw.usa-e2.cloudhub.io/a2a-0.3.0/erp-agent",
+    "https://mac-managed-fxgw-fjrr5q.zm3ejw.usa-e2.cloudhub.io/a2a-0.3.0/crm-agent",
+    "https://mac-managed-fxgw-fjrr5q.zm3ejw.usa-e2.cloudhub.io/a2a-0.3.0/agentforce-agent",
+    "https://mac-managed-fxgw-fjrr5q.zm3ejw.usa-e2.cloudhub.io/a2a-0.3.0/einstein-agent"
 ];
 
 // Modal loading functions
@@ -444,6 +444,7 @@ function resetAgentsTabState() {
     
     // Note: Add button event listener is now handled in add-agent-modal.js
     
+    // Remove all event listeners with proper cleanup
     if (window.deleteAllBtnListener) {
         const deleteAllBtn = document.getElementById('deleteAllAgentsBtn');
         if (deleteAllBtn) {
@@ -474,6 +475,29 @@ function resetAgentsTabState() {
             closeBtn.removeEventListener('click', window.closeBtnListener);
         }
         window.closeBtnListener = null;
+    }
+    
+    if (window.chatModalCloseBtnListener) {
+        const chatModalCloseBtn = document.querySelector('#chatModal .btn-close');
+        if (chatModalCloseBtn) {
+            chatModalCloseBtn.removeEventListener('click', window.chatModalCloseBtnListener);
+        }
+        window.chatModalCloseBtnListener = null;
+    }
+    
+    // Clean up any existing agent tiles and their event listeners
+    const existingTiles = document.querySelectorAll('.agent-tile');
+    existingTiles.forEach(tile => {
+        // Remove all event listeners by cloning the element
+        const newTile = tile.cloneNode(true);
+        tile.parentNode.replaceChild(newTile, tile);
+    });
+    
+    // Clean up the add agent tile
+    const addAgentTile = document.getElementById('addAgentBtn');
+    if (addAgentTile) {
+        const newAddTile = addAgentTile.cloneNode(true);
+        addAgentTile.parentNode.replaceChild(newAddTile, addAgentTile);
     }
 }
 
@@ -1201,114 +1225,127 @@ window.attachAgentsTab = function() {
             // Note: The Add button event listener is now handled in add-agent-modal.js
             // to avoid duplication with the addAgent function logic
 
-            // Add event listeners only once
-            if (!window.agentsTabInitialized) {
-                // Add event listener for the Delete All button
+            // Always clean up existing event listeners first, then add new ones
+            // Remove existing event listeners if they exist
+            if (window.deleteAllBtnListener) {
                 const deleteAllBtn = document.getElementById('deleteAllAgentsBtn');
                 if (deleteAllBtn) {
-                    window.deleteAllBtnListener = function() {
-                        if (confirm('Are you sure you want to delete all agents? This action cannot be undone.')) {
-                            // Get all agent IDs from the current tiles
-                            const agentTiles = document.querySelectorAll('.agent-tile[data-agent-id]');
-                            const agentIds = Array.from(agentTiles).map(tile => tile.getAttribute('data-agent-id'));
-                            
-                            if (agentIds.length === 0) {
-                                alert('No agents to delete');
-                                return;
-                            }
-                            
-                            // Send DELETE request to remove all agents
-                            fetch(`../agents?userSessionId=${getUserSessionId()}`, {
-                                method: 'DELETE',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                },
-                                body: JSON.stringify({
-                                    agents: agentIds
-                                })
-                            })
-                            .then(response => {
-                                if (!response.ok) {
-                                    throw new Error('Failed to delete agents');
-                                }
-                                return response.json();
-                            })
-                            .then(data => {
-                                // Clear all agent types from local storage
-                                clearAllAgentTypesFromStorage();
-                                // Refresh the agents list
-                                window.attachAgentsTab();
-                            })
-                            .catch(error => {
-                                console.error('Error deleting agents:', error);
-                                alert('Failed to delete agents. Please try again.');
-                            });
-                        }
-                    };
-                    deleteAllBtn.addEventListener('click', window.deleteAllBtnListener);
+                    deleteAllBtn.removeEventListener('click', window.deleteAllBtnListener);
                 }
-
-                // Add event listener for the Add Default Agents button
+            }
+            
+            if (window.addDefaultBtnListener) {
                 const addDefaultBtn = document.getElementById('addDefaultAgentsBtn');
                 if (addDefaultBtn) {
-                    window.addDefaultBtnListener = function() {
-                        if (confirm('Add all default agents?')) {
-                            // Prefill local storage with default agent type mappings using URLs
-                            Object.entries(window.DEFAULT_AGENT_TYPES).forEach(([agentUrl, agentType]) => {
-                                addAgentTypeToStorage(agentUrl, agentType);
-                            });
-                            
-                            // Build agents array with default authentication (none)
-                            const defaultAgents = window.PREDEFINED_AGENT_URL.map(url => {
-                                const agentType = window.DEFAULT_AGENT_TYPES[url] || 'Custom';
-                                return {
-                                    url: url,
-                                    agentType: agentType,
-                                    authentication: {
-                                        type: 'none'
-                                    }
-                                };
-                            });
-                            
-                            // Show loading backdrop
-                            showLoadingBackdrop();
-                            
-                            // Send POST request to add all default agents
-                            fetch(`../agents?userSessionId=${getUserSessionId()}`, {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                },
-                                body: JSON.stringify({
-                                    agents: defaultAgents
-                                })
-                            })
-                            .then(response => {
-                                if (!response.ok) {
-                                    throw new Error('Failed to add default agents');
-                                }
-                                return response.json();
-                            })
-                            .then(data => {
-                                // Hide loading backdrop
-                                hideLoadingBackdrop();
-                                
-                                // Refresh the agents list
-                                window.attachAgentsTab();
-                            })
-                            .catch(error => {
-                                console.error('Error adding default agents:', error);
-                                alert('Failed to add default agents. Please try again.');
-                                // Hide loading backdrop on error
-                                hideLoadingBackdrop();
-                            });
-                        }
-                    };
-                    addDefaultBtn.addEventListener('click', window.addDefaultBtnListener);
+                    addDefaultBtn.removeEventListener('click', window.addDefaultBtnListener);
                 }
-                
-                window.agentsTabInitialized = true;
             }
+            
+            // Add event listener for the Delete All button
+            const deleteAllBtn = document.getElementById('deleteAllAgentsBtn');
+            if (deleteAllBtn) {
+                window.deleteAllBtnListener = function() {
+                    if (confirm('Are you sure you want to delete all agents? This action cannot be undone.')) {
+                        // Get all agent IDs from the current tiles
+                        const agentTiles = document.querySelectorAll('.agent-tile[data-agent-id]');
+                        const agentIds = Array.from(agentTiles).map(tile => tile.getAttribute('data-agent-id'));
+                        
+                        if (agentIds.length === 0) {
+                            alert('No agents to delete');
+                            return;
+                        }
+                        
+                        // Send DELETE request to remove all agents
+                        fetch(`../agents?userSessionId=${getUserSessionId()}`, {
+                            method: 'DELETE',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                agents: agentIds
+                            })
+                        })
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('Failed to delete agents');
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            // Clear all agent types from local storage
+                            clearAllAgentTypesFromStorage();
+                            // Refresh the agents list
+                            window.attachAgentsTab();
+                        })
+                        .catch(error => {
+                            console.error('Error deleting agents:', error);
+                            alert('Failed to delete agents. Please try again.');
+                        });
+                    }
+                };
+                deleteAllBtn.addEventListener('click', window.deleteAllBtnListener);
+            }
+
+            // Add event listener for the Add Default Agents button
+            const addDefaultBtn = document.getElementById('addDefaultAgentsBtn');
+            if (addDefaultBtn) {
+                window.addDefaultBtnListener = function() {
+                    if (confirm('Add all default agents?')) {
+                        // Prefill local storage with default agent type mappings using URLs
+                        Object.entries(window.DEFAULT_AGENT_TYPES).forEach(([agentUrl, agentType]) => {
+                            addAgentTypeToStorage(agentUrl, agentType);
+                        });
+                        
+                        // Build agents array with default authentication (none)
+                        const defaultAgents = window.PREDEFINED_AGENT_URL.map(url => {
+                            const agentType = window.DEFAULT_AGENT_TYPES[url] || 'Custom';
+                            return {
+                                url: url,
+                                agentType: agentType,
+                                authentication: {
+                                    type: 'none'
+                                }
+                            };
+                        });
+                        
+                        // Show loading backdrop
+                        showLoadingBackdrop();
+                        
+                        // Send POST request to add all default agents
+                        fetch(`../agents?userSessionId=${getUserSessionId()}`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                agents: defaultAgents
+                            })
+                        })
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('Failed to add default agents');
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            // Hide loading backdrop
+                            hideLoadingBackdrop();
+                            
+                            // Refresh the agents list
+                            window.attachAgentsTab();
+                        })
+                        .catch(error => {
+                            console.error('Error adding default agents:', error);
+                            alert('Failed to add default agents. Please try again.');
+                            // Hide loading backdrop on error
+                            hideLoadingBackdrop();
+                        });
+                    }
+                };
+                addDefaultBtn.addEventListener('click', window.addDefaultBtnListener);
+            }
+            
+            window.agentsTabInitialized = true;
             
             // Add event listeners for modal close buttons (fallback)
             const cancelBtn = document.querySelector('#addAgentModal .btn-secondary');

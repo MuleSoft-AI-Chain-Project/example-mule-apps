@@ -1,6 +1,7 @@
 /* ===== CSS VARIABLES ===== */
 :root {
     --primary-color: #00a2ff;
+    --primary-light-color: #e3f2fd;
     --secondary-color: #f8f9fa;
     --text-color: #333;
     --sidebar-width: 250px;

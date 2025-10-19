@@ -54,14 +54,28 @@ write(attributes, "application/json")]' />
 ---
 ((payload as Object).endpoint as Object)."type"]'/>
 		</parallel-foreach>
-		<ee:transform doc:name="Filter out a2a types" doc:id="d2833018-a195-488a-8bba-7c1e825cf469" >
-			<ee:message >
-				<ee:set-payload ><![CDATA[%dw 2.0
+		<choice doc:name="Choice" doc:id="e0cc212e-e81c-4e6c-baeb-4f498df16187" >
+			<when expression="#[vars.organizationId == p('exchange.default.organizationId')]">
+				<ee:transform doc:name="Filter out a2a types" doc:id="88c685f5-f5ef-40db-b630-4319d2abaac5" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload.payload filter ((item, index) -> item.endpoint."type" == "a2a" and (item.tags contains "0.3.0"))]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</when>
+			<otherwise >
+				<ee:transform doc:name="Filter out a2a types" doc:id="d2833018-a195-488a-8bba-7c1e825cf469">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
 output application/json
 ---
 payload.payload filter ((item, index) -> item.endpoint."type" == "a2a")]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
+			</otherwise>
+		</choice>
 	</flow>
 	<sub-flow name="set-initial-ms-platform-apis-vars" doc:id="6d273219-f423-4096-9500-d76c30eb4d89" >
 		<set-variable value="#[attributes.queryParams.url default p('exchange.default.url')]" doc:name="Set url" doc:id="122f5be7-b78d-41ac-a181-d27a02dcaf81" variableName="url" />

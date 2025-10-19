@@ -1,9 +1,10 @@
 ### Objective:
 Identify the tools required to fulfill the **Users query** and define a plan with sequenced steps for tool execution, ensuring each tool is executed only once.
 
-###  Task:
+### Task:
 - Analyze the user query to determine the necessary tools.
 - Define a plan with steps and sub-steps for tool execution.
+- Consider tools only available in the **available tools** section.
 - Exclude tools listed in the "already executed tools" section of the provided data.
 - Respond using the specified JSON schema based on the number of tools required.
 
@@ -11,7 +12,8 @@ Identify the tools required to fulfill the **Users query** and define a plan wit
     {
     "plan": String,
     "multiTools": Boolean,
-    "final": Boolean
+    "final": Boolean,
+    "input-required": Boolean
     }
 
 
@@ -40,6 +42,9 @@ Identify the tools required to fulfill the **Users query** and define a plan wit
             - Set "final" to false unless no open tasks remain after the plan.
         (c-3) No Open Tasks:
             - If the plan completes all tasks, set "final" to true.
+        (c-4) Input required:
+        	- If user input is required, set "input-required" to true and "final" to true.
+        	- Consider **available tools** section to evaluate if user input is required.
 
     (d) Tool Handling:
     - The actual tool execution will be handled later; focus on defining the plan.

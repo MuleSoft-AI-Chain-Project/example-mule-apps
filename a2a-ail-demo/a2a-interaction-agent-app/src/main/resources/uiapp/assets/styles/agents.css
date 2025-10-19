@@ -93,7 +93,7 @@
 
 .agent-tile.add-agent-tile:hover {
     background: #f8f9fa;
-    color: #00a2ff;
+    color: var(--primary-color);
 }
 
 .add-agent-left-half {
@@ -109,7 +109,7 @@
 }
 
 .add-agent-left-half:hover {
-    background: #e3f2fd;
+    background: var(--primary-light-color);
 }
 
 .add-agent-right-half {
@@ -125,7 +125,7 @@
 }
 
 .add-agent-right-half:hover {
-    background: #e3f2fd;
+    background: var(--primary-light-color);
 }
 
 .add-agent-right-half svg {
@@ -171,7 +171,7 @@
     position: fixed;
     bottom: 1rem;
     right: 4rem;
-    background: #dc3545;
+    background: #9e9e9e;
     color: white;
     border: none;
     border-radius: 0.5rem;
@@ -190,7 +190,7 @@
     position: fixed;
     bottom: 1rem;
     right: 10.5rem;
-    background: #00a2ff;
+    background: #639cb8;
     color: white;
     border: none;
     border-radius: 0.5rem;
@@ -202,7 +202,7 @@
 }
 
 .add-default-btn:hover {
-    background: #0b5ed7;
+    background: #4b93b6;
 }
 
 .delete-agent-btn {

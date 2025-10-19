@@ -25,8 +25,7 @@ function startChatWithAgent(agentId, agentName) {
     // Set current chat agent
     window.currentChatAgent = agentId;
     window.chatMessages = [];
-    // Create a new chat session id for this modal lifecycle
-    window.currentChatSessionId = generateUUID();
+    
     
     // Update modal title
     const chatModalLabel = document.getElementById('chatModalLabel');
@@ -95,7 +94,6 @@ function startChatWithAgent(agentId, agentName) {
                     // Clear chat history
                     window.chatMessages = [];
                     window.currentChatAgent = null;
-                    window.currentChatSessionId = null;
                     
                     modalEl.classList.remove('show');
                     modalEl.style.display = 'none';
@@ -187,7 +185,7 @@ async function sendMessageToAgent(message) {
     }
     
     try {
-        const response = await fetch(`../prompt-agent?agentName=${encodeURIComponent(window.currentChatAgent)}&userSessionId=${getUserSessionId()}&sessionId=${encodeURIComponent(window.currentChatSessionId || '')}`, {
+        const response = await fetch(`../prompt-agent?agentName=${encodeURIComponent(window.currentChatAgent)}&userSessionId=${getUserSessionId()}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -218,6 +216,17 @@ async function sendMessageToAgent(message) {
             data.agentTaskResponse.status.message.parts && 
             data.agentTaskResponse.status.message.parts.length > 0) {
             agentResponse = data.agentTaskResponse.status.message.parts[0].text;
+        } else if (data.agentTaskResponse &&
+            data.agentTaskResponse.artifacts &&
+            Array.isArray(data.agentTaskResponse.artifacts) &&
+            data.agentTaskResponse.artifacts.length > 0 &&
+            data.agentTaskResponse.artifacts[0] &&
+            data.agentTaskResponse.artifacts[0].parts &&
+            Array.isArray(data.agentTaskResponse.artifacts[0].parts) &&
+            data.agentTaskResponse.artifacts[0].parts.length > 0 &&
+            data.agentTaskResponse.artifacts[0].parts[0] &&
+            typeof data.agentTaskResponse.artifacts[0].parts[0].text === 'string') {
+            agentResponse = data.agentTaskResponse.artifacts[0].parts[0].text;
         } else if (data.response) {
             agentResponse = data.response;
         } else if (data.message) {
@@ -253,7 +262,6 @@ function initializeChatFunctionality() {
                 // Clear chat history
                 window.chatMessages = [];
                 window.currentChatAgent = null;
-                window.currentChatSessionId = null;
                 
                 if (window.chatModal) {
                     window.chatModal.hide();
