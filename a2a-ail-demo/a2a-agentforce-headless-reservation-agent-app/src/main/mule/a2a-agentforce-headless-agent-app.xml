@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:os="http://www.mulesoft.org/schema/mule/os"
-	xmlns:ms-agentforce="http://www.mulesoft.org/schema/mule/ms-agentforce" xmlns:a2a="http://www.mulesoft.org/schema/mule/a2a"
-	xmlns:mac-inference="http://www.mulesoft.org/schema/mule/mac-inference"
-	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:tls="http://www.mulesoft.org/schema/mule/tls" xmlns:mcp="http://www.mulesoft.org/schema/mule/mcp" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+<mule xmlns:ms-einstein-ai="http://www.mulesoft.org/schema/mule/ms-einstein-ai"
+	xmlns:os="http://www.mulesoft.org/schema/mule/os" xmlns:ms-agentforce="http://www.mulesoft.org/schema/mule/ms-agentforce"
+	xmlns:a2a="http://www.mulesoft.org/schema/mule/a2a"
+	xmlns:mac-inference="http://www.mulesoft.org/schema/mule/mac-inference" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:tls="http://www.mulesoft.org/schema/mule/tls" xmlns:mcp="http://www.mulesoft.org/schema/mule/mcp" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
 http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
 http://www.mulesoft.org/schema/mule/mcp http://www.mulesoft.org/schema/mule/mcp/current/mule-mcp.xsd
@@ -11,13 +11,14 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 http://www.mulesoft.org/schema/mule/mac-inference http://www.mulesoft.org/schema/mule/mac-inference/current/mule-mac-inference.xsd
 http://www.mulesoft.org/schema/mule/a2a http://www.mulesoft.org/schema/mule/a2a/current/mule-a2a.xsd
 http://www.mulesoft.org/schema/mule/ms-agentforce http://www.mulesoft.org/schema/mule/ms-agentforce/current/mule-ms-agentforce.xsd
-http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd">
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+http://www.mulesoft.org/schema/mule/ms-einstein-ai http://www.mulesoft.org/schema/mule/ms-einstein-ai/current/mule-ms-einstein-ai.xsd">
 	<sub-flow name="agentforce-agent" doc:id="4fc284f7-f286-43a2-8bd1-e6ba158b89e3" >
 		<choice doc:name="Choice" doc:id="325bbde4-1dc2-4245-9575-633a5b11f30c" >
 			<when expression='#[vars.agentforceSessionId==""]'>
 				<ms-agentforce:start-agent-conversation agent="0XxHs000000uuUzKAI" doc:name="Start agent conversation" doc:id="87b52c56-43d8-4e7f-b7c3-637b79750082" config-ref="Agentforce_Configuration"/>
 				<set-variable value='#[payload.sessionId]' doc:name="Set agentforceSessionId" doc:id="f605c233-e12c-415a-bc9c-e7fa9b897558" variableName="agentforceSessionId" />
-				<os:store doc:name="Store agentforceSessionId" doc:id="eff650e2-4846-4167-a1d9-f372a5b0beb2" key="#[vars.sessionId]" objectStore="Object_store">
+				<os:store doc:name="Store agentforceSessionId" doc:id="eff650e2-4846-4167-a1d9-f372a5b0beb2" key="#[vars.contextId]" objectStore="Object_store">
 					<os:value ><![CDATA[#[vars.agentforceSessionId]]]></os:value>
 				</os:store>
 			</when>
@@ -38,21 +39,47 @@ vars.agentforceSessionId as String ++ "\n" ++
 		</ms-agentforce:continue-agent-conversation>
 		<ee:transform doc:name="format response" doc:id="4ede0638-66bf-42af-abf0-6fb926b4bd22" >
 			<ee:message >
-				<ee:set-payload ><![CDATA[%dw 2.0
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="agentforceResponsePart" ><![CDATA[%dw 2.0
 output application/json
 ---
 {
-	response: payload
-}]]></ee:set-payload>
+	"kind": "text",
+	"text": payload
+}]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<ms-einstein-ai:agent-define-prompt-template doc:name="Determine A2A Task Response Status" doc:id="8f5f8351-58ba-4efd-a8d7-aaf3ae064c86" config-ref="Einstein_AI_Configuration" modelApiName="sfdc_ai__DefaultGPT41Mini">
+			<ms-einstein-ai:template ><![CDATA[You are an agent responsible for determining whether the provided message implies input from a user.]]></ms-einstein-ai:template>
+			<ms-einstein-ai:instructions ><![CDATA[If the message indicates that a user should provide input, respond exactly with `input-required`.  
+
+If the message does not indicate any need for user input, respond exactly with `completed`.  
+
+**Important rules:**  
+- Only return one of the two values: `input-required` or `completed`.  
+- Do not include any extra text, explanation, or formatting.  
+- Base your decision solely on whether the message implies the need for user input.  
+- Do **not** consider generic prompts like "Let me know if there's anything else I can assist you with.", "If you have a specific question, feel free to ask!" or "Let me know how I can assist you!" as requiring input.
+]]></ms-einstein-ai:instructions>
+			<ms-einstein-ai:dataset ><![CDATA[#[vars.agentforceResponsePart.text]]]></ms-einstein-ai:dataset>
+		</ms-einstein-ai:agent-define-prompt-template>
+		<ee:transform doc:name="agentforceResponseStatus" doc:id="12891d96-0091-45b3-95b6-920d403dfeb9" >
+			<ee:message >
 			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="agentforceResponseStatus" ><![CDATA[%dw 2.0
+output application/java
+---
+payload.response]]></ee:set-variable>
+			</ee:variables>
 		</ee:transform>
 	</sub-flow>
 	<sub-flow name="a2a-agentforce-set-init" doc:id="b1ae052d-e3ae-497a-988c-145351e1e505" >
 		<set-variable value="#[payload.message.parts[0].text]" doc:name="Set prompt" doc:id="3367dd7d-293c-40c7-bf91-215aebaea2ef" variableName="prompt" />
-		<set-variable value="#[payload.id]" doc:name="Set taskId" doc:id="042c5a2f-0e69-4cf5-91d0-d05233be33b4" variableName="taskId" />
-		<set-variable value='#[(payload.sessionId) default ""]' doc:name="Set sessionId" doc:id="770f744a-618e-4864-9422-a565cfc16b98" variableName="sessionId" />
-		<set-variable value="#[(attributes.headers.history) default true]" doc:name="Set history" doc:id="48a00cf0-4b6a-46b1-8a59-e52eaa93b125" variableName="history" />
-		<os:retrieve doc:name="Retrieve sessionId" doc:id="9d6b56de-1f42-4373-b444-ef6830f71568" key="#[vars.sessionId]" objectStore="Object_store" target="agentforceSessionId">
+		<set-variable value="#[attributes.taskId default uuid()]" doc:name="Set taskId" doc:id="042c5a2f-0e69-4cf5-91d0-d05233be33b4" variableName="taskId" />
+		<set-variable value='#[(attributes.contextId) default ""]' doc:name="Set contextId" doc:id="770f744a-618e-4864-9422-a565cfc16b98" variableName="contextId" />
+		<os:retrieve doc:name="Retrieve contextId" doc:id="9d6b56de-1f42-4373-b444-ef6830f71568" key="#[vars.contextId]" objectStore="Object_store" target="agentforceSessionId">
 			<os:default-value ><![CDATA[#[""]]]></os:default-value>
 		</os:retrieve>
 	</sub-flow>
