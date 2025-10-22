@@ -147,7 +147,7 @@ write(vars.specializedAgentRequest default {}, "application/json") ++ "\n" ++
 			<choice doc:name='Route based on the Authentication Type (Default "none")' doc:id="d483139e-478c-437c-891e-54a558b70615" >
 				<when expression='#[vars.agentAuthentication."type" == "client-credentials"]' >
 					<a2a:send-message doc:name="Send message to {agentToCall} Agent with ClientCredentials Grant Type" doc:id="fa68bdec-8ca1-40a6-be51-6c37764c983e" config-ref="A2A_Client_Auth_client-credentials" >
-						<a2a:message ><![CDATA[#["input-required" == vars.specializedAgentRequest.status.state]]]></a2a:message>
+						<a2a:message ><![CDATA[#[vars.specializedAgentRequest]]]></a2a:message>
 					</a2a:send-message>
 				</when>
 				<otherwise >
