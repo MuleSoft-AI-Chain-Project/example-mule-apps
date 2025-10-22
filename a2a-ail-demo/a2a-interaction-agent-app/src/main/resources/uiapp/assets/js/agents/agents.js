@@ -200,10 +200,10 @@ window.loadChatModal = loadChatModal;
 
 // Default agent types mapped to URLs
 window.DEFAULT_AGENT_TYPES = {
-    "https://mac-managed-fxgw-fjrr5q.zm3ejw.usa-e2.cloudhub.io/erp-agent": "MuleSoft AI Chain",
-    "https://mac-managed-fxgw-fjrr5q.zm3ejw.usa-e2.cloudhub.io/crm-agent": "MuleSoft AI Chain",
-    "https://mac-managed-fxgw-fjrr5q.zm3ejw.usa-e2.cloudhub.io/agentforce-agent": "Agentforce",
-    "https://mac-managed-fxgw-fjrr5q.zm3ejw.usa-e2.cloudhub.io/einstein-agent": "Einstein Models"
+    "https://mac-managed-fxgw-fjrr5q.zm3ejw.usa-e2.cloudhub.io/a2a-0.3.0/erp-agent": "MuleSoft AI Chain",
+    "https://mac-managed-fxgw-fjrr5q.zm3ejw.usa-e2.cloudhub.io/a2a-0.3.0/crm-agent": "MuleSoft AI Chain",
+    "https://mac-managed-fxgw-fjrr5q.zm3ejw.usa-e2.cloudhub.io/a2a-0.3.0/agentforce-agent": "Agentforce",
+    "https://mac-managed-fxgw-fjrr5q.zm3ejw.usa-e2.cloudhub.io/a2a-0.3.0/einstein-agent": "Einstein Models"
 };
 
 // Local storage key for agent function name-type pairs
