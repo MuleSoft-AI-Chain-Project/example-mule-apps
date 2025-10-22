@@ -12,6 +12,10 @@ agent.skill.1.id=1
 agent.skill.1.name=Submit Reservation
 agent.skill.1.description=Agent makes reservation on behalf of user
 
-salesforce.tokenUrl=
-salesforce.clientId=
-salesforce.clientSecret=
+agentforce.tokenUrl=
+agentforce.clientId=
+agentforce.clientSecret=
+
+einstein.tokenUrl=
+einstein.clientId=
+einstein.clientSecret=
