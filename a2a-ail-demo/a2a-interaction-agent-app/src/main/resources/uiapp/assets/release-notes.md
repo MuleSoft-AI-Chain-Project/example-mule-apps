@@ -1,5 +1,23 @@
 # A2A AIL Demo - Release Notes
 
+## Release 3.0 - Settings and Connector Updates
+**Release Date**: October 2025
+
+### ⚙️ Settings Enhancements
+- **Unified Settings Panel**: Centralized configuration for Reasoning Engine, Host Agent name, Anypoint Exchange, and Theme/Brand.
+- **Anypoint Exchange (Custom Instance)**: Configure URL, Client ID/Secret, Org ID, and Env ID with built-in credential validation and progress spinner.
+- **Theme & Brand**: Primary/Light colors, chat background (live preview and immediate apply), logo (preview then apply on save), and host agent display name.
+- **Export/Import & Reset**: Export `settings.json`, import to overwrite and refresh UI, and one-click reset to defaults.
+
+### 🧭 Protocol Support
+- **A2A Protocol v3**: Explicit support added. Requires A2A Connector `0.3.0-BETA` or later (this release uses `0.4.0-BETA`).
+
+### 🔌 Connector Updates
+- **A2A Connector**: Upgraded to `0.4.0-BETA`.
+- **MCP Connector**: Upgraded to `1.2.1`.
+
+---
+
 ## Release 2.1 - Exchange Integration
 **Release Date**: September 2025
 
