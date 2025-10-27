@@ -1,0 +1,137 @@
+schemaVersion: 1.0.0
+label: Tutorial Network
+brokers:
+    tt-network-agents:
+        card:
+            protocolVersion: 0.3.0
+            name: Agent Network Tutorial
+            description: This is a tutorial network for agents.
+            url: ${ingressgw.url}/tt-network-agents
+            capabilities:
+                pushNotifications: false
+            provider:
+                organization: MuleSoft
+                url: https://www.mulesoft.com
+            version: 1.0.0
+            securitySchemes: {}
+            defaultInputModes:
+                - application/json
+                - text/plain
+            defaultOutputModes:
+                - application/json
+                - text/plain
+            skills:
+                - id: sales-distribution
+                  name: Sales and Distribution.
+                  description: This skill can be leveraged to provide access to Inventory, Sales Orders and Delivery
+                  examples:
+                      - Check Inventory for MULETEST0
+                      - Create Sales Order for MULETEST0
+                      - Create Delivery for Sales Order 12345
+                  inputModes:
+                    - application/json
+                    - text/plain
+                  outputModes:
+                    - application/json
+                    - text/plain
+                  tags: []   
+                - id: knolwledge-management
+                  name: Knowledge Management
+                  description: This skill can be leveraged to retrieve information about the features of the Kony app, intiate return and battery life informations
+                  examples:
+                      - What are the features of Kony App
+                      - How can I initiate a return
+                      - How long is the battery life 
+                  inputModes:
+                    - application/json
+                    - text/plain
+                  outputModes:
+                    - application/json
+                    - text/plain
+                  tags: []   
+                - id: google-search
+                  name: Google Search
+                  description: This skill can be leveraged to perform Google Searches. Use this skill when no agent can be used for answering the users query.
+                  examples:
+                      - What is Agent Fabric by MuleSoft
+                      - Who is Mihael Bosnjak from Salesforce
+                      - What is the MuleSoft AI Chain Project about
+                  inputModes:
+                    - application/json
+                    - text/plain
+                  outputModes:
+                    - application/json
+                    - text/plain
+                  tags: []   
+        spec:
+            llm:
+                ref:
+                    name: heroku-ai
+                configuration:
+                    model: gpt-oss-120b
+            instructions:
+                - Always try to use agents first when answering user queries.
+                - If no agent can be used to answer the user query, use the Google Search skill
+            links:
+                - agent:
+                      ref:
+                          name: sap-sales-distribution-agent
+                - agent: 
+                      ref:
+                          name: knowledge-management-agent
+            tools:
+                - mcp:
+                      ref:
+                          name: google-search-mcp
+agents:
+    sap-sales-distribution-agent:
+        label: SAP Sales and Distribution Agent
+        metadata:
+            protocol: a2a
+            platform: MuleSoft AI Chain
+    knowledge-management-agent:
+        label: Knowledge Management Agent
+        metadata:
+            protocol: a2a
+            platform: Agentforce
+mcpServers:
+    google-search-mcp:
+        label: Google Search MCP
+        metadata:
+            transport:
+                kind: streamableHttp
+                path: /mcp
+llmProviders:
+    heroku-ai:
+        label: Heroku AI
+        description: Heroku AI LLM Provider
+        metadata:
+            platform: OpenAI
+connections:
+    sap-sales-distribution-agentConnection:
+        kind: agent
+        ref:
+            name: sap-sales-distribution-agent
+        spec:
+            url: ${sap-sales-distribution-agent.cardUrl}
+    knowledge-management-agentConnection:
+        kind: agent
+        ref:
+            name: knowledge-management-agent
+        spec:
+            url: ${knowledge-management-agent.cardUrl}
+    google-search-mcpConnection:
+        kind: mcp
+        ref:
+            name: google-search-mcp
+        spec:
+            url: ${google-search-mcp.url}
+    my-heroku-ai-connection:
+        kind: llm
+        ref:
+            name: heroku-ai
+        spec:
+            url: ${openai.apiUrl}
+            configuration:
+                apiKey: ${openai.apiKey}
+                timeout: 600000

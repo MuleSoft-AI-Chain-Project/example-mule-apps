@@ -1,0 +1,47 @@
+server:
+  port: 8087
+
+spring:
+  mail:
+    host: localhost
+    port: 1025
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driverClassName: org.h2.Driver
+    username: sa
+    password: 
+  
+  jpa:
+    defer-datasource-initialization: true
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+  
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+  
+  security:
+    oauth2:
+      client:
+        registration:
+          internal:
+            client-id: Ov23liYtT6CsdOkG4yyJ
+            client-secret: 87c06876e02e207dc30a196059a470e382a4ba0c
+            authorization-grant-type: client_credentials
+            redirect-uri: "http://127.0.0.1:8087/login/oauth2/code/internal"
+            scope: openid
+            client-name: internal
+        provider:
+          internal:
+            authorization-uri: http://127.0.0.1:8087/oauth2/authorize
+            token-uri: http://127.0.0.1:8087/oauth2/token
+            user-info-uri: http://127.0.0.1:8087/userinfo
+            user-name-attribute: sub
+            jwk-set-uri: http://127.0.0.1:8087/oauth2/jwks
+
+logging:
+  level:
+    org.springframework.security: DEBUG

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About SAML 2.0 Authentication</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <div class="container">
+        <nav class="nav-menu">
+            <a th:href="@{/}">← Back to Home</a>
+            <a th:href="@{/saml/home}">SAML Home</a>
+            <a th:href="@{/shared/resource1}">Shared Resources</a>
+        </nav>
+        
+        <h1>SAML 2.0 Authentication</h1>
+        
+        <div class="info-section">
+            <h3>Overview</h3>
+            <p>SAML (Security Assertion Markup Language) is an XML-based standard for exchanging authentication and authorization data between parties, in particular, between an identity provider and a service provider.</p>
+            
+            <h3>Implementation Details</h3>
+            <ul>
+                <li><strong>Identity Provider (IdP):</strong> An external service that manages user identities (e.g., Okta, ADFS).</li>
+                <li><strong>Service Provider (SP):</strong> Your application, which trusts the IdP.</li>
+                <li><strong>Assertions:</strong> The IdP sends SAML assertions to the SP to confirm the user's identity.</li>
+            </ul>
+            
+            <h3>Use Cases</h3>
+            <ul>
+                <li>Single Sign-On (SSO) in enterprise environments.</li>
+                <li>Federated identity management.</li>
+                <li>Secure communication between different security domains.</li>
+            </ul>
+        </div>
+        
+        <div class="navigation">
+            <a th:href="@{/saml/home}" class="btn">Back to SAML Home</a>
+            <a th:href="@{/}" class="btn btn-secondary">Try Other Methods</a>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OAuth 2.0 - Home</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <div class="container">
+        <nav class="nav-menu">
+            <a th:href="@{/}">← Back to Home</a>
+            <a th:href="@{/oauth/about}">About OAuth 2.0</a>
+            <a th:href="@{/shared/resource1}">Shared Resources</a>
+            <form th:action="@{/oauth/logout}" method="post" style="display: inline;">
+                <button type="submit" class="btn btn-logout">Logout</button>
+            </form>
+        </nav>
+        
+        <h1>OAuth 2.0 Authentication Success</h1>
+        <div class="success-message">
+            <p>Welcome, <strong th:text="${username}">User</strong>!</p>
+            <p>You have successfully authenticated using OAuth 2.0.</p>
+        </div>
+        
+        <div class="auth-info">
+            <h3>How OAuth 2.0 Works:</h3>
+            <ul>
+                <li>Delegated authorization framework</li>
+                <li>Enables third-party applications to obtain limited access to a web service</li>
+                <li>Access tokens are used to access protected resources</li>
+                <li>Focuses on client developer simplicity while providing specific authorization flows</li>
+            </ul>
+        </div>
+        
+        <div class="navigation">
+            <a th:href="@{/oauth/about}" class="btn">Learn More</a>
+            <a th:href="@{/shared/resource1}" class="btn btn-secondary">Access Shared Resources</a>
+        </div>
+    </div>
+</body>
+</html>

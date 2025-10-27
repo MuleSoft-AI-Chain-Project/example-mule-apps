@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:ms-webcrawler="http://www.mulesoft.org/schema/mule/ms-webcrawler"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ms-webcrawler http://www.mulesoft.org/schema/mule/ms-webcrawler/current/mule-ms-webcrawler.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+
+	<configuration correlationIdGeneratorExpression="#[attributes.headers.'request-id']"/>
+
+	<ms-webcrawler:config name="MuleSoft_WebCrawler_Connector_Config" doc:name="MuleSoft WebCrawler Connector Config" doc:id="d550e20d-57ad-42e1-a5c0-b253b7d7b7d0">
+		<ms-webcrawler:web-driver-connection userAgent='#["Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"]' />
+	</ms-webcrawler:config>
+	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="77ee2433-5640-49f0-81ff-9ebcc35cdf4c" >
+		<http:request-connection host="localhost" port="8087" />
+	</http:request-config>
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="f3051730-c309-4b28-beba-fe508f5bb645" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<flow name="wc-basicOrDigestAthenticationFlow" doc:id="2e102ec1-2eea-443e-a72e-75c4cab61cfc" >
+		<scheduler doc:name="Scheduler" doc:id="153157d7-6d67-4440-9a44-eab22d62346a" >
+			<scheduling-strategy >
+				<fixed-frequency frequency="99999" startDelay="99999" timeUnit="DAYS"/>
+			</scheduling-strategy>
+		</scheduler>
+		<ms-webcrawler:crawl-website-full-scan outputFormat="HTML" doc:name="[Crawl] Website (Full Scan)" doc:id="873634ab-8acf-41d2-84bf-4a5e9085bd7c" config-ref="MuleSoft_WebCrawler_Connector_Config" url="http://localhost:8087/basic/home" downloadPath="/Users/shumon.sharif/Downloads/wc-authentication" maxDepth="5" restrictToPath="true" regexUrlsFilterLogic="INCLUDE" authenticationMethodId="basicOrDigestAuth">
+			<ms-webcrawler:authentication-configurations >
+				<ms-webcrawler:authentication-configuration key="username" value="user" />
+				<ms-webcrawler:authentication-configuration key="password" value="password" />
+			</ms-webcrawler:authentication-configurations>
+			<ms-webcrawler:regex-urls >
+				<ms-webcrawler:regex-url value=".+?basic.*" />
+			</ms-webcrawler:regex-urls>
+		</ms-webcrawler:crawl-website-full-scan>
+	</flow>
+	
+	<flow name="wc-formCookieAthenticationFlow" doc:id="0b8a33df-4f74-48f2-9e87-a1a0f4fd70a2" >
+		<scheduler doc:name="Scheduler" doc:id="237464c6-8a95-4f60-8874-ffdcf10099c7" >
+			<scheduling-strategy >
+				<fixed-frequency frequency="99999" startDelay="99999" timeUnit="DAYS"/>
+			</scheduling-strategy>
+		</scheduler>
+		<ms-webcrawler:crawl-website-full-scan outputFormat="HTML" doc:name="[Crawl] Website (Full Scan)" doc:id="1d17f7ba-ff82-40d9-b185-48c4ca32ce7f" config-ref="MuleSoft_WebCrawler_Connector_Config" url="http://localhost:8087/form/home" downloadPath="/Users/shumon.sharif/Downloads/wc-authentication" maxDepth="5" restrictToPath="true" regexUrlsFilterLogic="INCLUDE" authenticationMethodId="formCookieAuth">
+			<ms-webcrawler:authentication-configurations >
+				<ms-webcrawler:authentication-configuration key="username" value="user" />
+				<ms-webcrawler:authentication-configuration key="password" value="password" />
+				<ms-webcrawler:authentication-configuration key="loginUrl" value="http://localhost:8087/form/login" />
+				<ms-webcrawler:authentication-configuration key="submitButton" value="body &gt; div &gt; div &gt; form &gt; button" />
+			</ms-webcrawler:authentication-configurations>
+			<ms-webcrawler:regex-urls >
+				<ms-webcrawler:regex-url value=".+?form.*" />
+			</ms-webcrawler:regex-urls>
+		</ms-webcrawler:crawl-website-full-scan>
+	</flow>
+	
+	<flow name="wc-jwtAthenticationFlow" doc:id="240b8885-0d44-43eb-92b9-f61687399c8f" >
+		<scheduler doc:name="Scheduler" doc:id="4edd4ce5-7fa1-44ec-a7b9-56ac64b1f5fa" >
+			<scheduling-strategy >
+				<fixed-frequency frequency="99999" startDelay="99999" timeUnit="DAYS"/>
+			</scheduling-strategy>
+		</scheduler>
+		<http:request method="POST" doc:name="Retrieve and set jwtToken variable" doc:id="35ffb441-4c3b-443e-88c7-1964920087ca" config-ref="HTTP_Request_configuration" target="jwtToken" targetValue="#[payload.token]" path="/jwt/api/login">
+			<http:body ><![CDATA[#[%dw 2.0
+output application/json
+---
+{"username":"user","password":"password"}]]]></http:body>
+			<http:headers ><![CDATA[#[output application/java
+---
+{
+	"Content-Type" : "application/json"
+}]]]></http:headers>
+		</http:request>
+		<logger level="INFO" doc:name="Log JWT" doc:id="ffcb2d1f-e3ba-4829-8197-8fc623c19cbd" message="#[vars.jwtToken]"/>
+		<ms-webcrawler:crawl-website-full-scan outputFormat="HTML" doc:name="[Crawl] Website (Full Scan)" doc:id="3e5ce419-9515-49d4-9049-ec0f746e02d6" config-ref="MuleSoft_WebCrawler_Connector_Config" url="http://localhost:8087/jwt/about" downloadPath="/Users/shumon.sharif/Downloads/wc-authentication" maxDepth="5" restrictToPath="true" regexUrlsFilterLogic="INCLUDE" authenticationMethodId="jwtAuth">
+			<ms-webcrawler:authentication-configurations >
+				<ms-webcrawler:authentication-configuration key="jwt" value="#[vars.jwtToken]" />
+			</ms-webcrawler:authentication-configurations>
+			<ms-webcrawler:regex-urls >
+				<ms-webcrawler:regex-url value=".+?jwt.*" />
+			</ms-webcrawler:regex-urls>
+		</ms-webcrawler:crawl-website-full-scan>
+	</flow>
+	
+	<flow name="wc-oAuthBearerAthenticationFlow" doc:id="d6929846-e1fe-4795-b651-d27bb347ba41" >
+		<scheduler doc:name="Scheduler" doc:id="6c54ac5f-de04-4932-ac64-84c4a55a3c69" >
+			<scheduling-strategy >
+				<fixed-frequency frequency="99999" startDelay="99999" timeUnit="DAYS"/>
+			</scheduling-strategy>
+		</scheduler>
+		<ms-webcrawler:crawl-website-full-scan outputFormat="HTML" doc:name="[Crawl] Website (Full Scan)" doc:id="7115ef93-c35b-4ff5-bcf9-ef6fcc671c62" config-ref="MuleSoft_WebCrawler_Connector_Config" url="http://localhost:8087/oauth/home" downloadPath="/Users/shumon.sharif/Downloads/wc-authentication" maxDepth="5" restrictToPath="true" regexUrlsFilterLogic="INCLUDE" authenticationMethodId="bearerTokenAuth">
+			<ms-webcrawler:authentication-configurations >
+				<ms-webcrawler:authentication-configuration key="oauthType" value="client_credentials" />
+				<ms-webcrawler:authentication-configuration key="clientId" value="Ov23liYtT6CsdOkG4yyJ" />
+				<ms-webcrawler:authentication-configuration key="clientSecret" value="87c06876e02e207dc30a196059a470e382a4ba0c" />
+			</ms-webcrawler:authentication-configurations>
+			<ms-webcrawler:regex-urls >
+				<ms-webcrawler:regex-url value=".+?oauth.*" />
+			</ms-webcrawler:regex-urls>
+		</ms-webcrawler:crawl-website-full-scan>
+	</flow>
+	<flow name="wc-authenticationFlow" doc:id="3e092949-07ea-40b7-87c2-aea1bf830ade" >
+		<http:listener doc:name="Listener" doc:id="a9148f37-ef3e-4cbb-9ec7-fd0caeb9d470" config-ref="HTTP_Listener_config" path="/api"/>
+		<logger level="INFO" doc:name="Logger" doc:id="19106a57-e48b-4970-8295-472a18c94925" message="#[attributes]"/>
+	</flow>
+</mule>

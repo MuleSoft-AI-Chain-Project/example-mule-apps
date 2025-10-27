@@ -1,0 +1,27 @@
+http.port=8081
+
+agent.name=Lead Management Agent
+agent.host=
+agent.description=Einstein Agent is able to retrieve, create and delete leads from Hubspot. 
+agent.iconUrl=https://raw.githubusercontent.com/MuleSoft-AI-Chain-Project/example-mule-apps/refs/heads/master/a2a-ail-demo/a2a-interaction-agent-app/src/main/resources/uiapp/assets/images/einsteinagent.png
+agent.documentationUrl=https://developer.salesforce.com/docs/einstein/genai/overview
+agent.providerOrganization=Salesforce
+agent.providerUrl=https://www.salesforce.com
+
+agent.skill.1.id=1
+agent.skill.1.name=Get Leads
+agent.skill.1.description=Agent has access to leads in Hubspot
+
+agent.skill.2.id=2
+agent.skill.2.name=Create Leads
+agent.skill.2.description=Create new leads in Hubspot
+
+agent.skill.3.id=3
+agent.skill.3.name=Delete Leads
+agent.skill.3.description=Deletes a lead by its Id. The Id must be numeric.
+
+salesforce.tokenUrl=
+salesforce.clientId=
+salesforce.clientSecret=
+
+hubspot.token=

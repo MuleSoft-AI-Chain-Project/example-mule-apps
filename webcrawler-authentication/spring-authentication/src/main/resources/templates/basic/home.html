@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Basic Authentication - Home</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <div class="container">
+        <nav class="nav-menu">
+            <a th:href="@{/}">← Back to Home</a>
+            <a th:href="@{/basic/about}">About Basic Auth</a>
+            <a th:href="@{/shared/resource1}">Shared Resources</a>
+            <form th:action="@{/basic/logout}" method="post" style="display: inline;">
+                <button type="submit" class="btn btn-logout">Logout</button>
+            </form>
+        </nav>
+        
+        <h1>Basic Authentication Success</h1>
+        <div class="success-message">
+            <p>Welcome, <strong th:text="${username}">User</strong>!</p>
+            <p>You have successfully authenticated using HTTP Basic Authentication.</p>
+        </div>
+        
+        <div class="auth-info">
+            <h3>How Basic Authentication Works:</h3>
+            <ul>
+                <li>Credentials are sent in the Authorization header</li>
+                <li>Format: Authorization: Basic base64(username:password)</li>
+                <li>Simple but requires HTTPS in production</li>
+                <li>Stateless - credentials sent with every request</li>
+            </ul>
+        </div>
+        
+        <div class="navigation">
+            <a th:href="@{/basic/about}" class="btn">Learn More</a>
+            <a th:href="@{/shared/resource1}" class="btn btn-secondary">Access Shared Resources</a>
+        </div>
+    </div>
+</body>
+</html>

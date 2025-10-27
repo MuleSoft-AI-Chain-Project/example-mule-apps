@@ -1,0 +1,10 @@
+provider.url=https://api.openai.com/v1/
+provider.max_tokens=500
+provider.temperature=0.9
+provider.model=gpt-4o-mini
+
+os.max_entries=10
+
+salesforce.tokenUrl=
+salesforce.clientId=
+salesforce.clientSecret=

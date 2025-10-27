@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:ms-einstein-ai="http://www.mulesoft.org/schema/mule/ms-einstein-ai"
+	xmlns:ms-inference="http://www.mulesoft.org/schema/mule/ms-inference"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ms-inference http://www.mulesoft.org/schema/mule/ms-inference/current/mule-ms-inference.xsd
+http://www.mulesoft.org/schema/mule/ms-einstein-ai http://www.mulesoft.org/schema/mule/ms-einstein-ai/current/mule-ms-einstein-ai.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<sub-flow name="HEROKU" doc:id="04d97722-fae7-4836-af41-8046ebf21300" >
+		<logger level="INFO" doc:name="🪵 LLM Info Logger 🪵" doc:id="d0717e10-b8b5-4d5e-b7f9-9bfe7e628165" message="#[%dw 2.0&#10;output text&#10;---&#10;&quot;\n\n&quot; ++&#10;&quot;🪵🪵🪵🪵🪵️️ --  FLOW '&quot; ++ flow.name as String default &quot;Unknown&quot; ++ &quot;' Parameters -- 🪵🪵🪵🪵🪵️\n\n&quot; ++&#10;&quot;----------------------------------------  Variables  -------------------------------------️\n\n&quot; ++&#10;(write(vars, &quot;application/json&quot;) default &quot;&quot;) ++ &quot;\n&quot; ++&#10;&quot;--------------------------------------  HTTP Headers -------------------------------------️\n\n&quot; ++&#10;(write(attributes.headers, &quot;application/json&quot;) default &quot;&quot;) ++ &quot;\n&quot; ++&#10;&quot;--------------------------------------- Uri Params ---------------------------------------️\n\n&quot; ++&#10;(write(attributes.uriParams, &quot;application/json&quot;) default &quot;&quot;) ++ &quot;\n&quot; ++&#10;&quot;------------------------------------  Request Payload -------------------------------------️\n\n&quot; ++&#10;(write(payload, &quot;application/json&quot;) default &quot;&quot;) ++ &quot;\n&quot; ++&#10;&quot;\n🪵🪵🪵🪵🪵️️ ---------------------------------------------------------------------------- 🪵🪵🪵🪵🪵&quot; ++&#10;&quot;\n\n&quot;]" category="endpoint" />
+		<ms-inference:chat-completions doc:name="[Chat] Completions" doc:id="d91ce2e3-5c83-42da-a142-2c505d6cef79" config-ref="GENERAL_CONF">
+			<ms-inference:messages><![CDATA[#[output json --- vars.context.prompt ++ vars.context.memory]]]></ms-inference:messages>
+		</ms-inference:chat-completions>
+	</sub-flow>
+	<sub-flow name="OPENAI" doc:id="934c2219-ec35-4e17-8fa8-81a357a567ea">
+		<logger level="INFO" doc:name="🪵 LLM Info Logger 🪵" doc:id="90043b33-8fdc-4267-bcad-7389c2bbb746" message="#[%dw 2.0&#10;output text&#10;---&#10;&quot;\n\n&quot; ++&#10;&quot;🪵🪵🪵🪵🪵️️ --  FLOW '&quot; ++ flow.name as String default &quot;Unknown&quot; ++ &quot;' Parameters -- 🪵🪵🪵🪵🪵️\n\n&quot; ++&#10;&quot;----------------------------------------  Variables  -------------------------------------️\n\n&quot; ++&#10;(write(vars, &quot;application/json&quot;) default &quot;&quot;) ++ &quot;\n&quot; ++&#10;&quot;--------------------------------------  HTTP Headers -------------------------------------️\n\n&quot; ++&#10;(write(attributes.headers, &quot;application/json&quot;) default &quot;&quot;) ++ &quot;\n&quot; ++&#10;&quot;--------------------------------------- Uri Params ---------------------------------------️\n\n&quot; ++&#10;(write(attributes.uriParams, &quot;application/json&quot;) default &quot;&quot;) ++ &quot;\n&quot; ++&#10;&quot;------------------------------------  Request Payload -------------------------------------️\n\n&quot; ++&#10;(write(payload, &quot;application/json&quot;) default &quot;&quot;) ++ &quot;\n&quot; ++&#10;&quot;\n🪵🪵🪵🪵🪵️️ ---------------------------------------------------------------------------- 🪵🪵🪵🪵🪵&quot; ++&#10;&quot;\n\n&quot;]" category="endpoint" />
+		<ms-inference:chat-completions doc:name="[Chat] Completions" doc:id="5d1e528c-c8e2-4edf-a331-2b4916cd6c9c" config-ref="GENERAL_CONF">
+			<ms-inference:messages><![CDATA[#[output json --- vars.context.prompt ++ vars.context.memory]]]></ms-inference:messages>
+		</ms-inference:chat-completions>
+	</sub-flow>
+	<sub-flow name="MISTRAL" doc:id="e1be34b8-c137-4f7d-83b1-2022bd46b00b" >
+		<logger level="INFO" doc:name="🪵 LLM Info Logger 🪵" doc:id="1ec8f57c-f5be-4a13-a1fd-4fe60ce135c1" message="#[%dw 2.0&#10;output text&#10;---&#10;&quot;\n\n&quot; ++&#10;&quot;🪵🪵🪵🪵🪵️️ --  FLOW '&quot; ++ flow.name as String default &quot;Unknown&quot; ++ &quot;' Parameters -- 🪵🪵🪵🪵🪵️\n\n&quot; ++&#10;&quot;----------------------------------------  Variables  -------------------------------------️\n\n&quot; ++&#10;(write(vars, &quot;application/json&quot;) default &quot;&quot;) ++ &quot;\n&quot; ++&#10;&quot;--------------------------------------  HTTP Headers -------------------------------------️\n\n&quot; ++&#10;(write(attributes.headers, &quot;application/json&quot;) default &quot;&quot;) ++ &quot;\n&quot; ++&#10;&quot;--------------------------------------- Uri Params ---------------------------------------️\n\n&quot; ++&#10;(write(attributes.uriParams, &quot;application/json&quot;) default &quot;&quot;) ++ &quot;\n&quot; ++&#10;&quot;------------------------------------  Request Payload -------------------------------------️\n\n&quot; ++&#10;(write(payload, &quot;application/json&quot;) default &quot;&quot;) ++ &quot;\n&quot; ++&#10;&quot;\n🪵🪵🪵🪵🪵️️ ---------------------------------------------------------------------------- 🪵🪵🪵🪵🪵&quot; ++&#10;&quot;\n\n&quot;]" category="endpoint" />
+		<ms-inference:chat-completions doc:name="[Chat] Completions" doc:id="ff2e662e-0492-41ed-8bfa-7b4032b44299" config-ref="MISTRAL_CONF" >
+			<ms-inference:messages ><![CDATA[#[output json --- vars.context.prompt ++ vars.context.memory]]]></ms-inference:messages>
+		</ms-inference:chat-completions>
+	</sub-flow>
+	<sub-flow name="XAI" doc:id="7d4400b0-d5ab-45e5-a820-97e2c8c59f54" >
+		<logger level="INFO" doc:name="🪵 LLM Info Logger 🪵" doc:id="2e087f35-8f16-4a84-8b3d-7f1e1e7aa990" message="#[%dw 2.0&#10;output text&#10;---&#10;&quot;\n\n&quot; ++&#10;&quot;🪵🪵🪵🪵🪵️️ --  FLOW '&quot; ++ flow.name as String default &quot;Unknown&quot; ++ &quot;' Parameters -- 🪵🪵🪵🪵🪵️\n\n&quot; ++&#10;&quot;----------------------------------------  Variables  -------------------------------------️\n\n&quot; ++&#10;(write(vars, &quot;application/json&quot;) default &quot;&quot;) ++ &quot;\n&quot; ++&#10;&quot;--------------------------------------  HTTP Headers -------------------------------------️\n\n&quot; ++&#10;(write(attributes.headers, &quot;application/json&quot;) default &quot;&quot;) ++ &quot;\n&quot; ++&#10;&quot;--------------------------------------- Uri Params ---------------------------------------️\n\n&quot; ++&#10;(write(attributes.uriParams, &quot;application/json&quot;) default &quot;&quot;) ++ &quot;\n&quot; ++&#10;&quot;------------------------------------  Request Payload -------------------------------------️\n\n&quot; ++&#10;(write(payload, &quot;application/json&quot;) default &quot;&quot;) ++ &quot;\n&quot; ++&#10;&quot;\n🪵🪵🪵🪵🪵️️ ---------------------------------------------------------------------------- 🪵🪵🪵🪵🪵&quot; ++&#10;&quot;\n\n&quot;]" category="endpoint" />
+		<ms-inference:chat-completions doc:name="[Chat] Completions" doc:id="76ef64bb-a699-4dbc-b171-48ebd3ae5285" config-ref="XAI_CONFIG" >
+			<ms-inference:messages ><![CDATA[#[output json --- vars.context.prompt ++ vars.context.memory]]]></ms-inference:messages>
+		</ms-inference:chat-completions>
+	</sub-flow>
+	<sub-flow name="ANTHROPIC" doc:id="7e72fcf0-098e-412c-9200-211b1c0b212b" >
+		<logger level="INFO" doc:name="🪵 LLM Info Logger 🪵" doc:id="efccb601-9d5a-40c8-bb7a-932597cf94a8" message="#[%dw 2.0&#10;output text&#10;---&#10;&quot;\n\n&quot; ++&#10;&quot;🪵🪵🪵🪵🪵️️ --  FLOW '&quot; ++ flow.name as String default &quot;Unknown&quot; ++ &quot;' Parameters -- 🪵🪵🪵🪵🪵️\n\n&quot; ++&#10;&quot;----------------------------------------  Variables  -------------------------------------️\n\n&quot; ++&#10;(write(vars, &quot;application/json&quot;) default &quot;&quot;) ++ &quot;\n&quot; ++&#10;&quot;--------------------------------------  HTTP Headers -------------------------------------️\n\n&quot; ++&#10;(write(attributes.headers, &quot;application/json&quot;) default &quot;&quot;) ++ &quot;\n&quot; ++&#10;&quot;--------------------------------------- Uri Params ---------------------------------------️\n\n&quot; ++&#10;(write(attributes.uriParams, &quot;application/json&quot;) default &quot;&quot;) ++ &quot;\n&quot; ++&#10;&quot;------------------------------------  Request Payload -------------------------------------️\n\n&quot; ++&#10;(write(payload, &quot;application/json&quot;) default &quot;&quot;) ++ &quot;\n&quot; ++&#10;&quot;\n🪵🪵🪵🪵🪵️️ ---------------------------------------------------------------------------- 🪵🪵🪵🪵🪵&quot; ++&#10;&quot;\n\n&quot;]" category="endpoint" />
+		<ms-inference:chat-completions doc:name="[Chat] Completions" doc:id="499c983e-f674-4c0c-8d24-9456ac9b1977" config-ref="ANTHROPIC_CONFIG" >
+			<ms-inference:messages ><![CDATA[#[output json --- vars.context.prompt ++ vars.context.memory]]]></ms-inference:messages>
+		</ms-inference:chat-completions>
+	</sub-flow>
+	<sub-flow name="GEMINI" doc:id="1916d6bd-32bb-4eee-b548-e8e889b81a9b" >
+		<logger level="INFO" doc:name="🪵 LLM Info Logger 🪵" doc:id="40501bc7-ff26-46d6-898c-2a3c00eb962d" message="#[%dw 2.0&#10;output text&#10;---&#10;&quot;\n\n&quot; ++&#10;&quot;🪵🪵🪵🪵🪵️️ --  FLOW '&quot; ++ flow.name as String default &quot;Unknown&quot; ++ &quot;' Parameters -- 🪵🪵🪵🪵🪵️\n\n&quot; ++&#10;&quot;----------------------------------------  Variables  -------------------------------------️\n\n&quot; ++&#10;(write(vars, &quot;application/json&quot;) default &quot;&quot;) ++ &quot;\n&quot; ++&#10;&quot;--------------------------------------  HTTP Headers -------------------------------------️\n\n&quot; ++&#10;(write(attributes.headers, &quot;application/json&quot;) default &quot;&quot;) ++ &quot;\n&quot; ++&#10;&quot;--------------------------------------- Uri Params ---------------------------------------️\n\n&quot; ++&#10;(write(attributes.uriParams, &quot;application/json&quot;) default &quot;&quot;) ++ &quot;\n&quot; ++&#10;&quot;------------------------------------  Request Payload -------------------------------------️\n\n&quot; ++&#10;(write(payload, &quot;application/json&quot;) default &quot;&quot;) ++ &quot;\n&quot; ++&#10;&quot;\n🪵🪵🪵🪵🪵️️ ---------------------------------------------------------------------------- 🪵🪵🪵🪵🪵&quot; ++&#10;&quot;\n\n&quot;]" category="endpoint" />
+		<ms-inference:chat-completions doc:name="[Chat] Completions" doc:id="d1f887bd-2e6f-4543-b3f2-366e08c83629" config-ref="GEMINI_CONFIG" >
+			<ms-inference:messages ><![CDATA[#[output json --- vars.context.prompt ++ vars.context.memory]]]></ms-inference:messages>
+		</ms-inference:chat-completions>
+	</sub-flow>
+	<sub-flow name="EINSTEIN" doc:id="6818fb5c-dc03-4bef-bead-765195b2b234" >
+		<logger level="INFO" doc:name="🪵 LLM Info Logger 🪵" doc:id="b1df71c6-8d0c-4501-8662-6e4840dcf62a" message="#[%dw 2.0&#10;output text&#10;---&#10;&quot;\n\n&quot; ++&#10;&quot;🪵🪵🪵🪵🪵️️ --  FLOW '&quot; ++ flow.name as String default &quot;Unknown&quot; ++ &quot;' Parameters -- 🪵🪵🪵🪵🪵️\n\n&quot; ++&#10;&quot;----------------------------------------  Variables  -------------------------------------️\n\n&quot; ++&#10;(write(vars, &quot;application/json&quot;) default &quot;&quot;) ++ &quot;\n&quot; ++&#10;&quot;--------------------------------------  HTTP Headers -------------------------------------️\n\n&quot; ++&#10;(write(attributes.headers, &quot;application/json&quot;) default &quot;&quot;) ++ &quot;\n&quot; ++&#10;&quot;--------------------------------------- Uri Params ---------------------------------------️\n\n&quot; ++&#10;(write(attributes.uriParams, &quot;application/json&quot;) default &quot;&quot;) ++ &quot;\n&quot; ++&#10;&quot;------------------------------------  Request Payload -------------------------------------️\n\n&quot; ++&#10;(write(payload, &quot;application/json&quot;) default &quot;&quot;) ++ &quot;\n&quot; ++&#10;&quot;\n🪵🪵🪵🪵🪵️️ ---------------------------------------------------------------------------- 🪵🪵🪵🪵🪵&quot; ++&#10;&quot;\n\n&quot;]" category="endpoint" />
+		<ms-einstein-ai:chat-generate-from-messages doc:name="Chat generate from messages" doc:id="456f0998-12ac-4015-ad24-de4683c10a25" config-ref="EINSTEIN_CONFIG" modelApiName="#[vars.context.model]" probability="${provider.temperature}">
+			<ms-einstein-ai:messages ><![CDATA[#[write(vars.context.prompt ++ vars.context.memory, "application/json")]]]></ms-einstein-ai:messages>
+		</ms-einstein-ai:chat-generate-from-messages>
+		<ee:transform doc:name="Format Response" doc:id="1e1ade4d-325e-4784-84e8-8e7a8befea30" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	response: payload.generations.content
+}]]></ee:set-payload>
+				<ee:set-attributes ><![CDATA[%dw 2.0
+output application/java
+---
+{
+	additionalAttributes : {
+			model: attributes.model,
+			id: payload.generations.id
+	},
+	tokenUsage : {
+		inputCount: attributes.tokenUsage.inputCount,
+		outputCount: attributes.tokenUsage.outputCount,
+		totalCount: attributes.tokenUsage.totalCount
+
+	}
+}]]></ee:set-attributes>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+</mule>

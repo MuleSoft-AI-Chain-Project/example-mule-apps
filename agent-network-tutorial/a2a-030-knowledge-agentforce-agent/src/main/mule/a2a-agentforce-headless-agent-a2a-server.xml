@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:a2a="http://www.mulesoft.org/schema/mule/a2a"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/a2a http://www.mulesoft.org/schema/mule/a2a/current/mule-a2a.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<flow name="a2a-server-listner" doc:id="6c2a3c28-392f-4632-baa6-b9423a3440a1" >
+		<a2a:task-listener doc:name="Task Listener" doc:id="ff73e06c-1d54-487e-98fb-de4cc85c26bf" config-ref="Agentforce_Agent_A2A_Server" />
+		<logger level="INFO" doc:name="📞 Log A2A Task Incoming Request 📞" doc:id="c65d87d8-34a8-4b4a-9762-48a621fe836f" message='#[output text&#10;---&#10;"📞📞📞📞📞 ---------- Triggering Agentforce Agent ---------- 📞📞📞📞📞\n\n" ++&#10;&#10;"A2A Task Received:\n" ++&#10;&#10;write(payload, "application/json") ++&#10;&#10;"\n\n📞📞📞📞📞 ------------------------------------------------ 📞📞📞📞📞"]' />
+		<flow-ref doc:name="Initialise variables" doc:id="fa922b24-e299-49cb-b2b6-49f4d4f08a9e" name="a2a-agentforce-set-init" />
+		<flow-ref doc:name="Agentforce agent" doc:id="79985f05-9ab4-418b-9127-77d7788fd277" name="agentforce-agent" />
+		<ee:transform doc:name="Prepare A2A Server Response" doc:id="b3ef80dc-3502-47ab-9323-cae523cb64eb" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+    "contextId": uuid(),
+    "status": {
+      "state": "completed"
+    },
+    "artifacts": [
+      {
+        "artifactId": uuid(),
+        "name": "task",
+        "parts": [
+          {
+            "kind": "text",
+            "text": payload.response
+          }
+        ]
+      }
+    ],
+    "history": [
+      {
+        "role": "user",
+        "parts": [
+          {
+            "kind": "text",
+            "text": vars.prompt
+          }
+        ],
+        "messageId": vars.messageId,
+        "taskId": vars.taskId,
+        "contextId": vars.contextId
+      }
+    ],
+    "kind": "task",
+    "metadata": {}
+
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>

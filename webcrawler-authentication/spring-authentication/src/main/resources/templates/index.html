@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spring Security Authentication Demo</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <div class="container">
+        <h1>Authentication Standards</h1>
+        <p>This application demonstrates various authentication methods supported by Spring Security.</p>
+        
+        <div class="auth-methods">
+            <div class="auth-card">
+                <h3>Basic Authentication</h3>
+                <p>HTTP Basic Authentication using username and password in headers.</p>
+                <a th:href="@{/basic/home}" class="btn">Try Basic Auth</a>
+            </div>
+            
+            <div class="auth-card">
+                <h3>Form-based Authentication</h3>
+                <p>Traditional form login with session management.</p>
+                <a th:href="@{/form/home}" class="btn">Try Form Auth</a>
+            </div>
+            
+            <div class="auth-card">
+                <h3>JWT Authentication</h3>
+                <p>Stateless authentication using JSON Web Tokens.</p>
+                <a th:href="@{/jwt/login}" class="btn">Try JWT Auth</a>
+            </div>
+            
+            <div class="auth-card">
+                <h3>OAuth2</h3>
+                <p>OAuth2 authentication with a standalone provider.</p>
+                <a th:href="@{/oauth/home}" class="btn">Try OAuth2</a>
+            </div>
+        </div>
+        
+        <div class="shared-resources">
+            <h2>Shared Protected Resources</h2>
+            <p>These resources are accessible by any authenticated user regardless of authentication method:</p>
+            <a th:href="@{/shared/resource1}" class="btn btn-secondary">Resource 1</a>
+            <a th:href="@{/shared/resource2}" class="btn btn-secondary">Resource 2</a>
+        </div>
+    </div>
+</body>
+</html>

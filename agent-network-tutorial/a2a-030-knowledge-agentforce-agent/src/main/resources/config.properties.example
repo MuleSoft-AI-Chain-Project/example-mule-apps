@@ -1,0 +1,25 @@
+http.port=8081
+
+agent.name=Knowledge Agent
+agent.host=http://localhost:8081
+agent.description=Agentforce Agent who is an expert on Kony App, Battery life and Return Process
+agent.iconUrl=https://raw.githubusercontent.com/MuleSoft-AI-Chain-Project/example-mule-apps/refs/heads/master/a2a-ail-demo/a2a-interaction-agent-app/src/main/resources/uiapp/assets/images/agentforceagent.png
+agent.documentationUrl=https://developer.salesforce.com/docs/einstein/genai/overview
+agent.providerOrganization=Salesforce
+agent.providerUrl=https://www.salesforce.com
+
+agent.skill.1.id=1
+agent.skill.1.name=Kony App Expert
+agent.skill.1.description=Understand the features and capabilities of the Kony App
+
+agent.skill.2.id=2
+agent.skill.2.name=Battery Life Assessment
+agent.skill.2.description=Provides guidance on reduced battery life and helps to improve it.
+
+agent.skill.3.id=3
+agent.skill.3.name=Intiate Return
+agent.skill.3.description=Return process expert to help user understand the steps of the return process.
+
+salesforce.tokenUrl=
+salesforce.clientId=
+salesforce.clientSecret=
