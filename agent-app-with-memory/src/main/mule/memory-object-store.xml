@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:os="http://www.mulesoft.org/schema/mule/os" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:ms-inference="http://www.mulesoft.org/schema/mule/ms-inference" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ms-inference http://www.mulesoft.org/schema/mule/ms-inference/current/mule-ms-inference.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="82d24ec4-0ed2-4edd-a0be-b88932ca964f" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<ms-inference:text-generation-config name="MuleSoft_Inference_Text_generation_config" doc:name="MuleSoft Inference Text generation config" doc:id="4b126bfb-2671-45b3-9f4d-df8d0d3a0207" >
+		<ms-inference:openai-connection apiKey="${openai.apikey}" />
+	</ms-inference:text-generation-config>
+	<os:object-store name="ConversationMemory" doc:name="Object store" doc:id="d982f8b1-54b8-4507-869f-b155b22a3ca8" />
+	<configuration-properties doc:name="Configuration properties" doc:id="21513823-a516-4dac-9492-2bdd7d7ee7f2" file="config.properties" />
+	<flow name="memory-main" doc:id="febba6ac-f623-4080-9084-d83a371089c4">
+		<http:listener doc:name="Listener" doc:id="3bcd2691-437b-4960-ab90-3474ddc8252e" config-ref="HTTP_Listener_config" path="/chat" />
+		<flow-ref doc:name="Setting defaults" doc:id="e93a2fef-e8ae-44bb-98e7-cb4b64c63e6d" name="defaults" />
+		<flow-ref doc:name="Retrieve Memory" doc:id="de4b56d8-67b0-4f95-a0b4-de9d406e1551" name="retrieve-memory" />
+		<choice doc:name="Limit to Last Messages?" doc:id="427b0ab7-caa8-477f-a4d3-4f45e030316f">
+			<when expression="#[vars.'last-messages' != null]">
+				<ee:transform doc:name="Take Last N Messages" doc:id="093bbaee-dff1-43ec-bb63-e6f822af43a6">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+if (payload is Array and vars.'last-messages' != null and vars.'last-messages' is String and (vars.'last-messages' as Number {format: "#"}) > 0)
+    payload[- min([(vars.'last-messages' as Number {format: "#"}), sizeOf(payload)]) to -1]
+else
+    payload default []]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</when>
+		</choice>
+		<ms-inference:chat-completions doc:name="[Chat] Completions" doc:id="631218ca-76b1-4f27-8d0b-d87aff48b4eb" config-ref="MuleSoft_Inference_Text_generation_config">
+			<ms-inference:messages><![CDATA[#[payload]]]></ms-inference:messages>
+		</ms-inference:chat-completions>
+		<flow-ref doc:name="Build History" doc:id="4b3c1fe8-6a62-424f-a083-eb2c17739040" name="history" />
+		<flow-ref doc:name="Store into Memory" doc:id="937ad41f-25b8-4083-a4ea-6b726f1f0430" name="store-memory" />
+		<ee:transform doc:name="Format Response" doc:id="560ff66e-7fd0-4609-93b0-e29e39b90b01">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	payload: vars.response_payload,
+	attributes: attributes
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<sub-flow name="store-memory" doc:id="f4857961-3003-4c2d-9d88-d5fd5e7a5a6f" >
+		<os:store doc:name="Store Updated Memory" doc:id="23aa8aca-1329-4787-b59c-6ce333b48e81" key="#[vars.'memory-id']" objectStore="ConversationMemory">
+			<os:value><![CDATA[#[payload]]]></os:value>
+		</os:store>
+	</sub-flow>
+	<sub-flow name="retrieve-memory" doc:id="ba29b886-44f3-4371-a0c1-9e344f870a21" >
+		<os:retrieve doc:name="Retrieve Memory" doc:id="b75c1682-a47f-463f-83fe-c71900895968" key="#[vars.'memory-id']" target="history" objectStore="ConversationMemory">
+			<os:default-value><![CDATA[#[[]]]]></os:default-value>
+		</os:retrieve>
+		<ee:transform doc:name="Append Current User Message" doc:id="4dc54df7-a863-415d-b1ad-fc73b7701290">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+if (vars.history == "[]")
+   [] ++ vars.user_message
+else if (vars.history is String)
+    read(vars.history, "application/json") ++ [vars.user_message]
+else
+    vars.history ++ [vars.user_message]]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+	<sub-flow name="history" doc:id="1a3af88d-a8cb-4782-9b72-e53dd523642f" >
+		<set-variable value="#[payload]" doc:name="response_payload" doc:id="725f7205-b74a-48d1-9a51-c5e0ed638610" variableName="response_payload" />
+		<set-variable value="#[payload.response]" doc:name="assistant_content" doc:id="5fcc8018-0229-4ece-aeb5-6969304c0088" variableName="assistant_content" />
+		<ee:transform doc:name="Build New History" doc:id="1dee3c79-5d51-4f06-bae3-001a7e707582">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+if (vars.history == "[]")
+   [] ++ vars.user_message ++ ++ [{role: "assistant", content: vars.assistant_content}]
+else if (vars.history is String)
+    read(vars.history, "application/json") ++ [vars.user_message] ++ [{role: "assistant", content: vars.assistant_content}]
+else
+    vars.history ++ [vars.user_message] ++ [{role: "assistant", content: vars.assistant_content}]
+    ]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+	<sub-flow name="defaults" doc:id="de4e6417-4b81-4aea-abc0-10f5b96f7c9f" >
+		<set-variable value="#[payload.messages[0]]" doc:name="user_message" doc:id="ed1c9fdf-6b70-42bd-bf97-a62254550f7c" variableName="user_message" />
+		<set-variable value='#[attributes.headers."memory-id"]' doc:name="memory-id" doc:id="b9f8feb9-0813-4380-82cc-158d3ea1a930" variableName="memory-id" />
+		<set-variable value='#[attributes.headers."last-messages" default null]' doc:name="last-messages" doc:id="86c39dd4-5887-443c-89e5-e688a05f21bf" variableName="last-messages" />
+	</sub-flow>
+</mule>
