@@ -53,7 +53,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 output application/json
 ---
 {
-	response: payload.generations.content
+	response: payload.generations[0].content
 }]]></ee:set-payload>
 				<ee:set-attributes ><![CDATA[%dw 2.0
 output application/java
