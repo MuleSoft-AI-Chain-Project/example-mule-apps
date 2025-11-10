@@ -60,7 +60,7 @@ If the message does not indicate any need for user input, respond exactly with `
 - Only return one of the two values: `input-required` or `completed`.  
 - Do not include any extra text, explanation, or formatting.  
 - Base your decision solely on whether the message implies the need for user input.  
-- Do **not** consider generic prompts like "Let me know if there's anything else I can assist you with.", "If you have a specific question, feel free to ask!" or "Let me know how I can assist you!" as requiring input.
+- Do **not** consider generic prompts like "Let me know if there's anything else I can assist you with.", "If you have a specific question, feel free to ask!", "How can I assist you today?" or "Let me know how I can assist you!" as requiring input.
 ]]></ms-einstein-ai:instructions>
 			<ms-einstein-ai:dataset ><![CDATA[#[vars.agentforceResponsePart.text]]]></ms-einstein-ai:dataset>
 		</ms-einstein-ai:agent-define-prompt-template>
