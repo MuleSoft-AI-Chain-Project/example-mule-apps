@@ -1,0 +1,36 @@
+spring:
+  application:
+    name: image-analyzer
+
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY:your-api-key-here}
+      chat:
+        options:
+          model: gpt-4o
+          max-tokens: 1400
+          temperature: 0.7
+
+server:
+  port: 8081
+
+# Application specific properties
+image-analyzer:
+  upload-dir: ${user.home}/image-analyzer/uploads
+  allowed-mime-types:
+    - application/pdf
+    - image/png
+    - image/jpeg
+    - image/jpg
+
+# Logging
+logging:
+  level:
+    root: INFO
+    com.mulesoft.imageanalyzer: DEBUG
+    org.springframework.ai: DEBUG
