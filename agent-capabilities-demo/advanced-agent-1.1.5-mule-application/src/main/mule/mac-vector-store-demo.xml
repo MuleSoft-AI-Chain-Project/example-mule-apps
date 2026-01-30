@@ -1,0 +1,640 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ms-vectors="http://www.mulesoft.org/schema/mule/ms-vectors"
+	xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:ms-inference="http://www.mulesoft.org/schema/mule/ms-inference"
+	xmlns:whisperer="http://www.mulesoft.org/schema/mule/whisperer"
+	xmlns:s3="http://www.mulesoft.org/schema/mule/s3"
+	xmlns:os="http://www.mulesoft.org/schema/mule/os"
+	xmlns:ms-webcrawler="http://www.mulesoft.org/schema/mule/ms-webcrawler" xmlns:mulechain-voice="http://www.mulesoft.org/schema/mule/mulechain-voice" xmlns:jtokkit="http://www.mulesoft.org/schema/mule/jtokkit" xmlns:anypoint-mq="http://www.mulesoft.org/schema/mule/anypoint-mq" xmlns:mac-web-crawler="http://www.mulesoft.org/schema/mule/mac-web-crawler" xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:ms-aichain="http://www.mulesoft.org/schema/mule/ms-aichain" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ms-aichain http://www.mulesoft.org/schema/mule/ms-aichain/current/mule-ms-aichain.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+http://www.mulesoft.org/schema/mule/mac-web-crawler http://www.mulesoft.org/schema/mule/mac-web-crawler/current/mule-mac-web-crawler.xsd
+http://www.mulesoft.org/schema/mule/anypoint-mq http://www.mulesoft.org/schema/mule/anypoint-mq/current/mule-anypoint-mq.xsd
+http://www.mulesoft.org/schema/mule/jtokkit http://www.mulesoft.org/schema/mule/jtokkit/current/mule-jtokkit.xsd
+http://www.mulesoft.org/schema/mule/mulechain-voice http://www.mulesoft.org/schema/mule/mulechain-voice/current/mule-mulechain-voice.xsd
+http://www.mulesoft.org/schema/mule/ms-webcrawler http://www.mulesoft.org/schema/mule/ms-webcrawler/current/mule-ms-webcrawler.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+http://www.mulesoft.org/schema/mule/s3 http://www.mulesoft.org/schema/mule/s3/current/mule-s3.xsd
+http://www.mulesoft.org/schema/mule/whisperer http://www.mulesoft.org/schema/mule/whisperer/current/mule-whisperer.xsd
+http://www.mulesoft.org/schema/mule/ms-inference http://www.mulesoft.org/schema/mule/ms-inference/current/mule-ms-inference.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ms-vectors http://www.mulesoft.org/schema/mule/ms-vectors/current/mule-ms-vectors.xsd">
+	<file:config name="File_Config" doc:name="File Config" doc:id="59a3f27a-d0a8-4419-a0fb-91b6da46bcf3" />
+	<file:config name="File_Config1" doc:name="File Config" doc:id="c5e8fade-211d-44dd-9b7f-0e510ad683c3" />
+	<flow name="mac-create-store"
+		doc:id="1649a0d9-8900-48a8-89ed-f75606e5a3a5">
+		<http:listener doc:name="Listener"
+			doc:id="9ab4f323-c658-4fde-b6b2-b2a434a46457"
+			path="/store" allowedMethods="POST" config-ref="HTTP_Listener_config" />
+		<logger level="INFO" doc:name="Logger" doc:id="8896a562-0ab6-458d-9698-b50a9707da64" message='#["START-create-new-store"]' category="aichain.log"/>
+		<set-variable value='#[["Dummy text to be able to create a new store."]]' doc:name="Set dummyTextVar" doc:id="e82ff450-7e0a-4401-8e06-1ca69e8603db" variableName="dummyTextVar"/>
+		<set-variable value="#[payload.storeName]" doc:name="Set newStoreNameVar" doc:id="a4fa6eaf-4fee-4011-bbe9-24f9f4f53f6d" variableName="newStoreNameVar" />
+		<ms-vectors:embedding-generate-from-text embeddingModelName="text-embedding-3-small" doc:name="[Embedding] Generate from text" doc:id="744114b8-0f07-4053-a16e-8d78feff04b9" config-ref="MuleSoft_Vectors_Connector_Embedding_config">
+			<ms-vectors:inputs ><![CDATA[#[vars.dummyTextVar]]]></ms-vectors:inputs>
+		</ms-vectors:embedding-generate-from-text>
+		<ms-vectors:store-add doc:name="[Store] Add" doc:id="cf494b8a-e549-4e61-b3c3-8a0a5c67d4e6" config-ref="MuleSoft_Vectors_Connector_Store_config" storeName="#[vars.newStoreNameVar]"/>
+		<ms-vectors:store-remove doc:name="[Store] Remove" doc:id="f24527a3-346f-4c79-8e98-8c5db560ea3a" config-ref="MuleSoft_Vectors_Connector_Store_config" storeName="#[vars.newStoreNameVar]"/>
+		<logger level="INFO" doc:name="Logger"
+			doc:id="428a0ff4-a199-4af1-8f7a-92bd68af2146"
+			message="#[%dw 2.0&#10;output application/json&#10;---&#10;payload]" />
+	</flow>
+	<flow name="mac-add-doc-to-store"
+		doc:id="21e50f3e-eb77-4315-b4db-8d66e1acaa68">
+		<http:listener doc:name="Listener"
+			doc:id="cff67f0a-33e7-4998-9a70-c2c03e56616b"
+			path="/doc" allowedMethods="POST" config-ref="HTTP_Listener_config" />
+		<logger level="INFO" doc:name="Logger" doc:id="9b64a0b1-c13b-4b1a-bebf-d62ab7ed3ea3" message='#["START-add-document-to-store"]' category="aichain.log"/>
+		<set-variable value="#[payload.storeName]" doc:name="Set storeName Variable" doc:id="aed8d5be-00f3-40e8-8b07-862158059a60" variableName="storeName" />
+		<set-variable value="#[payload.base64Data]" doc:name="Set Base64 String" variableName="base64Content" />
+		<ee:transform doc:name="Transform Message" doc:id="16b5ea7c-6bfe-4646-bfbb-52cd5d4f8d36">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+import * from dw::core::Binaries
+output multipart/form-data
+---
+{
+    parts:{
+        base64Content:{
+            headers:{
+                "Content-Type":"application/pdf"
+            },
+            content: fromBase64(vars.base64Content)
+            },
+        }
+}
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<ms-vectors:transform-parse-document doc:name="[Transform] Parse document" doc:id="12b5041b-79d4-4526-a0d3-6d69cfa7e192" config-ref="MuleSoft_Vectors_Connector_Transform_config">
+			<ms-vectors:document-binary ><![CDATA[#[payload.parts.base64Content.content]]]></ms-vectors:document-binary>
+			<ms-vectors:document-parser-parameters >
+				<ms-vectors:multiformat-document-parser-parameters />
+			</ms-vectors:document-parser-parameters>
+		</ms-vectors:transform-parse-document>
+		<ms-vectors:transform-chunk-text doc:name="[Transform] Chunk text" doc:id="59376249-e02a-4452-a3f9-35045c2367b9" maxSegmentSizeInChar="1500" maxOverlapSizeInChars="150"/>
+		<ms-vectors:embedding-generate-from-text doc:name="[Embedding] Generate from text" doc:id="af6a5802-a353-44cd-8968-8dafb4eea785" embeddingModelName="text-embedding-3-small" config-ref="MuleSoft_Vectors_Connector_Embedding_config"/>
+		<ms-vectors:store-add doc:name="[Store] Add" doc:id="f4127066-fa65-4dca-bcdf-10f75203bcc1" config-ref="MuleSoft_Vectors_Connector_Store_config" storeName="#[vars.storeName]"/>
+		<logger level="INFO" doc:name="Logger" doc:id="82cfe6a3-5dc5-413d-b3a0-6f76987299a9" message="#[%dw 2.0&#10;output application/json&#10;---&#10;payload]" />
+	</flow>
+	<flow name="mac-get-infro-from-store-grounded" doc:id="6d9122ed-601e-4ed1-85ef-99a2c3e4fb04" >
+		<http:listener doc:name="Listener" doc:id="f58a29ac-fcd5-45d6-919a-e5814d20cd91" path="/grounded" config-ref="HTTP_Listener_config"/>
+		<set-variable value="#[%dw 2.0&#10;output application/json&#10;---&#10;((attributes.headers['preDocoration'] default &quot;&quot;) as String) ++ &#10;((payload.prompt default &quot;&quot;) as String) ++ &#10;((attributes.headers['postDecoration'] default &quot;&quot;) as String)]" doc:name="Set question Variable" doc:id="de0b4e83-ad33-4e17-89d3-ba3ede487212" variableName="question"/>
+		<ms-vectors:embedding-generate-from-text doc:name="[Embedding] Generate from text" doc:id="50e25fd4-e287-4712-90f0-ad162672511c" config-ref="MuleSoft_Vectors_Connector_Embedding_config" embeddingModelName="text-embedding-3-small">
+			<ms-vectors:inputs ><![CDATA[#[[payload.prompt]]]]></ms-vectors:inputs>
+		</ms-vectors:embedding-generate-from-text>
+		<ms-vectors:query doc:name="[Store] Query" doc:id="0454c08a-8688-451d-8fb6-bb238c27c287" config-ref="MuleSoft_Vectors_Connector_Store_config" storeName="#[payload.storeName]" maxResults="3" minScore="0.7">
+			<ms-vectors:text-segment-and-embedding ><![CDATA[#[payload]]]></ms-vectors:text-segment-and-embedding>
+		</ms-vectors:query>
+		<ee:transform doc:name="save values" doc:id="a9f3154a-bdce-4d5c-bad4-73c841b28738" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	dataset: payload.response
+}]]></ee:set-payload>
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="payloadQuery" ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	sources: payload.sources,
+	maxResults: attributes.maxResults,
+	minimumScore: attributes.minScore
+}]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<flow-ref doc:name="Agent Define Prompt Template" doc:id="5594d9c1-9ac2-4090-98f4-293b111acb0f" name="mac-agent-define-prompt-template-Sub_Flow"/>
+		<ee:transform doc:name="final Response" doc:id="3f374782-0375-4904-be07-aaf4883f967e" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	response: payload.response,
+	sources: vars.payloadQuery.sources,
+	minScore: vars.payloadQuery.minimumScore,
+	maxResults: vars.payloadQuery.maxResults
+	
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<sub-flow name="mac-agent-define-prompt-template-Sub_Flow" doc:id="54eeb066-9111-48f0-a3d4-cfbbc5dfa62f" >
+		<choice doc:name="Choice" doc:id="ef711040-dbd7-456b-90c1-8399732b356e" >
+			<when expression='#[vars.llmType == "MISTRAL_AI"]'>
+				<ms-inference:agent-define-prompt-template doc:name="[Agent] Mistral Define Prompt Template" doc:id="b7337e27-34eb-40fa-bc06-466b1e8f3fb2" config-ref="Mistral_MuleSoft_Inference_Text_generation_config">
+			<ms-inference:template><![CDATA[Answer the question based on the context provided. Articulate your answer with all details, whenever links are provided, include them in your answers. If the context is empty or null, just reply with 'The question couldn't be answered based on my knowlegde'.]]></ms-inference:template>
+			<ms-inference:instructions><![CDATA[#["question: " ++ vars.question as String default ""]]]></ms-inference:instructions>
+			<ms-inference:data><![CDATA[#["context: " ++ payload.dataset as String default ""]]]></ms-inference:data>
+		</ms-inference:agent-define-prompt-template>
+			</when>
+			<otherwise >
+				<ms-inference:agent-define-prompt-template doc:name="[Agent] OpenAI Define Prompt Template" doc:id="2d884911-d11d-4eb4-811a-1f21b6e07aa9" config-ref="OpenAI_MuleSoft_Inference_Text_generation_config">
+			<ms-inference:template><![CDATA[Answer the question based on the context provided. Articulate your answer with all details, whenever links are provided, include them in your answers. If the context is empty or null, just reply with 'The question couldn't be answered based on my knowlegde'.]]></ms-inference:template>
+			<ms-inference:instructions><![CDATA[#["question: " ++ vars.question as String default ""]]]></ms-inference:instructions>
+			<ms-inference:data><![CDATA[#["context: " ++ payload.dataset as String default ""]]]></ms-inference:data>
+		</ms-inference:agent-define-prompt-template>
+			</otherwise>
+		</choice>
+	</sub-flow>
+	<sub-flow name="mac-agent-chat-answer-prompt-Sub_Flow" doc:id="d5580c99-7ac8-44f8-9b30-3ad377abaaa1">
+		<choice doc:name="Choice" doc:id="cbf0341f-2afe-4520-a842-cdece4a3a063">
+			<when expression='#[vars.llmType == "MISTRAL_AI"]'>
+				<ms-inference:chat-answer-prompt doc:name="[Chat] Answer Prompt" doc:id="55cf5ebe-8ea2-43fb-b701-0b173d6c655f" config-ref="Mistral_MuleSoft_Inference_Text_generation_config" />
+			</when>
+			<otherwise>
+				<ms-inference:chat-answer-prompt doc:name="[Chat] Answer Prompt" doc:id="aedbbd6b-0c18-4673-8451-e48ec2d699c3" config-ref="OpenAI_MuleSoft_Inference_Text_generation_config" />
+			</otherwise>
+		</choice>
+	</sub-flow>
+	<sub-flow name="mac-agent-mcp-tooling-Sub_Flow" doc:id="29a9a759-819a-4be1-a040-b0c3a54c63a6">
+		<choice doc:name="Choice" doc:id="b9e88a09-17b4-4f2c-85d7-9c5b8553dd20">
+			<when expression='#[vars.llmType == "MISTRAL_AI"]'>
+				<ms-inference:mcp-tools-native-template doc:name="[MCP] Tooling" doc:id="5c120eb7-2142-40d4-a3e7-d6b91e0c045a" config-ref="Mistral_MuleSoft_Inference_Text_generation_config" >
+					<ms-inference:mcp-config-references >
+						<ms-inference:mcp-config mcpClientConfigRef="CRM_MCP_Client" />
+						<ms-inference:mcp-config mcpClientConfigRef="ERP_MCP_Client" />
+					</ms-inference:mcp-config-references>
+					<ms-inference:template ><![CDATA[You are a helpful assistant.]]></ms-inference:template>
+					<ms-inference:instructions ><![CDATA[Answer with politeness.]]></ms-inference:instructions>
+					<ms-inference:data ><![CDATA[#[vars.question as String default ""]]]></ms-inference:data>
+				</ms-inference:mcp-tools-native-template>
+			</when>
+			<otherwise>
+				<ms-inference:mcp-tools-native-template doc:name="[MCP] Tooling" doc:id="5efa361d-08ae-4792-8cd1-f3737e5288bb" config-ref="OpenAI_MuleSoft_Inference_Text_generation_config" >
+					<ms-inference:mcp-config-references >
+						<ms-inference:mcp-config mcpClientConfigRef="CRM_MCP_Client" />
+						<ms-inference:mcp-config mcpClientConfigRef="ERP_MCP_Client" />
+					</ms-inference:mcp-config-references>
+					<ms-inference:template ><![CDATA[You are a helpful assistant.]]></ms-inference:template>
+					<ms-inference:instructions ><![CDATA[Answer with politeness.]]></ms-inference:instructions>
+					<ms-inference:data ><![CDATA[#[vars.question as String default ""]]]></ms-inference:data>
+				</ms-inference:mcp-tools-native-template>
+			</otherwise>
+		</choice>
+	</sub-flow>
+	<sub-flow name="mac-agent-toxicity-detection-Sub_Flow" doc:id="f5cb042a-d020-443e-b71f-ea7ddf569e2d" >
+		<choice doc:name="Choice" doc:id="3e14b207-e605-48df-a8ad-497537c3a751" >
+			<when expression='#[vars.llmType == "MISTRAL_AI"]' >
+				<ms-inference:toxicity-detection-text doc:name="[Toxicity] Mistral Detection by Text" doc:id="91e11c67-8e85-4a89-a8c6-f9e95336c95f" config-ref="Mistral_MuleSoft_Inference_Moderation_config"/>
+				<choice doc:name="Choice" doc:id="2ac1b1db-e44f-4fcb-b5f2-371c49051c9a" >
+					<when expression="#[payload.flagged == true]" >
+						<set-variable value="true" doc:name="Set toxicityDetected Variable to true" doc:id="65352cfb-f5f6-4f4a-bda4-66cad621d529" variableName="toxicityDetectedVar" />
+					</when>
+					<otherwise >
+						<set-variable value="false" doc:name="Set toxicityDetected Variable to false" doc:id="12eca5e3-fd15-488c-88b9-070dc8270274" variableName="toxicityDetectedVar" />
+					</otherwise>
+				</choice>
+				<ee:transform doc:name="Transform Message" doc:id="89deed91-4449-40ef-971e-8ed1202457f7" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	response: {
+		results: [{
+			category_scores: payload.categories[0],
+			flagged: payload.flagged
+		}]
+	}
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</when>
+			<otherwise>
+				<ms-inference:toxicity-detection-text doc:name="[Toxicity] OpenAI Detection by Text" doc:id="38d963cd-eeee-4c1b-b70b-32fc08073230" config-ref="OpenAI_MuleSoft_Inference_Moderation_config"/>
+				<choice doc:name="Choice" doc:id="0f110a13-83ee-4b56-8fdd-771e552c123a" >
+					<when expression="#[payload.flagged == true]" >
+						<set-variable value="true" doc:name="Set toxicityDetected Variable to true" doc:id="a054dbad-74ca-4722-8fdd-a68a225df77b" variableName="toxicityDetectedVar" />
+					</when>
+					<otherwise >
+						<set-variable value="false" doc:name="Set toxicityDetected Variable to false" doc:id="635c8ab8-34f2-4440-b12a-dee2dce42595" variableName="toxicityDetectedVar" />
+					</otherwise>
+				</choice>
+				<ee:transform doc:name="Transform Message" doc:id="ff2d36ff-7f61-438c-beb0-c35866f79f93" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	response: {
+		results: [{
+			category_scores: payload.categories[0],
+			flagged: payload.flagged
+		}]
+	}
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</otherwise>
+		</choice>
+	</sub-flow>
+	<flow name="mac-get-infro-from-store"
+		doc:id="1adc0a89-c886-4d81-bcd6-459e9e1b2e94">
+		<http:listener doc:name="Listener"
+			doc:id="bb7354bc-0643-4a47-9d4a-86e5fbae95e2"
+			path="/query" config-ref="HTTP_Listener_config"/>
+		<logger level="INFO" doc:name="Logger" doc:id="fc35eba0-3226-479b-8c89-45e02a46056e" message='#["START-get-info-from-store"]' category="aichain.log"/>
+		<set-variable value='#[%dw 2.0&#10;output application/java&#10;---&#10;payload.storeName default ""]' doc:name="Set storeName" doc:id="bec74d35-c307-4ee7-b0f8-365c594ccdcd" variableName="storeName" />
+		<set-variable value="#[attributes.headers['x-llm-model']]" doc:name="Set model" doc:id="dcbfb6ca-39fa-4288-874c-d856cde6490d" variableName="modelName" />
+		<set-variable value="#[attributes.headers['x-llm-type']]" doc:name="Set llmType" doc:id="0203ae19-5308-4c8e-8cba-02e2ba58ea7a" variableName="llmType" />
+		<set-variable value="#[attributes.headers['x-pre-decoration']]" doc:name="Set preDocoration" doc:id="e8b7248a-74e2-4beb-aa18-7c001820c3ac" variableName="preDocoration" />
+		<set-variable value="#[attributes.headers['x-post-decoration']]" doc:name="Set postDecoration" doc:id="d0ca020e-8611-490f-b5b9-0cec964e7e1a" variableName="postDecoration" />
+		<set-variable value="#[attributes.headers['x-grounded']]" doc:name="set grounded" doc:id="32db4447-1e48-4b45-9c00-01bbdd4d2db3" variableName="grounded"/>
+		<set-variable value="#[attributes.headers['x-max-messages']]" doc:name="set maxMessages" doc:id="c137fd59-15da-4ba0-a842-8e94f3d807ff" variableName="maxMessages"/>
+		<set-variable value="#[attributes.headers['x-max-tokens']]" doc:name="Set maxToken" doc:id="ad420257-4396-491d-8082-8d1cd9d2a35e" variableName="maxToken" />
+		<set-variable value="#[attributes.headers['x-input-limit']]" doc:name="Set inputLimit" doc:id="6ea4725f-dc4b-4ece-8ad2-5c7a959744c8" variableName="inputLimit" />
+		<set-variable value="#[attributes.headers['x-chat-memory']]" doc:name="Set chatmemory" doc:id="37268642-5fc4-4ac6-8273-1e3e9424cd4b" variableName="chatmemory"/>
+		<set-variable value="#[attributes.headers['x-toxicity-detection']]" doc:name="save toxicityDetection" doc:id="5d4f103a-0f12-4090-8531-b65651e1d9cc" variableName="toxicityDetection" />
+		<set-variable value="#[attributes.headers['x-temperature']]" doc:name="save temperature" doc:id="afb41307-d67a-4f47-9068-9cd8ec929e46" variableName="temperature"/>
+		<set-variable value="#[attributes.headers['voice']]" doc:name="save voice" doc:id="afb41307-d67a-4f47-9068-9cd8ec929e47" variableName="voice"/>
+		<set-variable value="#[attributes.headers['x-rag']]" doc:name="save RAG" doc:id="3ac9e3ec-1262-45a9-9b0b-0ea766d25638" variableName="rag"/>
+		<set-variable value="#[attributes.headers['x-MCP']]" doc:name="Set mcpVar Variable" doc:id="f8e4df27-3740-4df7-9d6e-29e45436f996" variableName="mcpVar"/>
+		<choice doc:name="Choice" doc:id="72894018-c368-4650-8bf9-fc3ca53fe4b7" >
+			<when expression='#[%dw 2.0&#10;import * from dw::util::Coercions&#10;output application/json&#10;---&#10;toBoolean(vars.voice default "false") == true]'>
+				<whisperer:speech-to-text doc:name="Speech to Text" doc:id="fbe6431f-42bd-495d-b6ab-9e5523847529" config-ref="MAC_Whisperer_Config" temperature="0.5">
+					<whisperer:audio-content ><![CDATA[#[(((payload as Object).parts as Object).audio as Object).content]]]></whisperer:audio-content>
+				</whisperer:speech-to-text>
+				<set-variable value="#[payload]" doc:name="save payload" doc:id="a2adce88-ec7b-4705-9bdd-acf1202a5756" variableName="question" />
+			</when>
+			<otherwise >
+				<set-variable value="#[payload.prompt]" doc:name="save payload" doc:id="cc62731b-2e80-48a6-aa25-f126da9f242e" variableName="question" />
+			</otherwise>
+		</choice>
+		<jtokkit:estimate-tokens doc:name="Validate tokens" doc:id="79477a0d-a46f-4da5-a4a2-3b9986434eae" config-ref="JTokkit_Config" prompt="#[vars.question]"/>
+		<choice doc:name="Choice" doc:id="b9c80a0f-d189-4913-a92b-f66196f192aa" >
+			<when expression="#[payload.tokenEstimation &gt; vars.inputLimit]">
+				<ee:transform doc:name="Input token exceeded number of allowed prompt tokens" doc:id="347c4972-5090-47be-93ae-0eb4e5c2bbfa" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	payload:
+	{response: "Input tokens exceed allowed number of prompt tokens"}
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</when>
+			<otherwise >
+				<choice doc:name="Choice" doc:id="08f245f0-5099-4b4d-bc97-b9f4c7a7f5bc">
+					<when expression='#[%dw 2.0&#10;import * from dw::util::Coercions&#10;output application/json&#10;---&#10;toBoolean(vars.toxicityDetection default "false") == true]'>
+						<set-payload value="#[vars.question]" doc:name="Set Payload for Toxicity Detection" doc:id="e13c6ea2-2e5e-45c4-9756-0fc1cf7f80e7" />
+						<flow-ref doc:name="Toxicity Detection" doc:id="53bef924-2167-4ab0-a630-c75dfa5e3209" name="mac-agent-toxicity-detection-Sub_Flow"/>
+					</when>
+				</choice>
+				<choice doc:name="Choice" doc:id="cf2fe054-7372-44ad-a46b-e539ff14d128">
+					<when expression="#[vars.toxicityDetectedVar]">
+						<ee:transform doc:name="Reply with toxicity detected" doc:id="97ea368d-5bb0-4cca-881f-c7786d11e3c0" >
+							<ee:message >
+								<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	payload: {
+		response: "Toxic input detected, LLM interaction cancelled."
+	},
+	toxicity: payload
+}]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+					</when>
+					<otherwise >
+						<set-payload value='#[%dw 2.0&#10;output application/json&#10;---&#10;((vars.preDocoration default "") as String) ++ ". "++ &#10;((vars.question default "") as String) ++ ". "++  &#10;((vars.postDecoration default "") as String)]' doc:name="Prompt decoration" doc:id="e38155ef-3c47-4337-bf22-aa2f31a1a5b7" />
+						<choice doc:name="Choice" doc:id="788a29dd-8265-4dad-b3af-a387f8428dde">
+							<when expression='#[%dw 2.0&#10;import * from dw::util::Coercions&#10;output application/json&#10;---&#10;toBoolean(vars.chatmemory default "false") == true]'>
+								<flow-ref doc:name="Retrieve Memory" doc:id="e08f1364-a3d2-4a92-a3c3-0bbe5f7ea505" name="mac-vector-store-chat-memory-retrieve" />
+								<set-payload value='#[%dw 2.0&#10;output application/json&#10;---&#10;((vars.chat_history default "") as String) ++ ". " ++&#10;((vars.preDocoration default "") as String) ++ ". "++ &#10;((vars.question default "") as String) ++ ". "++  &#10;((vars.postDecoration default "") as String)]' doc:name="Set Payload" doc:id="de829b4b-58b0-444a-9c6f-f16ad5534076" />
+							</when>
+						</choice>
+						<scatter-gather doc:name="Scatter-Gather" doc:id="00ce8ad4-cc30-4abf-a161-319143eea0a8">
+			<route>
+				<choice doc:name="Choice" doc:id="5c0068d4-7695-4775-8c66-b0921c1c0b45" >
+									<when expression='#[%dw 2.0&#10;import * from dw::util::Coercions&#10;output application/json&#10;---&#10;toBoolean(vars.mcpVar default "false") == true]'>
+										<flow-ref doc:name="mcp-tooling Flow Reference" doc:id="0cfa4b27-1e3a-48e1-80f5-2414951f86b7" name="mac-agent-mcp-tooling-Sub_Flow" />
+										<ee:transform doc:name="save values" doc:id="9fbbb5c6-34f3-4509-b43d-0b8bafa81b3e" >
+											<ee:message >
+												<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+var reports = (payload.toolsExecutionReport default []) as Array
+var texts =
+  flatten(
+    reports map ((report) ->
+      ((report.result.contents default []) as Array)
+        filter ((item) -> ((item.'type' default "") as String) == "text")
+        map ((item) -> (item.text default "") as String)
+    )
+  )
+---
+{
+  dataset: (texts joinBy "\n") as String
+}
+]]></ee:set-payload>
+											</ee:message>
+										</ee:transform>
+										<flow-ref doc:name="Agent Define Prompt Template" doc:id="4470d3e2-e022-454f-b32b-63b8a1aef058" name="mac-agent-define-prompt-template-Sub_Flow"/>
+										<ee:transform doc:name="final Response" doc:id="f5420da3-e118-40a5-a6d0-4bd5dcb1d6fd">
+											<ee:message>
+												<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	response: payload.response,
+	sources: vars.payloadQuery.sources,
+	minScore: vars.payloadQuery.minimumScore,
+	maxResults: vars.payloadQuery.maxResults
+	
+}]]></ee:set-payload>
+											</ee:message>
+										</ee:transform>
+									</when>
+								</choice>
+			</route>
+			<route>
+				<choice doc:name="Choice" doc:id="8b91ab85-188f-4255-960a-7e0eb8af93b9">
+			<when expression='#[%dw 2.0&#10;import * from dw::util::Coercions&#10;output application/json&#10;---&#10;toBoolean(vars.rag default "false") == true and toBoolean(vars.grounded default "false") == true]'>
+				<set-variable value="#[payload]" doc:name="Set question Variable" doc:id="ad3e6b6a-936f-4013-a8e8-ee489638ab0f" variableName="question" />
+						<ms-vectors:embedding-generate-from-text doc:name="[Embedding] Generate from text" doc:id="3c8fcd3b-4e8d-41e9-ae01-8f125b6991df" config-ref="MuleSoft_Vectors_Connector_Embedding_config" embeddingModelName="text-embedding-3-small">
+											<ms-vectors:inputs ><![CDATA[#[[payload]]]]></ms-vectors:inputs>
+										</ms-vectors:embedding-generate-from-text>
+										<ms-vectors:query doc:name="[Store] Query" doc:id="67bddfbb-6c1d-4594-b3c3-da22b26eb4c4" config-ref="MuleSoft_Vectors_Connector_Store_config" storeName="#[vars.storeName]" maxResults="3" minScore="0.7">
+											<ms-vectors:text-segment-and-embedding ><![CDATA[#[payload]]]></ms-vectors:text-segment-and-embedding>
+										</ms-vectors:query>
+										<choice doc:name="Choice" doc:id="ac039d22-88dc-4c8d-a3a1-83c388d3ca89">
+											<when expression="#[isEmpty(payload.sources)==false]">
+												<ee:transform doc:name="save values" doc:id="724ba18f-6b58-4532-99b1-f1f886eec02a">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	dataset: payload.response
+}]]></ee:set-payload>
+					</ee:message>
+					<ee:variables>
+						<ee:set-variable variableName="payloadQuery"><![CDATA[%dw 2.0
+output application/json
+---
+{
+	sources: payload.sources,
+	maxResults: attributes.maxResults,
+	minimumScore: attributes.minScore
+}]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+												<flow-ref doc:name="Agent Define Prompt Template" doc:id="ed649b41-3e7b-4050-ad07-225c9413aaaf" name="mac-agent-define-prompt-template-Sub_Flow"/>
+												<ee:transform doc:name="final Response" doc:id="4265ef61-3669-4277-852b-93feece3b786">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	response: payload.response,
+	sources: vars.payloadQuery.sources,
+	minScore: vars.payloadQuery.minimumScore,
+	maxResults: vars.payloadQuery.maxResults
+	
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+											</when>
+											<otherwise >
+												<ee:transform doc:name="final Response" doc:id="3337ee98-e661-43cb-bbb7-b17ade7a4f09" >
+													<ee:message >
+														<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	response: "The question couldn't be answered based on my knowledge",
+	sources: [],
+	minScore: attributes.minScore,
+	maxResults: attributes.maxResults
+	
+}]]></ee:set-payload>
+													</ee:message>
+												</ee:transform>
+											</otherwise>
+										</choice>
+			</when>
+									<when expression='#[%dw 2.0&#10;import * from dw::util::Coercions&#10;output application/json&#10;---&#10;toBoolean(vars.rag default "false") == true and toBoolean(vars.grounded default "false") == false]'>
+										<ms-vectors:embedding-generate-from-text doc:name="[Embedding] Generate from text" doc:id="78a10993-8b56-4490-bf9e-3b1db4f51c77" config-ref="MuleSoft_Vectors_Connector_Embedding_config" embeddingModelName="text-embedding-3-small">
+											<ms-vectors:inputs ><![CDATA[#[[payload]]]]></ms-vectors:inputs>
+										</ms-vectors:embedding-generate-from-text>
+										<ms-vectors:query doc:name="[Store] Query" doc:id="6d68fcf6-31b5-4900-b65f-68fee83c0d1e" config-ref="MuleSoft_Vectors_Connector_Store_config" storeName="#[vars.storeName]" maxResults="3" minScore="0.7">
+											<ms-vectors:text-segment-and-embedding ><![CDATA[#[payload]]]></ms-vectors:text-segment-and-embedding>
+										</ms-vectors:query>
+										<ee:transform doc:name="save values" doc:id="74dcbc1e-2a84-47b7-967a-9f71674e8e4d" >
+											<ee:message >
+												<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	dataset: payload.response
+}]]></ee:set-payload>
+											</ee:message>
+											<ee:variables >
+												<ee:set-variable variableName="payloadQuery" ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	sources: payload.sources,
+	maxResults: attributes.maxResults,
+	minimumScore: attributes.minScore
+}]]></ee:set-variable>
+											</ee:variables>
+										</ee:transform>
+										<flow-ref doc:name="Agent Define Prompt Template" doc:id="e34c4749-97e7-4775-970c-2096455d77e8" name="mac-agent-define-prompt-template-Sub_Flow" />
+										<ee:transform doc:name="final Response" doc:id="cabb3f30-a477-4eda-984b-4d8b9f3c9e2a" >
+											<ee:message >
+												<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	response: payload.response,
+	sources: vars.payloadQuery.sources,
+	minScore: vars.payloadQuery.minimumScore,
+	maxResults: vars.payloadQuery.maxResults
+	
+}]]></ee:set-payload>
+											</ee:message>
+										</ee:transform>
+									</when>
+									<otherwise>
+										<flow-ref doc:name="chat-answer-prompt Flow Reference" doc:id="5b66edd3-6422-4e5d-aa2f-c8cdb3ad8f75" name="mac-agent-chat-answer-prompt-Sub_Flow"/>
+			</otherwise>
+		</choice>
+			</route>
+		</scatter-gather>
+						<choice doc:name="Choice" doc:id="ae5f57b9-5f54-4aab-b8d0-abc59eff0075">
+			<when expression='#[%dw 2.0&#10;import * from dw::util::Coercions&#10;output application/json&#10;---&#10;toBoolean(vars.mcpVar default "false") == true]'>
+								<ee:transform doc:name="Transform Message" doc:id="7487f947-622e-4d08-ab79-fb3835618f71" >
+									<ee:message >
+										<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{ payload: payload."0".payload, attributes: payload."0".attributes}]]></ee:set-payload>
+									</ee:message>
+								</ee:transform>
+			</when>
+							<otherwise>
+				<ee:transform doc:name="Transform Message" doc:id="04eb65f7-20e6-4775-b106-d79d0659c4db">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{ payload: payload."1".payload, attributes: payload."1".attributes}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</otherwise>
+		</choice>
+						<set-variable value="#[payload]" doc:name="save response" doc:id="b0473671-c47d-4e2c-83e0-c3997cd93319" variableName="response"/>
+						<choice doc:name="Choice" doc:id="9aeb340a-dc94-42e3-832f-d0434b02d86d">
+							<when expression='#[%dw 2.0&#10;import * from dw::util::Coercions&#10;output application/json&#10;---&#10;toBoolean(vars.chatmemory default "false") == true]'>
+								<flow-ref doc:name="Update Memory" doc:id="085963c6-54e7-4aa0-a1d8-f6cdc420adfc" name="mac-vector-store-chat-memory-update" />
+								<set-payload value="#[vars.response]" doc:name="Set Payload" doc:id="eebeb923-3a47-4689-9a3f-5adf22fb53fc" />
+							</when>
+						</choice>
+						<logger level="INFO" doc:name="Logger" doc:id="1ac149cc-b801-4079-be48-342bd58f9493" message="#[%dw 2.0&#10;output application/json&#10;---&#10;payload]" />
+						<choice doc:name="Choice" doc:id="096bbfc6-ed40-4884-b152-417146a4a160" >
+							<when expression='#[%dw 2.0&#10;import * from dw::util::Coercions&#10;output application/json&#10;---&#10;toBoolean(vars.toxicityDetection default "false") == true]'>
+								<set-payload value='#[%dw 2.0&#10;output application/json&#10;---&#10;payload.payload.response]' doc:name="Set Payload for Toxicity Detection" doc:id="ebcaf2fe-6417-4e35-8166-688501f3b565" />
+								<flow-ref doc:name="Toxicity Detection" doc:id="2a3e14ce-c101-40f1-923e-5d3f32da83d1" name="mac-agent-toxicity-detection-Sub_Flow"/>
+								<ee:transform doc:name="Transform Message" doc:id="bbc84190-d5f9-44bb-832c-57643418d284">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+vars.response default {} ++ { toxicity: payload}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+							</when>
+							<otherwise >
+								<ee:transform doc:name="Transform Message" doc:id="0ca15234-5147-4ff9-9766-b6e0e990525f">
+									<ee:message>
+										<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+vars.response default {}]]></ee:set-payload>
+									</ee:message>
+								</ee:transform>
+							</otherwise>
+						</choice>
+					</otherwise>
+				</choice>
+			</otherwise>
+		</choice>
+		<set-variable value="#[payload]" doc:name="Save Payload" doc:id="928045f7-813a-4ed3-83d2-b467f170bf25" variableName="payload"/>
+		<choice doc:name="Choice" doc:id="c507d2e5-e987-463f-8d1f-1e2d851438bc" >
+			<when expression='#[%dw 2.0&#10;import * from dw::util::Coercions&#10;output application/json&#10;---&#10;toBoolean(vars.voice default "false") == true]'>
+				<whisperer:text-to-speech doc:name="Text to Speech" doc:id="44fc3116-a173-4f76-a602-172914fbad99" config-ref="MAC_Whisperer_Config" >
+					<whisperer:text ><![CDATA[#[payload.payload.response]]]></whisperer:text>
+				</whisperer:text-to-speech>
+				<ee:transform doc:name="add base64String" doc:id="1f4c42db-c1be-4ac4-9509-333e697131d7" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+import toBase64 from dw::core::Binaries
+---
+{audio: toBase64(payload), question: vars.question} ++ vars.payload]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</when>
+			<otherwise >
+				<ee:transform doc:name="return payload" doc:id="41c54b25-f2d8-418d-98ee-2903e3051256" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+vars.payload
+
+ ]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</otherwise>
+		</choice>
+	</flow>
+	<flow name="mac-list-stores" doc:id="67a05135-6afe-41fd-acce-55acd0b83df0" >
+		<http:listener doc:name="Listener" doc:id="0218b6d7-847d-4401-909d-c7a44e16dfac" path="/getstores" config-ref="HTTP_Listener_config"/>
+		<db:select doc:name="Select all Stores" doc:id="1470b1f7-321d-4aca-a762-597ab9db1e4d" config-ref="Postgres_Database_Config">
+			<db:sql><![CDATA[SELECT TABLE_NAME
+FROM INFORMATION_SCHEMA.COLUMNS
+WHERE COLUMN_NAME = 'embedding_id'
+  AND TABLE_SCHEMA = 'public';]]></db:sql>
+		</db:select>
+		<ee:transform doc:name="Keep only fileNames" doc:id="3fa323f9-f4a9-444b-bff0-5c6bf40966dd" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+(payload map ((item) -> item.table_name))
+  orderBy lower($)]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+
+	</flow>
+	<flow name="mac-crawl-website" doc:id="0a8c272f-f668-4fc5-ba22-a8600b2acf1a" >
+		<http:listener doc:name="Listener" doc:id="fc0b6fef-d759-4a02-87e7-e7bee46abd6c" path="/crawl" config-ref="HTTP_Listener_config"/>
+		<set-variable value="#[payload.storeName]" doc:name="Set storeName Variable" doc:id="672b8870-1a19-4ac2-b5e3-3f36f328396b" variableName="storeName"/>
+		<ms-webcrawler:crawl-website-streaming doc:name="[Crawl] Website (Streaming)" doc:id="7a44009e-2e50-400c-8835-d9786179165b" url="#[payload.websiteUrl]" outputFormat="MARKDOWN" maxDepth="#[payload.depth]" config-ref="MuleSoft_WebCrawler_Connector_Config" restrictToPath="true"/>
+		<foreach doc:name="For Each" doc:id="b6bba50b-9412-4335-b09d-29daff0143ee" >
+			<set-variable value="#[payload.title]" doc:name="Set title Variable" doc:id="5a881959-e5b3-4cf6-8448-de5fc603f0bf" variableName="title"/>
+			<set-variable value="#[payload.url]" doc:name="Set url Variable" doc:id="1dc8bff4-e1fd-4f84-80da-a9e92c74e4dd" variableName="url"/>
+			<ms-vectors:transform-chunk-text doc:name="[Transform] Chunk text" doc:id="baddf615-086c-4050-ae64-99b2f04c68ed" maxSegmentSizeInChar="1500" maxOverlapSizeInChars="150">
+				<ms-vectors:text ><![CDATA[#[payload.content]]]></ms-vectors:text>
+			</ms-vectors:transform-chunk-text>
+			<ms-vectors:embedding-generate-from-text doc:name="[Embedding] Generate from text" doc:id="99613bf3-4158-4667-9299-d3d00041a220" config-ref="MuleSoft_Vectors_Connector_Embedding_config" embeddingModelName="text-embedding-3-small"/>
+			<ms-vectors:store-add doc:name="[Store] Add" doc:id="26197b8f-d620-4b5b-a3f1-5d530febd221" storeName="#[vars.storeName]" config-ref="MuleSoft_Vectors_Connector_Store_config"/>
+		</foreach>
+		<logger level="INFO" doc:name="Logger" doc:id="a8aa3940-4395-4236-bcd4-8921ff69c232" />
+		<ee:transform doc:name="Transform Message" doc:id="8136ba36-3e06-420d-8cea-0b1cec21d7e7" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<sub-flow name="mac-vector-store-chat-memory-retrieve" doc:id="883323f4-19c5-4fe1-a952-c7a79aef9ac1" >
+		<set-variable value="#[payload]" doc:name="Store User Prompt" doc:id="b8160220-8660-4263-97bb-57bcecfe0f6f" variableName="user_prompt" />
+		<os:retrieve doc:id="b8c3e6cb-6c82-4560-af27-e2d4b709e89f" key='#["user-1"]' target="memory" doc:name="Load Memory" objectStore="chatMemory">
+			<os:default-value ><![CDATA[#[output application/json
+---
+{
+	chat_history: []
+}]]]></os:default-value>
+		</os:retrieve>
+		<set-variable value='#[%dw 2.0&#10;output application/json&#10;var maxMessages = vars.maxMessages default 0&#10;var totalMessages = sizeOf(vars.memory.chat_history) default 0&#10;var difference = totalMessages - maxMessages&#10;---&#10;{&#10;  chat_history: if (difference &gt; 0) vars.memory.chat_history[difference to -1] else vars.memory.chat_history,&#10;}]' doc:name="set Memory" doc:id="b1aeda3f-c77d-4f25-b293-763e9ab864a8" variableName="memory"/>
+		<set-variable value='#[%dw 2.0&#10;output text/plain&#10;var history_prefix = "====== BEGIN CHAT HISTORY ======\n"&#10;var history_suffix = "====== END CHAT HISTORY ======\n\n"&#10;---&#10;vars.memory.chat_history reduce ((msg, acc=history_prefix) -&gt;&#10;    acc ++ "role: $(msg.role)\ntext: $(msg.text default "")\n"&#10;) ++ history_suffix]' doc:name="Build Chat History" doc:id="479e4f02-4bb9-4175-9d2a-ad2ab320300e" variableName="chat_history" />
+	</sub-flow>
+	<sub-flow name="mac-vector-store-chat-memory-update" doc:id="5394fd5b-b8ef-44ef-aa6e-0843f6486ccd" >
+		<set-variable value='#[output application/json&#10;---&#10;vars.memory update {&#10;	case history at .chat_history -&gt; history ++ [&#10;		{&#10;			role: "user",&#10;			text: vars.question&#10;		},&#10;		{&#10;			role: "assistant",&#10;			text: payload.payload.response default ""&#10;		}&#10;	]&#10;}]' doc:name="Update Chat History" doc:id="8e841a8c-5a5a-442e-afa6-27379035da8e" variableName="memory" />
+		<os:store doc:id="0e1ef269-2495-45cf-b292-70ed78874f87" key='#["user-1"]' doc:name="Update Memory" objectStore="chatMemory">
+			<os:value ><![CDATA[#[vars.memory]]]></os:value>
+		</os:store>
+	</sub-flow>
+	<flow name="mac-add-doc-to-store-url-listener" doc:id="06182606-bd5b-47d1-bfbc-8ee4a21c2c35" >
+		<http:listener doc:name="Listener" doc:id="7a6747a2-7501-4f4e-ac53-005a3057fc49" config-ref="HTTP_Listener_config" path="/docUrl" allowedMethods="POST" />
+		<flow-ref doc:name="Flow Reference" doc:id="151e38dd-a82b-428d-8f74-a87231751437" name="mac-add-doc-to-store-url-impl-Sub_Flow"/>
+	</flow>
+	<sub-flow name="mac-add-doc-to-store-url-impl-Sub_Flow" doc:id="3f5cda55-ef91-42b7-a129-a8528b2f8778" >
+		<logger level="INFO" doc:name="Logger" doc:id="ac9506de-9041-4491-af50-ed6a4324c9ca" message='#["START-add-document-to-store"]' category="aichain.log" />
+		<ms-vectors:transform-parse-document doc:name="[Transform] Parse document" doc:id="d372d303-0d19-4a9d-99ee-7d3338acbc33" config-ref="MuleSoft_Vectors_Connector_Transform_config">
+			<ms-vectors:document-parser-parameters >
+				<ms-vectors:multiformat-document-parser-parameters />
+			</ms-vectors:document-parser-parameters>
+		</ms-vectors:transform-parse-document>
+		<ms-vectors:transform-chunk-text doc:name="[Transform] Chunk text" doc:id="5a62f2b1-29be-4e90-a8bd-23b9fb7d88c4" />
+		<ms-vectors:store-add doc:name="[Store] Add" doc:id="afdc9035-5b48-47b3-87fd-124e28946f12" config-ref="MuleSoft_Vectors_Connector_Store_config" storeName="#[vars.storeName]"/>
+		<logger level="INFO" doc:name="Logger1" doc:id="f3a421c3-c3a0-4eed-b339-1007ec598931" message="#[%dw 2.0&#10;output application/json&#10;---&#10;payload]" />
+	</sub-flow>
+	<flow name="web-app-Flow" doc:id="3b60cbf2-e6bc-4622-b4a0-eca6fef637fe" >
+		<http:listener doc:name="Listener" doc:id="af651844-b6cf-48f3-8032-398a3afbc9ac" config-ref="HTTP_Listener_config" path="/web/*" />
+		<http:load-static-resource doc:name="Load static resource" doc:id="22180f47-bd74-4727-986a-459f5cc4a5df" resourceBasePath='#[mule.home ++ "/apps/" ++ app.name ++ "/webapp"]' />
+	</flow>
+</mule>
