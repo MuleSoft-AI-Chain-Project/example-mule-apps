@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:mcp="http://www.mulesoft.org/schema/mule/mcp"
+	xmlns:ms-vectors="http://www.mulesoft.org/schema/mule/ms-vectors"
+	xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:ms-inference="http://www.mulesoft.org/schema/mule/ms-inference"
+	xmlns:whisperer="http://www.mulesoft.org/schema/mule/whisperer"
+	xmlns:s3="http://www.mulesoft.org/schema/mule/s3"
+	xmlns:os="http://www.mulesoft.org/schema/mule/os" 
+	xmlns:ms-webcrawler="http://www.mulesoft.org/schema/mule/ms-webcrawler" xmlns:mulechain-voice="http://www.mulesoft.org/schema/mule/mulechain-voice" xmlns:jtokkit="http://www.mulesoft.org/schema/mule/jtokkit" xmlns:anypoint-mq="http://www.mulesoft.org/schema/mule/anypoint-mq" xmlns:mac-web-crawler="http://www.mulesoft.org/schema/mule/mac-web-crawler" xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:ms-aichain="http://www.mulesoft.org/schema/mule/ms-aichain" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ms-aichain http://www.mulesoft.org/schema/mule/ms-aichain/current/mule-ms-aichain.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+http://www.mulesoft.org/schema/mule/mac-web-crawler http://www.mulesoft.org/schema/mule/mac-web-crawler/current/mule-mac-web-crawler.xsd
+http://www.mulesoft.org/schema/mule/anypoint-mq http://www.mulesoft.org/schema/mule/anypoint-mq/current/mule-anypoint-mq.xsd
+http://www.mulesoft.org/schema/mule/jtokkit http://www.mulesoft.org/schema/mule/jtokkit/current/mule-jtokkit.xsd
+http://www.mulesoft.org/schema/mule/mulechain-voice http://www.mulesoft.org/schema/mule/mulechain-voice/current/mule-mulechain-voice.xsd
+http://www.mulesoft.org/schema/mule/ms-webcrawler http://www.mulesoft.org/schema/mule/ms-webcrawler/current/mule-ms-webcrawler.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+http://www.mulesoft.org/schema/mule/s3 http://www.mulesoft.org/schema/mule/s3/current/mule-s3.xsd
+http://www.mulesoft.org/schema/mule/whisperer http://www.mulesoft.org/schema/mule/whisperer/current/mule-whisperer.xsd
+http://www.mulesoft.org/schema/mule/ms-inference http://www.mulesoft.org/schema/mule/ms-inference/current/mule-ms-inference.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ms-vectors http://www.mulesoft.org/schema/mule/ms-vectors/current/mule-ms-vectors.xsd
+http://www.mulesoft.org/schema/mule/mcp http://www.mulesoft.org/schema/mule/mcp/current/mule-mcp.xsd">
+	<http:listener-config name="HTTP_Listener_config"
+		doc:name="HTTP Listener config"
+		doc:id="c5bd6230-74c4-4a7c-bc7b-96a0abc9f6fa">
+		<http:listener-connection host="0.0.0.0"
+			port="8081" />
+		<http:listener-interceptors>
+			<http:cors-interceptor>
+				<http:origins>
+					<http:public-resource />
+				</http:origins>
+			</http:cors-interceptor>
+		</http:listener-interceptors>
+	</http:listener-config>
+	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="7ac2fdfb-0c51-413c-a36a-55a441f4c72e" >
+		<http:request-connection host="localhost" port="8081" />
+	</http:request-config>
+	<global-property doc:name="Global Property" doc:id="38df4b37-6506-443f-8df0-11da2754a1b7" name="env" value="prd" />
+	<configuration-properties doc:name="Configuration properties" doc:id="48a42cda-8ae2-4b64-a718-d8a9ddbda572" file="${env}-properties.properties" />
+	<os:object-store name="chatMemory" doc:name="Object store" doc:id="8c0c9edb-7629-4bbf-96f7-a19ead58cd1c" persistent="false" />
+	<jtokkit:config name="JTokkit_Config" doc:name="JTokkit Config" doc:id="96d81862-4fbb-423d-883a-ecf3731fe92a" apiKey="${open.key}"/>
+	<ms-inference:text-generation-config name="OpenAI_MuleSoft_Inference_Text_generation_config" doc:name="MuleSoft Inference Text generation config" doc:id="dbb9684a-94bc-421b-ab25-be5dfb46c5b6" >
+		<ms-inference:openai-connection openAIModelName="#[vars.modelName]" apiKey="${open.key}" maxTokens="#[vars.maxToken]"/>
+	</ms-inference:text-generation-config>
+	<ms-inference:text-generation-config name="Mistral_MuleSoft_Inference_Text_generation_config" doc:name="MuleSoft Inference Text generation config" doc:id="0d60924d-ff63-4c55-b831-da77c67e4b2c" >
+		<ms-inference:mistralai-connection mistralAIModelName="#[vars.modelName]" apiKey="${mistral.key}" maxTokens="#[vars.maxToken]"/>
+	</ms-inference:text-generation-config>
+	<ms-inference:moderation-config name="Mistral_MuleSoft_Inference_Moderation_config" doc:name="MuleSoft Inference Moderation config" doc:id="cd7211bf-b589-495c-a414-0fd01850c902" >
+		<ms-inference:mistralai-moderation-connection apiKey="${mistral.key}" mistralAIModelName="mistral-moderation-latest"/>
+	</ms-inference:moderation-config>
+	<ms-inference:moderation-config name="OpenAI_MuleSoft_Inference_Moderation_config" doc:name="MuleSoft Inference Moderation config" doc:id="bf356efe-a23b-439c-b516-8c92d663a9fb" >
+		<ms-inference:openai-moderation-connection openAIModelName="omni-moderation-latest" apiKey="${open.key}" />
+	</ms-inference:moderation-config>
+	<db:config name="Postgres_Database_Config" doc:name="Database Config" doc:id="adcf1271-7cfb-418b-ac9c-5de2ca8cb048" >
+		<db:generic-connection url="${postgres.url}" driverClassName="org.postgresql.Driver" user="${postgres.user}" password="${postgres.password}" />
+	</db:config>
+	<ms-vectors:embedding-config name="MuleSoft_Vectors_Connector_Embedding_config" doc:name="MuleSoft Vectors Connector Embedding config" doc:id="14fcc4b6-f464-4481-9b36-578cf93f8e03" >
+		<ms-vectors:open-ai-connection apiKey="${open.key}"/>
+	</ms-vectors:embedding-config>
+	<ms-vectors:store-config name="MuleSoft_Vectors_Connector_Store_config" doc:name="MuleSoft Vectors Connector Store config" doc:id="b4d6a804-1bcb-4585-8b67-56cf1760076c" >
+		<ms-vectors:pg-vector-connection host="${postgres.host}" port="${postgres.port}" database="${postgres.database}" user="${postgres.user}" password="${postgres.password}"/>
+	</ms-vectors:store-config>
+	<ms-vectors:transform-config name="MuleSoft_Vectors_Connector_Transform_config" doc:name="MuleSoft Vectors Connector Transform config" doc:id="dd2ae23a-70e7-4f60-8428-ae8ffe899158" />
+	<whisperer:config name="MAC_Whisperer_Config" doc:name="MAC Whisperer Config" doc:id="04794e68-5b7b-43cc-8324-5a0910ea908b" >
+		<whisperer:openai-connection apiKey="${open.key}" />
+	</whisperer:config>
+	<mcp:client-config name="CRM_MCP_Client" doc:name="MCP Client" doc:id="35206664-fc32-4552-95ae-48bbbb56b2b3" clientName="Mule MCP Connector" clientVersion="1.0.0" >
+		<mcp:streamable-http-client-connection serverUrl="https://mcp-server-demo-crm-ch2-application-fjrr5q.5sc6y6-4.usa-e2.cloudhub.io/" />
+	</mcp:client-config>
+	<mcp:client-config name="ERP_MCP_Client" doc:name="MCP Client" doc:id="9fe84ce9-d735-49be-9198-9f6e0e21d348" clientName="Mule MCP Connector" clientVersion="1.0.0" >
+		<mcp:streamable-http-client-connection serverUrl="https://mcp-server-demo-erp-cqhd4c.i82zax.usa-e2.cloudhub.io/" />
+	</mcp:client-config>
+	<ms-webcrawler:config name="MuleSoft_WebCrawler_Connector_Config" doc:name="MuleSoft WebCrawler Connector Config" doc:id="552869dd-6c5d-4b20-b7da-20ad76e5596e" >
+		<ms-webcrawler:http-connection userAgent="Mozilla/5.0 (X11; Linux x86_64; rv:112.0) Gecko/20100101 Firefox/112.0" referrer="https://www.google.com" />
+	</ms-webcrawler:config>
+
+</mule>
