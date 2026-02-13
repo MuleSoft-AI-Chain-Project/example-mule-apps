@@ -23,8 +23,8 @@ tmp/**/*
 local.properties
 .settings/
 .loadpath
-#.project
-#.classpath
+.project
+.classpath
 
 # External tool builders
 .externalToolBuilders/
@@ -45,6 +45,8 @@ target/
 .mule/
 .DS_Store
 velocity.log
-/bin/
 
+# ------------------------------------------------------------------------------ #
+# ACB defaults #
+# ------------------------------------------------------------------------------ #
 .tooling-project
