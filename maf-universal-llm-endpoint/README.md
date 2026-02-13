@@ -1,4 +1,6 @@
-# Universal LLM Endpoint
+> ⚠️ **DEPRECATED:** This repository is no longer actively maintained and is not compatible with the latest MuleSoft Agent Network. Please don't use it. 
+
+# Universal LLM Endpoint ⚠️
 This is a template repository, which leverages the MuleSoft AI Chain Project connectors, to create a flexible MuleSoft Agent Broker compatible LLM endpoint via a MuleSoft Application. This MuleSoft Application supports the following provider using Inference + Einstein Connector:
 - OpenAI
 - OpenAI Compatible endpoint, i.e. Heroku, LMStudio, GPT4ALL, etc.
@@ -8,7 +10,7 @@ This is a template repository, which leverages the MuleSoft AI Chain Project con
 - Einstein Models API (Salesforce-managed models)
 - Gemini API
 
-#  Video Tutorial and Explaination 
+#  Video Tutorial and Explaination ⚠️
 Watch the youtube tutorial to use this app: https://youtu.be/-O0XKZNB8TM
 
 # Contributors
