@@ -1,0 +1,56 @@
+[
+  {
+    "0": {
+      "payload": {
+        "response": "ipsum",
+        "tools": [
+          {
+            "function": {
+              "name": "Amanda",
+              "arguments": "justo"
+            },
+            "id": "mi",
+            "type": "risus"
+          }
+        ]
+      },
+      "attributes": {
+        "additionalAttributes": {
+          "finishReason": "nisi",
+          "id": "tempor",
+          "model": "molestie",
+          "promptFilterResults": [
+            {
+              "promptIndex": 34
+            }
+          ]
+        },
+        "tokenUsage": {
+          "inputCount": 65,
+          "outputCount": 48,
+          "totalCount": 87
+        }
+      }
+    },
+    "1": {
+      "payload": "dictum",
+      "attributes": {
+        "additionalAttributes": {
+          "finishReason": "semper",
+          "id": "ut",
+          "model": "nunc",
+          "promptFilterResults": [
+            {
+              "promptIndex": 72
+            }
+          ]
+        },
+        "tokenUsage": {
+          "inputCount": 52,
+          "outputCount": 55,
+          "totalCount": 52
+        }
+      }
+    }
+  }
+]

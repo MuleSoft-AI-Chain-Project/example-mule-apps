@@ -1,0 +1,75 @@
+{
+  "basicConstraints": 48,
+  "criticalExtensionOIDs": [
+    "consectetur",
+    "nunc",
+    "a"
+  ],
+  "extendedKeyUsage": [
+    "dui",
+    "semper",
+    "libero"
+  ],
+  "extensions": [
+    {
+      "criticality": false,
+      "oid": "eros"
+    }
+  ],
+  "issuerAlternativeNames": [
+    {
+      "name": "Clemente",
+      "type": 18
+    }
+  ],
+  "issuerDN": {
+    "commonName": "venenatis",
+    "name": "Adrianne"
+  },
+  "issuerUniqueID": [
+    true,
+    true,
+    false
+  ],
+  "issuerX500Principal": {
+    "name": "Cliff"
+  },
+  "keyUsage": [
+    false,
+    false
+  ],
+  "name": "Alpha",
+  "nonCriticalExtensionOIDs": [
+    "arcu",
+    "erat"
+  ],
+  "notAfter": "2026-05-25",
+  "notBefore": "2025-07-21",
+  "publicKey": {
+    "algorithm": "ut",
+    "modulus": 45,
+    "params": 25,
+    "publicKey": "eros"
+  },
+  "serialNumber": 29,
+  "serialNumberObject": {
+    "serialNumber": 79
+  },
+  "sigAlgName": "felis",
+  "sigAlgOID": "tincidunt",
+  "subjectAlternativeNames": [
+    {
+      "name": "Allen",
+      "type": 5
+    }
+  ],
+  "subjectDN": {
+    "commonName": "lorem",
+    "name": "Adriana"
+  },
+  "subjectX500Principal": {
+    "name": "Alpha"
+  },
+  "type": "venenatis",
+  "version": 21
+}
