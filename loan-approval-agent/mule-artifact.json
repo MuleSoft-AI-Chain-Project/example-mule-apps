@@ -1,0 +1,6 @@
+{
+    "name": "loan-approval-agent",
+    "httpListenerConfig": {"defaultHttpService": "netty"},
+    "minMuleVersion": "4.10.1",
+    "javaSpecificationVersions": ["17"]
+}

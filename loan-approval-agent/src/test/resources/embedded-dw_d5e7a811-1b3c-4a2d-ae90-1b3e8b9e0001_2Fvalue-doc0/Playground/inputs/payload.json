@@ -1,0 +1,51 @@
+{
+  "configuration": {
+    "blocking": false,
+    "acceptedOutputModes": [
+      "sed",
+      "viverra",
+      "eros"
+    ],
+    "historyLength": 4,
+    "pushNotificationConfig": {
+      "id": "at",
+      "url": "http://Nam.com/41",
+      "token": "Lorem",
+      "authentication": {
+        "credentials": "ipsum",
+        "schemes": [
+          "a",
+          "convallis",
+          "Aliquam"
+        ]
+      }
+    }
+  },
+  "message": {
+    "extensions": [
+      "dictum",
+      "lectus"
+    ],
+    "role": "libero",
+    "referenceTaskIds": [
+      "ac",
+      "a",
+      "tempor"
+    ],
+    "parts": [
+      {
+        "file": {
+          "bytes": "molestie",
+          "name": "Adele",
+          "mimeType": "In",
+          "uri": "dictum"
+        },
+        "kind": "mi",
+        "text": "venenatis"
+      }
+    ],
+    "messageId": "Pellentesque",
+    "contextId": "nunc",
+    "taskId": "sit"
+  }
+}

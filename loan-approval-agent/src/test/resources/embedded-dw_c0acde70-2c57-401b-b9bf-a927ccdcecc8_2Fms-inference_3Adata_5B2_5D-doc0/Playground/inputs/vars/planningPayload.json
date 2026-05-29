@@ -1,0 +1,13 @@
+{
+  "response": "a",
+  "tools": [
+    {
+      "function": {
+        "name": "Carlo",
+        "arguments": "lorem"
+      },
+      "id": "libero",
+      "type": "risus"
+    }
+  ]
+}
