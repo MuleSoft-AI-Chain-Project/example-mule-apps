@@ -1,0 +1,22 @@
+{
+  "name": "Credit Scoring Agent",
+  "description": "This agent helps lenders and analysts evaluate the creditworthiness of an applicant by retrieving a credit score from the credit scoring service.",
+  "url": "http://localhost:8081/credit-scoring-agent",
+  "version": "1.0.0",
+  "protocolVersion": "0.4.0",
+  "capabilities": {
+    "streaming": false,
+    "pushNotifications": false,
+    "stateTransitionHistory": false
+  },
+  "defaultInputModes": ["text/plain"],
+  "defaultOutputModes": ["text/plain"],
+  "skills": [
+    {
+      "id": "1",
+      "name": "Get_Credit_Score",
+      "description": "Retrieves a credit score for an applicant. Applies whenever the user wants to score an applicant, get a credit score, check creditworthiness, or assess credit risk.",
+      "tags": ["credit", "score", "risk"]
+    }
+  ]
+}

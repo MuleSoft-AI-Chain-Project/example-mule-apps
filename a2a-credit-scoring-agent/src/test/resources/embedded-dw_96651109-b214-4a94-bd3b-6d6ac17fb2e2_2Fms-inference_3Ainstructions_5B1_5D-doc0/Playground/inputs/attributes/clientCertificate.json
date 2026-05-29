@@ -1,0 +1,74 @@
+{
+  "basicConstraints": 85,
+  "criticalExtensionOIDs": [
+    "Lorem",
+    "ut",
+    "Nunc"
+  ],
+  "extendedKeyUsage": [
+    "In",
+    "viverra"
+  ],
+  "extensions": [
+    {
+      "criticality": true,
+      "oid": "felis"
+    }
+  ],
+  "issuerAlternativeNames": [
+    {
+      "name": "Alicia",
+      "type": 84
+    }
+  ],
+  "issuerDN": {
+    "commonName": "pretium",
+    "name": "Alphonso"
+  },
+  "issuerUniqueID": [
+    false,
+    true
+  ],
+  "issuerX500Principal": {
+    "name": "Alethia"
+  },
+  "keyUsage": [
+    true,
+    true,
+    false
+  ],
+  "name": "Anastasia",
+  "nonCriticalExtensionOIDs": [
+    "arcu",
+    "molestie"
+  ],
+  "notAfter": "2022-06-29",
+  "notBefore": "2025-03-15",
+  "publicKey": {
+    "algorithm": "a",
+    "modulus": 31,
+    "params": 69,
+    "publicKey": "viverra"
+  },
+  "serialNumber": 34,
+  "serialNumberObject": {
+    "serialNumber": 10
+  },
+  "sigAlgName": "amet",
+  "sigAlgOID": "consectetur",
+  "subjectAlternativeNames": [
+    {
+      "name": "Alysa",
+      "type": 88
+    }
+  ],
+  "subjectDN": {
+    "commonName": "Pellentesque",
+    "name": "Buddy"
+  },
+  "subjectX500Principal": {
+    "name": "Coy"
+  },
+  "type": "sit",
+  "version": 54
+}
