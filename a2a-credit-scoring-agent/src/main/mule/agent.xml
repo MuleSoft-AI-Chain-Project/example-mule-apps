@@ -1,0 +1,339 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:a2a="http://www.mulesoft.org/schema/mule/a2a"
+	xmlns:ms-inference="http://www.mulesoft.org/schema/mule/ms-inference" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:tls="http://www.mulesoft.org/schema/mule/tls"
+	xmlns:mcp="http://www.mulesoft.org/schema/mule/mcp" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/tls http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/mcp http://www.mulesoft.org/schema/mule/mcp/current/mule-mcp.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/ms-inference http://www.mulesoft.org/schema/mule/ms-inference/current/mule-ms-inference.xsd
+http://www.mulesoft.org/schema/mule/a2a http://www.mulesoft.org/schema/mule/a2a/current/mule-a2a.xsd">
+	<mcp:client-config name="MCP_Client" doc:name="MCP Client" doc:id="abfb8147-30d7-4ea5-946d-8b3823cd1513" clientName="mule-mcp-client" clientVersion="1.0.0">
+		<mcp:streamable-http-client-connection requestTimeout="45" serverUrl="${mcp.host.url}" />
+	</mcp:client-config>
+	<ms-inference:text-generation-config name="GeminiConf" doc:name="MS Inference Text generation config" doc:id="5e72da85-de4f-4c56-a025-0a2aba9fc531" >
+		<ms-inference:gemini-connection geminiModelName="${llm.model.name}" apiKey="${llm.api.key}" timeout="60000" maxTokens="2000"/>
+	</ms-inference:text-generation-config>
+	<http:listener-config name="webApp" doc:name="HTTP Listener config" doc:id="3e126527-bea0-480d-a2db-0cab1a262e53" >
+		<http:listener-connection host="0.0.0.0" port="9081" readTimeout="6000000" />
+		<http:listener-interceptors >
+			<http:cors-interceptor >
+				<http:origins >
+					<http:public-resource />
+				</http:origins>
+			</http:cors-interceptor>
+		</http:listener-interceptors>
+	</http:listener-config>
+	<configuration-properties doc:name="Configuration properties" doc:id="05f0ac33-0e09-42e3-958c-d1eddf80bd99" file="config.properties" />
+	<http:listener-config name="A2A_Server_HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="376d1e7b-2abf-43a8-aa93-d5ee4f81f4ee" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<a2a:server-config name="A2A_Server" doc:name="A2A Server" doc:id="4cc50417-585b-4a23-b6d2-fce6c3ac37c1">
+		<a2a:connection listenerConfig="A2A_Server_HTTP_Listener_config" agentPath="/credit-scoring-agent" />
+		<a2a:agent-card>
+			<a2a:json><![CDATA[${agent.card.json}]]></a2a:json>
+		</a2a:agent-card>
+	</a2a:server-config>
+	<http:listener-config name="A2A_Client_HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="c1dea2d1-4921-449f-b037-e070b739a644" >
+		<http:listener-connection host="0.0.0.0" port="7081" />
+	</http:listener-config>
+	<a2a:client-config name="A2A_Client" doc:name="A2A Client" doc:id="89f19c54-cf49-4131-9fb8-ef74d705630c" >
+		<a2a:client-connection serverUrl="${agent.url}" requestTimeout="60" />
+	</a2a:client-config>
+	<configuration-properties doc:name="Configuration properties" doc:id="9c4c1fd7-af89-46c2-bff1-09694b6639f7" file="config.yaml" />
+	<sub-flow name="replan-tool-exec" doc:id="ee68ab09-68de-4465-8c25-865a84a75dd9">
+		<mcp:call-tool toolName="#[output application/json
+---
+vars.planningPayload.tools[(vars.counter default 1) as Number - 1].function.name default null]" doc:name="Call tool" doc:id="5f516dbe-c1f7-446c-a8e2-4fde6e83da16" config-ref="MCP_Client">
+			<mcp:arguments><![CDATA[#[%dw 2.0
+output application/json
+var arg = vars.planningPayload.tools[(vars.counter default 1) as Number - 1].function.arguments default {}
+---
+if (arg is String) read(arg, "application/json") else arg]]]></mcp:arguments>
+		</mcp:call-tool>
+		<ee:transform doc:name="ToolResponse" doc:id="4372063b-e450-4afa-8b98-073118d14bd7">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<ee:transform doc:name="Format" doc:id="fbc8f06d-56f0-42bb-86e0-7390cb3b95a4">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output text/plain
+---
+write(payload, "application/json")]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="9fffa2ba-191d-4ce3-9de7-3b0f339b8674" message="#['payload after the call tool' ++ payload]"/>
+	</sub-flow>
+	<!-- [STUDIO:"set-and-initialise-vars"]<sub-flow name="set-and-initialise-vars" doc:id="ddd5bf4b-9235-4b7e-9386-e400e5cd8410">
+		<set-variable value="#[payload.prompt&#93;" doc:name="Prompt" doc:id="26b1cd0c-3e34-4837-977a-793e3722bb61" variableName="userPrompt" />
+		<set-variable value='#["Tool results: "&#93;' doc:name="set multiTools results" doc:id="2242b8da-a134-4b72-9ffd-93b87f69b91d" variableName="multiToolsResult" />
+		<set-variable value="#[[&#93;&#93;" doc:name="set toolsUsed" doc:id="fd4e589e-fbe2-4275-baee-34e135b771bf" variableName="toolsUsed" />
+		<set-variable value='#[{"tools":  [&#93;}&#93;' doc:name="Set Tool Planning" doc:id="96b639fe-f99d-49b2-ae37-65df5d3ee7dd" variableName="planningPayload"/>
+		<mcp:list-tools doc:name="List tools" doc:id="833b4712-aed2-47e8-a025-043081579464" config-ref="MCP_Client" />
+		<ee:transform doc:name="Save all available tools into the right format" doc:id="d43c0f0d-cb63-437c-935b-e3d73d432e72" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="tools" ><![CDATA[%dw 2.0
+output application/json
+&#45;&#45;-
+{
+  tools: payload map (item) -> {
+    "type": "function",
+    function: {
+      name: item.name,
+      description: item.description,
+      parameters: {
+        "type": "object",
+        properties: (read(item.inputSchema, "application/json").properties default {}),
+        required: (read(item.inputSchema, "application/json").required default [&#93;)
+      }
+    }
+  }
+}&#93;&#93;></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+	</sub-flow> [STUDIO] -->
+	<sub-flow name="set-and-initialise-vars-a2a-agent" doc:id="a43ce58c-e841-440e-9fcf-f534601d9c6f">
+		<set-variable value='#[payload.message.parts[0].text default ""]' doc:name="Prompt" doc:id="efe3f6e3-a8ea-4ea8-ae95-edfb5d7ba4b2" variableName="userPrompt" />
+		<set-variable value="#[attributes.taskId default uuid()]" doc:name="Set Task Id" doc:id="4d3a116c-c8cc-4208-accf-32a8ba33f904" variableName="taskId" />
+		<set-variable value='#[(attributes.contextId) default ""]' doc:name="Set context Id" doc:id="ce3ac3ad-6298-401d-b7ff-ce641c10a151" variableName="contextId" />
+		<set-variable value="#[payload.message.messageId]" doc:name="Set Message Id" doc:id="0c8b59e6-78e5-49df-a13a-a58ac8772a0f" variableName="messageId" />
+		<set-variable value='#["Tool results: "]' doc:name="set multiTools results" doc:id="9f51a056-50c0-4946-929a-4d06efbe899b" variableName="multiToolsResult" />
+		<set-variable value="#[[]]" doc:name="set toolsUsed" doc:id="448cf75b-e4ac-4d8c-9a71-7ef98f6296b8" variableName="toolsUsed" />
+		<set-variable value="#[[]]" doc:name="set toolResults" doc:id="d5e7a811-1b3c-4a2d-ae90-1b3e8b9e0001" variableName="toolResults" />
+		<set-variable value='#[{"tools":  []}]' doc:name="Set Tool Planning" doc:id="757132fb-4604-4bcd-a3d6-1b7e027c1a0c" variableName="planningPayload"/>
+		<mcp:list-tools doc:name="List tools" doc:id="be1abede-9220-4ea9-9d50-fe7f5cfa0c58" config-ref="MCP_Client" />
+		<ee:transform doc:name="Save all available tools into the right format" doc:id="bf64db27-3fb2-409a-ab4f-4bf31179e3bd" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="tools" ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  tools: payload map (item) -> {
+    "type": "function",
+    function: {
+      name: item.name,
+      description: item.description,
+      parameters: {
+        "type": "object",
+        properties: (read(item.inputSchema, "application/json").properties default {}),
+        required: (read(item.inputSchema, "application/json").required default [])
+      }
+    }
+  }
+}]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+	</sub-flow>
+	
+	<sub-flow name="create-plan" doc:id="ef9c2d20-7967-4d7c-b56a-ddd9af66c363" >
+		<scatter-gather doc:name="Scatter-Gather" doc:id="4411dda8-14f0-4ad2-adbd-38d12f69f73f" >
+			<route >
+				<ms-inference:agent-define-prompt-template doc:name="Create Plan" doc:id="96651109-b214-4a94-bd3b-6d6ac17fb2e2" config-ref="GeminiConf" >
+					<ms-inference:template ><![CDATA[You are a planner agent. You answer general question based on your knowledge. Things you know of without making up things.]]></ms-inference:template>
+					<ms-inference:instructions ><![CDATA[#[p('planner.instruction')]]]></ms-inference:instructions>
+					<ms-inference:data ><![CDATA[#["Users query: " ++ (vars.userPrompt as String) ++
+", Current Observation through called tools: " ++ (vars.multiToolsResult as String) ++ 
+", last tools used: " ++ (write(vars.toolsUsed default {}, "application/json") as String)]]]></ms-inference:data>
+				</ms-inference:agent-define-prompt-template>
+				<set-variable value='#[%dw 2.0&#10;output application/json&#10;&#10;var raw = (payload.response default payload) as String&#10;// Strip code fences, /* */ comments, // comments, then trailing commas&#10;var cleaned =&#10;    ((((raw replace /^\s*```(?:json)?\s*/ with "")&#10;          replace /\s*```\s*$/ with "")&#10;          replace /\/\*[\s\S]*?\*\// with "")&#10;          replace /\/\/[^\r\n]*/ with "")&#10;          replace /,(\s*[}\]])/ with "$1"&#10;&#10;---&#10;if (payload.response is Object)&#10;  payload.response&#10;else&#10;  read(cleaned, "application/json")]' doc:name="Set multiTools" doc:id="0706208a-5c3c-490e-aed5-f29226042e44" variableName="multiTools" />
+				<logger level="INFO" doc:name="Logger" doc:id="07ff3afb-91c5-4e0f-9798-2b01fc9a8db2" message="#[%dw 2.0
+output application/json
+---
+'multiTools' ++ write(vars.multiTools, &quot;application/json&quot;)]"/>
+			</route>
+			<route >
+				<ee:transform doc:name="Transform Message" doc:id="6234d6b6-37a2-4912-af8f-bf0e92d63171" >
+					<ee:message >
+					</ee:message>
+					<ee:variables >
+						<ee:set-variable variableName="inputData" ><![CDATA[%dw 2.0
+output application/java
+---
+"Users query: " ++ (vars.userPrompt as String) ++ 
+", Current Observation through called tools: " ++ (vars.multiToolsResult as String) ++ 
+", last tools used: " ++ (write(vars.toolsUsed default {}, "application/json") as String)]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+				<logger level="INFO" doc:name="Logger" doc:id="4dec8d6a-348d-4450-bd05-d66634666666" message='#[vars.inputData]'/>
+				<ms-inference:tools-native-template doc:name="Determine the tools to invoke using LLM" doc:id="cfbc5b7f-311d-44e1-a4e6-04d84ba5e0cf" config-ref="GeminiConf" target="planningPayload" >
+					<ms-inference:template ><![CDATA[You are a planner agent. You answer general question based on your knowledge. Things you know of without making up things.]]></ms-inference:template>
+					<ms-inference:instructions ><![CDATA[#[p('reasoning.instruction')]]]></ms-inference:instructions>
+					<ms-inference:data ><![CDATA[#["Users query: " ++ (vars.userPrompt as String) ++
+", Current Observation through called tools: " ++ (vars.multiToolsResult as String) ++ 
+", last tools used: " ++ (write(vars.toolsUsed default {}, "application/json") as String)]]]></ms-inference:data>
+					<ms-inference:tools ><![CDATA[#[vars.tools.tools]]]></ms-inference:tools>
+				</ms-inference:tools-native-template>
+				<logger level="INFO" doc:name="Logger" doc:id="d3546097-868c-49dc-a038-97be23f3ee56" message="#[%dw 2.0
+output application/json
+---
+'mcp tools' ++ write(payload, &quot;application/json&quot;)]"/>
+			</route>
+		</scatter-gather>
+		<flow-ref doc:name="Assess and execute" doc:id="4b3e7994-d7fa-4461-aab1-08594f6f41ec" name="assess-and-execute"/>
+	</sub-flow>
+	<sub-flow name="assess-and-execute" doc:id="76d7a961-764e-43d6-ab34-95ca7968d3bb" >
+		<choice doc:name="Choice" doc:id="13e33c57-5e5b-409f-a824-8f9b8a370cfe" >
+			<when expression="#[(sizeOf(vars.planningPayload.tools default []) &gt; 0)]" >
+				<set-variable value='#[%dw 2.0 output application/json --- vars.toolsUsed ++ vars.planningPayload.tools]' doc:name="Set Variable" doc:id="c61b8fe9-8b71-456c-99bc-a7d6b78f33f6" variableName="toolsUsed"/>
+				<foreach doc:name="For Each" doc:id="a8ffc23a-7e5c-435c-8578-3eb610826d42" collection="#[vars.planningPayload.tools]" >
+					<flow-ref doc:name="Execute Single Iteration" doc:id="bfffaaf2-f3c1-41a9-86b4-7cc5a23b3f77" name="replan-tool-exec" />
+					<set-variable value='#[%dw 2.0 output text/plain --- vars.multiToolsResult ++ "/n" ++ vars.counter as String ++ " - " ++ payload]' doc:name="multiToolsResult" doc:id="2331bfe5-b0f8-4362-bfc0-404f8a6160d0" variableName="multiToolsResult" />
+					<set-variable value='#[%dw 2.0
+output application/java
+import try from dw::Runtime
+var idx = (vars.counter default 1) as Number - 1
+var toolCall = vars.planningPayload.tools[idx]
+var rawArgs = toolCall.function.arguments default {}
+var parsedArgs = if (rawArgs is String) read(rawArgs, "application/json") else rawArgs
+var resultStr = (payload default "") as String
+var parsedResult = try(() -&gt; read(resultStr, "application/json"))
+---
+vars.toolResults ++ [{
+  tool: toolCall.function.name default null,
+  arguments: parsedArgs,
+  result: if (parsedResult.success) parsedResult.result else resultStr
+}]]' doc:name="toolResults" doc:id="d5e7a811-1b3c-4a2d-ae90-1b3e8b9e0002" variableName="toolResults" />
+				</foreach>
+				<choice doc:name="Choice" doc:id="7c217439-6bf7-4ba0-a4a6-7f1b1b942cbe" >
+					<when expression="#[(vars.multiTools.multiTools == true)]">
+						<flow-ref doc:name="Replanning" doc:id="2ff30bb8-1e65-4ef0-8357-f718aa0dc8ab" name="create-plan"/>
+					</when>
+				</choice>
+				<ms-inference:agent-define-prompt-template doc:name="Reply to user using tool call" doc:id="c0acde70-2c57-401b-b9bf-a927ccdcecc8" config-ref="GeminiConf">
+					<ms-inference:template><![CDATA[ You are a helpful agent. Don't provide instructions to the users.]]></ms-inference:template>
+					<ms-inference:instructions><![CDATA[Please answer the users question based on the tool calls. You have to consider the tool calls, and reply as if you have done the job and offer assistance in future. Don't say things like 'I'm here to help with your question!' or 'I'm here to help!', answer straight.
+Lead with the credit score returned by GetCreditScore. State the numeric score and, if present, the band. Do not invent numbers — only cite values that appear in the tool calls. Never disclose the applicant's full national ID or SSN; reference only the last 4 digits if at all.]]></ms-inference:instructions>
+					<ms-inference:data><![CDATA[#["Tool calls: " ++ vars.multiToolsResult as String ++ ", question: " ++ vars.userPrompt as String]]]></ms-inference:data>
+				</ms-inference:agent-define-prompt-template>
+			</when>
+			<otherwise >
+				<set-payload value="#[vars.planningPayload]" doc:name="Set Payload" doc:id="28ce85a6-b882-48a7-a9d4-77c81adf9962" />
+			</otherwise>
+		</choice>
+	</sub-flow>
+	<!-- [STUDIO:"main-flow-mac-mcp-demo"]<flow name="main-flow-mac-mcp-demo" doc:id="fabd6ae4-c505-40b7-bf1d-8c89c7e92633" >
+		<http:listener doc:name="Listener" doc:id="797008a6-1a85-43f4-9dee-674caf4a0479" config-ref="webApp" path="/prompt"/>
+		<flow-ref doc:name="Setting defaults" doc:id="0bd14f38-e566-4250-b792-5cfe2a5cf4b6" name="set-and-initialise-vars" />
+		<flow-ref doc:name="Create a plan" doc:id="067466fb-4810-4172-a137-f253edc309ab" name="create-plan"/>
+		<ee:transform doc:name="Transform Message" doc:id="35fccb0b-b048-4b79-bb38-0cad7b66b278" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+&#45;&#45;-
+if (payload.tools?)
+    (payload update {
+        case .tools -> "not used"
+    }) ++ { plan: "General Knowledge" }
+else
+    payload ++ { tools: "used" } ++ vars.multiTools&#93;&#93;></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow> [STUDIO] -->
+	<flow name="agentFlow" doc:id="c9833b3a-94ec-4973-92f3-4b6fac96a71a" >
+		<!-- [STUDIO:"Scheduler"]<scheduler doc:name="Scheduler" doc:id="037b8b20-8126-4a11-91ef-b1f047cb1f91" >
+			<scheduling-strategy >
+				<fixed-frequency frequency="30" timeUnit="SECONDS"/>
+			</scheduling-strategy>
+		</scheduler> [STUDIO] -->
+		<mcp:ping doc:name="MCP Client - Ping" doc:id="6dc46212-f02d-4ece-9d5b-3cce16d78ed0" config-ref="MCP_Client"/>
+	</flow>
+	<!-- [STUDIO:"load-main-page-Flow"]<flow name="load-main-page-Flow" doc:id="2b31fa74-10f2-4697-89d6-24808d3ad99b" >
+		<http:listener doc:name="HTML Listener" doc:id="a21f26fe-ab46-4185-ab86-1e0fe7876978" config-ref="webApp" path="/web/*" />
+		<http:load-static-resource doc:name="Load main page" doc:id="c27fd91e-b6e3-4024-a5a9-1c676098970d" resourceBasePath='#[mule.home ++ "/apps/" ++ app.name ++ "/webapp"&#93;' />
+	</flow> [STUDIO] -->
+	<flow name="A2AClientHTTPListener" doc:id="34566267-6d4b-4722-a881-299a137e8c71" >
+		<http:listener doc:name="Listener" doc:id="f244fde1-fa14-487c-a684-53de72cbdb9a" config-ref="A2A_Client_HTTP_Listener_config" path="/a2a-client"/>
+		<ee:transform doc:name="Transform Message" doc:id="d2ea61d3-b090-4248-9b70-332b1e07f186">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"id": uuid(),
+	"sessionId": uuid(),
+	"message": {
+		"kind": "message",
+		"messageId": uuid(),
+		"role": "user",
+		"parts": [
+			{
+				"kind": "text",
+				"text": payload.prompt as String
+			}
+		]
+	}
+}
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<a2a:send-message doc:name="Send message" doc:id="4d163f43-78b7-489b-91f8-848d3e6f2d59" config-ref="A2A_Client">
+			<a2a:message ><![CDATA[#[payload]]]></a2a:message>
+		</a2a:send-message>
+	</flow>
+	<flow name="A2AAgentFlow" doc:id="b05c760b-c679-4b7e-8b4c-5efddb4f24f9" >
+		<a2a:task-listener doc:name="Task Listener" doc:id="f4bf38a5-47f0-43cc-b9ca-bb970747c47a" config-ref="A2A_Server"/>
+		<logger level="INFO" doc:name="Logger" doc:id="e51caaa0-4a70-4fa9-8818-dca7cfdcc0f6" message="#[payload]"/>
+		<flow-ref doc:name="Setting defaults" doc:id="966a72ba-fe01-48a1-843f-b76a4da03d9a" name="set-and-initialise-vars-a2a-agent" />
+		<flow-ref doc:name="Create a plan" doc:id="3b9a1b45-2b3b-403e-92b5-145a52917e19" name="create-plan" />
+		<ee:transform doc:name="Prepare A2A Server Response" doc:id="0b9b44b4-ae5a-457b-884f-bab9dd714cd6" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  id: vars.taskId,                 // REQUIRED Task.id (must not be null)
+  kind: "task",
+  contextId: vars.contextId,       // use the passed-in context, not a new uuid
+  status: {
+    state: "completed"
+  },
+  metadata: {},
+  artifacts: [
+    {
+      artifactId: uuid(),
+      name: "task",
+      parts: [
+        {
+          kind: "text",
+          text: (payload.response default "") as String
+        },
+        {
+          kind: "data",
+          data: {
+            toolResults: vars.toolResults default []
+          }
+        }
+      ]
+    }
+  ],
+  history: [
+    {
+      role: "user",
+      kind: "message",
+      parts: [
+        {
+          kind: "text",
+          text: (vars.userPrompt default "") as String
+        }
+      ],
+      messageId: vars.messageId,
+      taskId: vars.taskId,
+      contextId: vars.contextId
+    }
+  ]
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>

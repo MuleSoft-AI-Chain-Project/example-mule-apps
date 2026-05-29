@@ -1,0 +1,76 @@
+{
+  "basicConstraints": 67,
+  "criticalExtensionOIDs": [
+    "Aliquam",
+    "sed",
+    "dui"
+  ],
+  "extendedKeyUsage": [
+    "molestie",
+    "molestie",
+    "nunc"
+  ],
+  "extensions": [
+    {
+      "criticality": true,
+      "oid": "sit"
+    }
+  ],
+  "issuerAlternativeNames": [
+    {
+      "name": "Aline",
+      "type": 20
+    }
+  ],
+  "issuerDN": {
+    "commonName": "Lorem",
+    "name": "An"
+  },
+  "issuerUniqueID": [
+    false,
+    false
+  ],
+  "issuerX500Principal": {
+    "name": "Alanna"
+  },
+  "keyUsage": [
+    true,
+    false,
+    true
+  ],
+  "name": "Adela",
+  "nonCriticalExtensionOIDs": [
+    "libero",
+    "Lorem",
+    "lorem"
+  ],
+  "notAfter": "2023-03-14",
+  "notBefore": "2022-07-04",
+  "publicKey": {
+    "algorithm": "nibh",
+    "modulus": 39,
+    "params": 42,
+    "publicKey": "semper"
+  },
+  "serialNumber": 36,
+  "serialNumberObject": {
+    "serialNumber": 38
+  },
+  "sigAlgName": "at",
+  "sigAlgOID": "mi",
+  "subjectAlternativeNames": [
+    {
+      "name": "Calvin",
+      "type": 3
+    }
+  ],
+  "subjectDN": {
+    "commonName": "felis",
+    "name": "Christian"
+  },
+  "subjectX500Principal": {
+    "name": "Aletha"
+  },
+  "type": "pretium",
+  "version": 68
+}
