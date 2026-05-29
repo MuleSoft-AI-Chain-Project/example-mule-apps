@@ -5,7 +5,25 @@ description: Scaffold a new A2A (Agent-to-Agent) Mule application by copying the
 
 # New A2A agent (scaffold from credit-scoring template)
 
-Creates a new Mule A2A agent by copying `~/projects/active/a2a-credit-scoring-agent/` and rewriting the parts that vary per agent. The template is a known-working **plan-then-execute** loop with Planner LLM + Reasoner LLM + MCP tool calling + A2A server/client.
+Creates a new Mule A2A agent by copying the `a2a-credit-scoring-agent` template and rewriting the parts that vary per agent. The template is a known-working **plan-then-execute** loop with Planner LLM + Reasoner LLM + MCP tool calling + A2A server/client.
+
+## Resolving the template source
+
+The template lives in the public repo [MuleSoft-AI-Chain-Project/example-mule-apps](https://github.com/MuleSoft-AI-Chain-Project/example-mule-apps) under `a2a-credit-scoring-agent/`. The skill is portable across developers — resolve the source path in this order:
+
+1. **`A2A_TEMPLATE_DIR` env var** — if set, use it directly. Lets users override.
+2. **Local clone** — if `~/projects/active/a2a-credit-scoring-agent/` exists, use it.
+3. **Sparse-clone from GitHub** — last resort:
+   ```bash
+   TPL=$(mktemp -d)
+   git clone --depth=1 --filter=blob:none --sparse \
+     https://github.com/MuleSoft-AI-Chain-Project/example-mule-apps.git "$TPL"
+   git -C "$TPL" sparse-checkout set a2a-credit-scoring-agent
+   TEMPLATE_SRC="$TPL/a2a-credit-scoring-agent"
+   ```
+   Tell the user the clone is temporary and will be discarded after scaffolding.
+
+Use `$TEMPLATE_SRC` (resolved above) wherever the steps below say "the template".
 
 ## Inputs needed
 
@@ -41,10 +59,12 @@ Get explicit confirmation. **Don't skip this.**
 ### 2. Copy the template
 
 ```bash
-cp -R ~/projects/active/a2a-credit-scoring-agent ~/projects/active/<agent-name>
+cp -R "$TEMPLATE_SRC" ~/projects/active/<agent-name>
 cd ~/projects/active/<agent-name>
-rm -rf target .mule .vscode
+rm -rf target .mule .vscode .git
 ```
+
+(`.git` removal only matters if `$TEMPLATE_SRC` was a fresh clone — otherwise the directory won't have one.)
 
 Then delete files that shouldn't carry over:
 - `target/`, `.mule/`, `.vscode/launch.json` if present
