@@ -1,0 +1,24 @@
+{
+  "main": "agent-network.yaml",
+  "name": "it-investigation-network",
+  "classifier": "agentic-network",
+  "organizationId": "{ENTER YOUR ORG ID HERE}",
+  "descriptorVersion": "1.0.0",
+  "apiVersion": "v1",
+  "tags": [],
+  "metadata": {
+    "variables": {
+      "openai": {
+        "apiKey": {
+          "description": "OpenAI API key",
+          "default": "",
+          "secret": true
+        }
+      }
+    }
+  },
+  "dependencies": [],
+  "groupId": "{ENTER YOUR ORG ID HERE}",
+  "assetId": "it-investigation-network",
+  "version": "0.0.0"
+}

@@ -1,0 +1,170 @@
+agentNetwork: 2.0.0
+info:
+  label: "IT Help Investigation Agent Network"
+  version: v1
+registry:
+  agents:
+    help_center_agent:
+      info:
+        label: Help Center Agent
+      metadata:
+        platform: Other
+        interfaces:
+          a2a_v03:
+            card:
+              name: Help Center Agent
+              description: Searches the IT knowledge base for answers to common issues. Returns relevant articles with step-by-step instructions.
+              url: http://localhost:8080/helpCenterAgent
+              protocolVersion: 0.3.0
+              version: 1.0.0
+              capabilities:
+                pushNotifications: false
+              defaultInputModes:
+                - application/json
+                - text/plain
+              defaultOutputModes:
+                - application/json
+                - text/plain
+              skills:
+                - id: knowledge-search
+                  name: Knowledge Base Search
+                  description: Search for IT help articles and known solutions.
+                  tags:
+                    - knowledge-base
+                    - it-support
+                  examples:
+                    - How do I reset my VPN password?
+                    - My email is not syncing
+                    - How do I set up two-factor authentication?
+                  inputModes:
+                    - application/json
+                    - text/plain
+                  outputModes:
+                    - application/json
+                    - text/plain
+    license_procurement_agent:
+      info:
+        label: License Procurement Agent
+      metadata:
+        platform: Other
+        interfaces:
+          a2a_v03:
+            card:
+              name: License Procurement Agent
+              description: Checks software license availability and provisions licenses for employees.
+              url: http://localhost:8080/licenseProcurementAgent
+              protocolVersion: 0.3.0
+              version: 1.0.0
+              capabilities:
+                pushNotifications: false
+              defaultInputModes:
+                - application/json
+                - text/plain
+              defaultOutputModes:
+                - application/json
+                - text/plain
+              skills:
+                - id: license-check
+                  name: License Check and Provision
+                  description: Check license availability and provision for a user.
+                  tags:
+                    - licensing
+                    - provisioning
+                  examples:
+                    - Provision a Figma license for jane.doe@company.com
+                    - Check if we have available GitHub Enterprise seats
+                    - I need access to Jira
+                  inputModes:
+                    - application/json
+                    - text/plain
+                  outputModes:
+                    - application/json
+                    - text/plain
+  mcps:
+    escalation_mcp:
+      info:
+        label: Escalation MCP Server
+      metadata:
+        transport:
+          kind: streamableHttp
+          path: /mcp
+    jira_mcp:
+      info:
+        label: Jira MCP Server
+      metadata:
+        transport:
+          kind: streamableHttp
+          path: /mcp
+  llms:
+    openai_mini:
+      info:
+        label: GPT-5.4 Mini
+      metadata:
+        platform: OpenAI
+    bedrock_openai:
+      info:
+        label: Bedrock OpenAI
+      metadata:
+        platform: OpenAI
+context:
+  connections:
+    help_center_agent_connection:
+      kind: a2a
+      ref:
+        name: help_center_agent
+      url: https://www.a2d-ai.com/api/platform/a626be9a-c2e8-4c66-b927-08b364d7814d/a2a
+    license_procurement_agent_connection:
+      kind: a2a
+      ref:
+        name: license_procurement_agent
+      url: https://www.a2d-ai.com/api/platform/de8ab8b5-a2c7-470b-91ba-99ccf191734c/a2a
+    escalation_mcp_connection:
+      kind: mcp
+      ref:
+        name: escalation_mcp
+      url: https://www.a2d-ai.com/api/platform/7d7ed142-32b5-4589-a285-0da266b85e25/
+    jira_mcp_connection:
+      kind: mcp
+      ref:
+        name: jira_mcp
+      url: https://www.a2d-ai.com/api/platform/b57202bb-baa0-4b96-aa82-eeb178303da8/
+    openai_mini_connection:
+      kind: llm
+      ref:
+        name: openai_mini
+      url: https://api.openai.com/v1
+      authentication:
+        kind: apiKey
+        apiKey: ${openai.apiKey}
+    # bedrock_openai_connection:
+    #   kind: llm
+    #   ref:
+    #     name: bedrock_openai
+    #   url: https://bedrock-mantle.us-east-2.api.aws/openai/v1
+    #   authentication:
+    #     kind: apiKey
+    #     apiKey: ${openai.apiKey}
+brokers:
+  it_help_investigation:
+    kind: AgentScript
+    implementation: ./brokers/it-help-investigation.agent
+    interfaces:
+      a2a:
+        card:
+          name: IT Help Desk Broker
+          description: Triages IT support tickets, escalates critical issues, and resolves common problems through cross-platform investigation.
+          version: 1.0.0
+          capabilities:
+            streaming: false
+            pushNotifications: true
+          defaultInputModes:
+            - text/plain
+          defaultOutputModes:
+            - text/plain
+          skills:
+            - id: ticket-triage
+              name: IT Ticket Triage
+              description: Classifies and resolves IT support tickets.
+              tags:
+                - it-support
+                - help-desk
