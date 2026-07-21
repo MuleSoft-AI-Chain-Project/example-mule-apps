@@ -1,0 +1,24 @@
+{
+    "response": {
+        "results": [
+            {
+                "category_scores": {
+                    "illicit/violent": 0.0000021782649863110498,
+                    "self-harm/instructions": 0.00022076651366724855,
+                    "harassment": 0.964407258189577,
+                    "violence/graphic": 0.000004400118457925303,
+                    "illicit": 0.000014653129390717958,
+                    "self-harm/intent": 0.00021575330372933303,
+                    "hate/threatening": 0.0000011478768127080353,
+                    "sexual/minors": 0.000001670142184809518,
+                    "harassment/threatening": 0.0007552556355312161,
+                    "hate": 0.007762222657222242,
+                    "self-harm": 0.00046285603828612274,
+                    "sexual": 0.00009110511944006454,
+                    "violence": 0.0004893563764018274
+                },
+                "flagged": true
+            }
+        ]
+    }
+}
